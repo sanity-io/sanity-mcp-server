@@ -14,6 +14,7 @@ export interface InitialContext {
   dataset?: string;
   embeddingsIndices?: any[];
   documentTypes?: any[];
+  activeReleases?: any[];
   note: string;
   warning?: string;
   requiredVariables?: string[];

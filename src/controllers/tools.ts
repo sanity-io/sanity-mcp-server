@@ -55,6 +55,15 @@ export function getToolDefinitions(): ToolDefinition[] {
             { allTypes: false }
           );
           
+          // Get all releases
+          const releasesResult = await releasesController.listReleases(
+            config.projectId,
+            config.dataset || "production"
+          );
+          
+          // Filter only active (non-archived) releases
+          const activeReleases = releasesResult.releases.filter(release => !release.archived);
+          
           return {
             message: "Welcome to the Sanity MCP Server!",
             instructions: "For this prototype, please only query the following Sanity project and dataset:",
@@ -62,7 +71,8 @@ export function getToolDefinitions(): ToolDefinition[] {
             dataset: config.dataset || "production",
             embeddingsIndices: embeddingsIndices || [], // listEmbeddingsIndices returns an array directly
             documentTypes: schemaTypes || [], // schemaTypes is already an array of objects with name and type
-            note: "Future versions will support querying any project the user has access to, but for now, please restrict queries to this specific project and dataset."
+            activeReleases: activeReleases || [], // Include only non-archived releases
+            note: `Future versions will support querying any project the user has access to, but for now, please restrict queries to this specific project and dataset. ${activeReleases.length > 0 ? `There are currently ${activeReleases.length} active releases that you can work with.` : 'There are currently no active releases.'}`
           };
         } catch (error) {
           // If we encounter an error fetching the additional data, fall back to basic info
