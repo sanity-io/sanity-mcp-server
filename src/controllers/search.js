@@ -47,8 +47,9 @@ export async function listEmbeddingsIndices({
     }
 
     // API endpoint format for listing embeddings indices
-    const apiVersion = 'v2023-10-01'; // Current API version
-    const embeddingsEndpoint = `https://${projectId}.api.sanity.io/${apiVersion}/embeddings-index/${dataset}`;
+    // According to docs: https://www.sanity.io/docs/embeddings-index-http-api-reference
+    // The correct format is: https://<projectId>.api.sanity.io/vX/embeddings-index/<dataset-name>
+    const embeddingsEndpoint = `https://${projectId}.api.sanity.io/vX/embeddings-index/${dataset}`;
     
     // Request to embeddings API
     const response = await fetch(embeddingsEndpoint, {
@@ -90,7 +91,7 @@ export async function listEmbeddingsIndices({
  * @param {string[]} options.types - Optional filter to select specific document types
  * @param {string} options.projectId - The Sanity project ID to use (defaults to config.projectId)
  * @param {string} options.dataset - The dataset to search in (defaults to config.dataset)
- * @returns {Promise<Object>} Search results with scores and total count
+ * @returns {Promise<Object>} Search results with hits and total properties
  */
 export async function semanticSearch(query, { 
   indexName,
@@ -123,9 +124,9 @@ export async function semanticSearch(query, {
     }
 
     // According to docs: https://www.sanity.io/docs/embeddings-index-http-api-reference 
-    // API endpoint format is: https://<projectId>.api.sanity.io/vX/embeddings-index/query/<dataset-name>/<index-name>
-    const apiVersion = 'v2023-10-01'; // Current API version
-    const embeddingsEndpoint = `https://${projectId}.api.sanity.io/${apiVersion}/embeddings-index/query/${dataset}/${indexName}`;
+    // API endpoint format for querying an embeddings index is:
+    // https://<projectId>.api.sanity.io/vX/embeddings-index/query/<dataset-name>/<index-name>
+    const embeddingsEndpoint = `https://${projectId}.api.sanity.io/vX/embeddings-index/query/${dataset}/${indexName}`;
     
     // Request to embeddings API
     const embeddingsResponse = await fetch(embeddingsEndpoint, {
@@ -143,40 +144,6 @@ export async function semanticSearch(query, {
     });
 
     if (!embeddingsResponse.ok) {
-      // If first attempt fails with 404, try fallback endpoint format
-      if (embeddingsResponse.status === 404) {
-        // Try the fallback endpoint - some Sanity setups might use a different path format
-        const fallbackEndpoint = `https://${projectId}.api.sanity.io/${apiVersion}/embeddings-index/${dataset}/${indexName}`;
-        
-        const fallbackResponse = await fetch(fallbackEndpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Authorization': `Bearer ${config.sanityToken}`
-          },
-          body: JSON.stringify({
-            query: query,
-            limit: maxResults,
-            filter: types && types.length > 0 ? `_type in [${types.map(t => `"${t}"`).join(',')}]` : undefined
-          })
-        });
-        
-        if (fallbackResponse.ok) {
-          const results = await fallbackResponse.json();
-          
-          // If using old API format, transform to match new format for consistent output
-          if (results.results && results.totalCount !== undefined) {
-            return {
-              hits: results.results,
-              total: results.totalCount
-            };
-          }
-          
-          return results;
-        }
-      }
-      
       // Handle specific error cases with helpful messages
       if (embeddingsResponse.status === 401 || embeddingsResponse.status === 403) {
         throw new Error("Authentication failed: Your Sanity token is invalid or doesn't have access to embeddings.");
@@ -188,20 +155,30 @@ export async function semanticSearch(query, {
       }
     }
     
-    const results = await embeddingsResponse.json();
+    const rawResults = await embeddingsResponse.json();
     
-    // The API may return an empty array if no results are found
-    if (!results.hits || results.hits.length === 0) {
-      return { 
-        hits: [], 
-        total: 0 
+    // The API returns an array of results, not an object
+    // Transform to our expected format with hits and total properties for consistency
+    if (Array.isArray(rawResults)) {
+      return {
+        hits: rawResults,
+        total: rawResults.length
       };
     }
     
-    return results;
+    // If for some reason we get an object with hits already, just return it
+    if (rawResults.hits) {
+      return rawResults;
+    }
+    
+    // If we somehow got an empty response or invalid format
+    return { 
+      hits: [], 
+      total: 0 
+    };
   } catch (error) {
     // Provide a helpful error message with additional context
     const errorMessage = error instanceof Error ? error.message : String(error);
-    throw new Error(`Sanity semantic search failed: ${errorMessage} - Make sure the '${indexName}' embeddings index exists in the '${dataset}' dataset.`);
+    throw new Error(`Failed to perform semantic search: ${errorMessage}`);
   }
 }
