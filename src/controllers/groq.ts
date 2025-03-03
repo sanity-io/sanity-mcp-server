@@ -208,28 +208,72 @@ export async function getGroqSpecification(): Promise<{
       throw new Error(`Failed to fetch GROQ specification, status: ${response.status}`);
     }
     
-    // For a real implementation, you would parse the HTML or use a proper API
-    // For now, we'll return a mocked version of the specification
-    
     return {
       specification: {
         name: "GROQ",
+        version: "1.0",
         description: "GROQ (Graph-Relational Object Queries) is a query language for JSON-like data structures that enables you to filter and join data from multiple collections without explicit joins.",
         coreFeatures: [
           "Filtering with predicates and operators",
           "Projections to shape the returned data",
           "Joins across documents without explicit join syntax",
-          "Aggregation and grouping"
+          "Aggregation and grouping",
+          "Ordering and slicing results"
+        ],
+        queryStructure: [
+          {
+            name: "Dataset selector",
+            description: "Select the dataset to query, defaults to the current dataset",
+            syntax: "*",
+            example: "*[_type == 'post']"
+          },
+          {
+            name: "Filter",
+            description: "Filter documents using conditions inside square brackets",
+            syntax: "[<condition>]",
+            example: "*[_type == 'post' && publishedAt > '2023-01-01']"
+          },
+          {
+            name: "Projection",
+            description: "Shape the returned data using a projection object",
+            syntax: "{<field>, <field2>}",
+            example: "*[_type == 'post']{title, body, author}"
+          },
+          {
+            name: "References",
+            description: "Follow references to other documents",
+            syntax: "<reference>->",
+            example: "*[_type == 'post']{title, 'authorName': author->name}"
+          },
+          {
+            name: "Ordering",
+            description: "Order results",
+            syntax: "order(<field> [asc|desc])",
+            example: "*[_type == 'post'] | order(publishedAt desc)"
+          },
+          {
+            name: "Slicing",
+            description: "Limit the number of results",
+            syntax: "[<start>...<end>]",
+            example: "*[_type == 'post'] | order(publishedAt desc)[0...10]"
+          }
         ],
         operators: [
-          { name: "==", description: "Equal to" },
-          { name: "!=", description: "Not equal to" },
-          { name: ">", description: "Greater than" },
-          { name: ">=", description: "Greater than or equal to" },
-          { name: "<", description: "Less than" },
-          { name: "<=", description: "Less than or equal to" },
-          { name: "in", description: "Check if value exists in an array" },
-          { name: "match", description: "Check if string matches a pattern" }
+          { name: "==", description: "Equal to", example: "_type == 'post'" },
+          { name: "!=", description: "Not equal to", example: "_type != 'page'" },
+          { name: ">", description: "Greater than", example: "publishedAt > '2023-01-01'" },
+          { name: ">=", description: "Greater than or equal to", example: "views >= 100" },
+          { name: "<", description: "Less than", example: "price < 50" },
+          { name: "<=", description: "Less than or equal to", example: "stock <= 10" },
+          { name: "in", description: "Check if value exists in an array", example: "'fiction' in categories" },
+          { name: "match", description: "Check if string matches a pattern", example: "title match 'coffee*'" },
+          { name: "&&", description: "Logical AND", example: "_type == 'post' && published == true" },
+          { name: "||", description: "Logical OR", example: "_type == 'post' || _type == 'article'" },
+          { name: "!", description: "Logical NOT", example: "!draft" },
+          { name: "?", description: "Conditional selector (if condition is met)", example: "featured ? title : null" },
+          { name: "count()", description: "Count items", example: "count(*[_type == 'post'])" },
+          { name: "defined()", description: "Check if field is defined", example: "defined(imageUrl)" },
+          { name: "references()", description: "Check if document references another", example: "references('doc-id')" }
         ],
         examples: [
           {
@@ -247,12 +291,39 @@ export async function getGroqSpecification(): Promise<{
           {
             description: "Filter posts by published date",
             query: "*[_type == 'post' && publishedAt > '2023-01-01']"
+          },
+          {
+            description: "Get the 10 latest posts",
+            query: "*[_type == 'post'] | order(publishedAt desc)[0...10]"
+          },
+          {
+            description: "Count posts by category",
+            query: "*[_type == 'category']{name, 'count': count(*[_type == 'post' && references(^._id)])}"
+          },
+          {
+            description: "Get posts with specific fields and follow author reference",
+            query: "*[_type == 'post']{title, body, 'author': author->{name, 'imageUrl': image.asset->url}}"
+          },
+          {
+            description: "Full-text search in post titles",
+            query: "*[_type == 'post' && title match 'design*']"
           }
+        ],
+        functions: [
+          { name: "count()", description: "Counts the number of items in an array", example: "count(*[_type == 'post'])" },
+          { name: "defined()", description: "Checks if a property is defined", example: "*[_type == 'post' && defined(imageUrl)]" },
+          { name: "references()", description: "Checks if a document references another", example: "*[_type == 'post' && references('author-id')]" },
+          { name: "order()", description: "Orders results by a property", example: "*[_type == 'post'] | order(publishedAt desc)" },
+          { name: "now()", description: "Returns the current datetime", example: "*[_type == 'post' && publishedAt < now()]" },
+          { name: "coalesce()", description: "Returns the first non-null value", example: "coalesce(subtitle, title, 'Untitled')" },
+          { name: "select()", description: "Selects value based on a condition", example: "select(_type == 'post' => title, _type == 'page' => heading, 'Unknown')" },
+          { name: "length()", description: "Returns the length of a string or array", example: "*[_type == 'post' && length(tags) > 3]" }
         ],
         resources: [
           { name: "GROQ documentation", url: "https://www.sanity.io/docs/groq" },
           { name: "GROQ cheat sheet", url: "https://www.sanity.io/docs/query-cheat-sheet" },
-          { name: "Learn GROQ", url: "https://groq.dev/" }
+          { name: "Learn GROQ", url: "https://groq.dev/" },
+          { name: "GROQ specification", url: "https://sanity-io.github.io/GROQ/" }
         ]
       },
       source: "https://sanity-io.github.io/GROQ/"
