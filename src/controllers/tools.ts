@@ -56,13 +56,19 @@ export function getToolDefinitions(): ToolDefinition[] {
           );
           
           // Get all releases
-          const releasesResult = await releasesController.listReleases(
-            config.projectId,
-            config.dataset || "production"
-          );
-          
-          // Filter only active (non-archived) releases
-          const activeReleases = releasesResult.releases.filter(release => !release.archived);
+          let activeReleases: any[] = [];
+          try {
+            const releasesResult = await releasesController.listReleases(
+              config.projectId,
+              config.dataset || "production"
+            );
+            
+            // Filter only active (non-archived) releases
+            activeReleases = releasesResult.releases.filter(release => !release.archived);
+          } catch (error) {
+            console.error('Error fetching releases:', error);
+            // Continue with empty releases array
+          }
           
           return {
             message: "Welcome to the Sanity MCP Server!",
