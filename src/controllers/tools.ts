@@ -458,6 +458,50 @@ export function getToolDefinitions(): ToolDefinition[] {
     },
     
     {
+      name: 'mutateDocument',
+      description: 'Performs multiple mutation operations on a single document',
+      parameters: z.object({
+        documentId: z.string().describe('ID of the document to mutate'),
+        mutations: z.object({
+          create: z.record(z.any()).optional().describe('Create the document if it doesn\'t exist (must include _id)'),
+          createOrReplace: z.record(z.any()).optional().describe('Create or replace the document'),
+          patch: z.object({
+            set: z.record(z.any()).optional().describe('Fields to set'),
+            setIfMissing: z.record(z.any()).optional().describe('Fields to set only if missing'),
+            unset: z.array(z.string()).optional().describe('Fields to unset'),
+            inc: z.record(z.number()).optional().describe('Fields to increment'),
+            dec: z.record(z.number()).optional().describe('Fields to decrement'),
+            insert: z.record(z.any()).optional().describe('Fields to insert at position')
+          }).optional().describe('The patch operations to apply')
+        }).describe('Mutation operations to perform on the document'),
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)'),
+        returnDocument: z.boolean().optional().default(true).describe('If true, returns the mutated document')
+      }),
+      handler: async ({ documentId, mutations, projectId, dataset, returnDocument }: { documentId: string, mutations: Record<string, any>, projectId: string, dataset: string, returnDocument?: boolean }) => {
+        let sanityMutations = [];
+        
+        if (mutations.create) {
+          const create = { ...mutations.create };
+          if (!create._id) create._id = documentId;
+          sanityMutations.push({ create });
+        }
+        
+        if (mutations.createOrReplace) {
+          const createOrReplace = { ...mutations.createOrReplace };
+          if (!createOrReplace._id) createOrReplace._id = documentId;
+          sanityMutations.push({ createOrReplace });
+        }
+        
+        if (mutations.patch) {
+          sanityMutations.push({ patch: { id: documentId, ...mutations.patch } });
+        }
+        
+        return await mutateController.modifyDocuments(projectId, dataset, sanityMutations, returnDocument);
+      }
+    },
+    
+    {
       name: 'deleteDocument',
       description: 'Deletes a document',
       parameters: z.object({

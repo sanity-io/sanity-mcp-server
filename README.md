@@ -19,6 +19,46 @@ This server implements the MCP protocol using stdio transport, making it suitabl
   - `schema.ts`: Schema type information
   - `tools.ts`: Tool definitions for MCP
 
+## Available Tools
+
+The server provides the following tools:
+
+- **GROQ Queries**
+  - `query`: Executes GROQ queries (formerly `searchContent`)
+  - `subscribeToUpdates`: Subscribes to real-time updates for documents
+  - `getGroqSpecification`: Gets the GROQ query language specification
+
+- **Document Retrieval**
+  - `getDocument`: Gets a single document by ID
+  - `getDocuments`: Gets multiple documents by their IDs
+
+- **Document Mutations**
+  - `createDocument`: Creates a new document
+  - `updateDocument`: Updates an existing document
+  - `mutateDocument`: Performs multiple operations on a single document
+  - `deleteDocument`: Deletes a document
+  - `batchMutations`: Performs multiple mutations across different documents
+  - `updatePortableText`: Updates Portable Text fields (formerly `modifyPortableTextField`)
+
+- **Document Actions**
+  - `publishDocument`: Publishes a document
+  - `unpublishDocument`: Unpublishes a document
+  - `createRelease`: Creates a new content release
+  - `addDocumentToRelease`: Adds a document to a content release
+  - `listReleaseDocuments`: Lists documents in a release
+
+- **Schema Management**
+  - `listSchemaTypes`: Lists available schema types
+  - `getTypeSchema`: Gets detailed schema for a specific type
+
+- **Embeddings and Semantic Search**
+  - `semanticSearch`: Performs semantic search on embeddings indices
+  - `listEmbeddingsIndices`: Lists available embeddings indices
+
+- **Project Management**
+  - `listOrganizationsAndProjects`: Lists all organizations and their projects
+  - `listStudios`: Lists all studios for a specific project
+
 ## Installation
 
 ```bash
@@ -87,45 +127,12 @@ For Anthropic's Claude AI, you can configure it to use this MCP server by adding
         "SANITY_TOKEN": "your_sanity_api_token",
         "SANITY_PROJECT_ID": "your_sanity_project_id",
         "SANITY_DATASET": "your_sanity_dataset",
-        "SANITY_API_VERSION": "2023-03-15",
-        "OPENAI_API_KEY": "your_openai_api_key"
+        "SANITY_API_VERSION": "2025-03-15"
       }
     }
   ]
 }
 ```
-
-## Available Tools
-
-The server provides the following tools:
-
-- **GROQ Queries**
-  - `searchContent`: Searches for content using GROQ query language
-  - `subscribeToUpdates`: Subscribes to real-time updates for documents
-  - `getGroqSpecification`: Gets the GROQ query language specification
-
-- **Schema Management**
-  - `listSchemaTypes`: Lists available schema types
-  - `getTypeSchema`: Gets detailed schema for a specific type
-
-- **Document Actions**
-  - `publishDocument`: Publishes a document
-  - `unpublishDocument`: Unpublishes a document
-  - `createRelease`: Creates a new content release
-  - `addDocumentToRelease`: Adds a document to a content release
-  - `listReleaseDocuments`: Lists documents in a release
-
-- **Document Mutations**
-  - `modifyDocuments`: Performs document mutations (create, update, delete)
-  - `modifyPortableTextField`: Modifies Portable Text fields
-
-- **Embeddings and Semantic Search**
-  - `semanticSearch`: Performs semantic search on embeddings indices
-  - `listEmbeddingsIndices`: Lists available embeddings indices
-
-- **Project Management**
-  - `listOrganizationsAndProjects`: Lists all organizations and their projects
-  - `listStudios`: Lists all studios for a specific project
 
 ## Environment Variables
 
