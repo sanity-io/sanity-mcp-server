@@ -50,7 +50,17 @@ export async function createRelease(
     };
   } catch (error: any) {
     console.error(`Error creating release ${releaseId}:`, error);
-    throw new Error(`Failed to create release: ${error.message}`);
+    
+    // Check for common issues
+    if (error.message?.includes('API version')) {
+      throw new Error(`Failed to create release: Make sure you're using API version 2025-02-19 or later.`);
+    } else if (error.statusCode === 404 || error.message?.includes('not found')) {
+      throw new Error(`Failed to create release: The Content Releases feature might not be enabled for this project or the API token lacks permissions.`);
+    } else if (error.statusCode === 401 || error.statusCode === 403 || error.message?.includes('Not authorized')) {
+      throw new Error(`Failed to create release: Authentication failed. Check that your Sanity token has permission to create releases.`);
+    } else {
+      throw new Error(`Failed to create release: ${error.message}`);
+    }
   }
 }
 
@@ -305,7 +315,17 @@ export async function listReleases(
     };
   } catch (error: any) {
     console.error(`Error listing releases:`, error);
-    throw new Error(`Failed to list releases: ${error.message}`);
+    
+    // Check for common issues
+    if (error.message?.includes('Unknown GROQ function "releases::all"')) {
+      throw new Error(`Failed to list releases: The releases::all() function is not available. Make sure you're using API version 2025-02-19 or later.`);
+    } else if (error.statusCode === 404) {
+      throw new Error(`Failed to list releases: The Content Releases feature might not be enabled for this project or the API token lacks permissions.`);
+    } else if (error.statusCode === 401 || error.statusCode === 403) {
+      throw new Error(`Failed to list releases: Authentication failed. Check that your Sanity token has permission to access releases.`);
+    } else {
+      throw new Error(`Failed to list releases: ${error.message}`);
+    }
   }
 }
 
