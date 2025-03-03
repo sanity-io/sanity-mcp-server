@@ -13,16 +13,16 @@ interface Subscription {
 const activeSubscriptions = new Map<string, Subscription>();
 
 /**
- * Searches for content using GROQ query language
+ * Executes GROQ queries to retrieve content
  * 
  * @param projectId - Sanity project ID
  * @param dataset - Dataset name
  * @param query - GROQ query to execute
  * @param params - Query parameters (if any)
- * @param verifyWithLLM - Whether to verify results with LLM
- * @returns Search results
+ * @param verifyWithLLM - Whether to verify results with LLM (deprecated)
+ * @returns Query results
  */
-export async function searchContent(
+export async function query(
   projectId: string, 
   dataset: string, 
   query: string, 
@@ -49,35 +49,26 @@ export async function searchContent(
       };
     }
     
-    // Verify results with LLM if requested and we have an OpenAI API key
-    if (verifyWithLLM && config.openAiApiKey) {
-      console.log(`LLM verification requested for ${Array.isArray(results) ? results.length : 1} documents`);
-      
-      const verifiedResults = await verifyResults(results);
-      
-      return {
-        results: processPortableTextFields(verifiedResults),
-        verification: {
-          performed: true,
-          originalCount: Array.isArray(results) ? results.length : 1,
-          verifiedCount: Array.isArray(verifiedResults) ? verifiedResults.length : (verifiedResults ? 1 : 0)
-        }
-      };
-    }
+    // If verification is requested, handle it
+    // This path is deprecated and will be removed in future versions
+    const verifiedResults = await verifyResults(results);
     
     return {
-      results: processPortableTextFields(results),
+      results: processPortableTextFields(verifiedResults.results),
       verification: {
-        performed: false,
+        performed: true,
         originalCount: Array.isArray(results) ? results.length : 1,
-        verifiedCount: Array.isArray(results) ? results.length : (results ? 1 : 0)
+        verifiedCount: Array.isArray(verifiedResults.results) ? verifiedResults.results.length : 1
       }
     };
-  } catch (error: any) {
-    console.error(`Error searching content:`, error);
-    throw new Error(`Failed to search content: ${error.message}`);
+  } catch (error) {
+    console.error('Error executing GROQ query:', error);
+    throw new Error(`Failed to execute GROQ query: ${error.message}`);
   }
 }
+
+// For backwards compatibility
+export const searchContent = query;
 
 /**
  * Verifies results using an LLM

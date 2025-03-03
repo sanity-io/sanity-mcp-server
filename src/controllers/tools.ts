@@ -118,20 +118,46 @@ export function getToolDefinitions(): ToolDefinition[] {
       }
     },
     
-    // Content tools
+    // GROQ tools
     {
-      name: 'searchContent',
-      description: 'Searches for content using GROQ queries',
+      name: 'getGroqSpecification',
+      description: 'Get the GROQ query language specification with examples and documentation',
+      parameters: z.object({}),
+      handler: async () => {
+        return await groqController.getGroqSpecification();
+      }
+    },
+    
+    {
+      name: 'query',
+      description: 'Executes GROQ queries to retrieve content',
       parameters: z.object({
         query: z.string().describe('The GROQ query to execute'),
         params: z.record(z.any()).optional().describe('Query parameters'),
         projectId: z.string().describe('The Sanity project ID'),
         dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
-      handler: async ({ query, params, projectId, dataset }: { query: string, params?: Record<string, any>, projectId: string, dataset: string }) => {
-        // Fixed parameter order to match function signature:
-        // searchContent(projectId, dataset, query, params = {}, verifyWithLLM = false)
+      handler: async ({ query, params, projectId, dataset }: { 
+        query: string, 
+        params?: Record<string, any>, 
+        projectId: string, 
+        dataset: string
+      }) => {
+        // Fixed parameter order to match function signature
         return await groqController.searchContent(projectId, dataset, query, params || {});
+      }
+    },
+    
+    {
+      name: 'getDocuments',
+      description: 'Gets multiple documents by their IDs',
+      parameters: z.object({
+        documentIds: z.array(z.string()).describe('Array of document IDs to retrieve'),
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
+      }),
+      handler: async ({ documentIds, projectId, dataset }: { documentIds: string[], projectId: string, dataset: string }) => {
+        return await groqController.searchContent(projectId, dataset, '*[_id in $documentIds]', { documentIds });
       }
     },
     
@@ -148,7 +174,21 @@ export function getToolDefinitions(): ToolDefinition[] {
       }
     },
     
-    // Action tools
+    // Document tools
+    {
+      name: 'getDocument',
+      description: 'Gets a specific document by ID',
+      parameters: z.object({
+        documentId: z.string().describe('The ID of the document to retrieve'),
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
+      }),
+      handler: async ({ documentId, projectId, dataset }: { documentId: string, projectId: string, dataset: string }) => {
+        return await groqController.searchContent(projectId, dataset, '*[_id == $documentId][0]', { documentId });
+      }
+    },
+    
+    // Document operations
     {
       name: 'publishDocument',
       description: 'Publishes a draft document',
@@ -380,8 +420,60 @@ export function getToolDefinitions(): ToolDefinition[] {
     
     // Mutation tools
     {
-      name: 'modifyDocuments',
-      description: 'Creates, updates or deletes documents',
+      name: 'createDocument',
+      description: 'Creates a new document',
+      parameters: z.object({
+        document: z.record(z.any()).describe('The document to create'),
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)'),
+        returnDocument: z.boolean().optional().default(true).describe('If true, returns the created document')
+      }),
+      handler: async ({ document, projectId, dataset, returnDocument }: { document: Record<string, any>, projectId: string, dataset: string, returnDocument?: boolean }) => {
+        const mutations = [{ create: document }];
+        return await mutateController.modifyDocuments(projectId, dataset, mutations, returnDocument);
+      }
+    },
+    
+    {
+      name: 'updateDocument',
+      description: 'Updates an existing document with new data',
+      parameters: z.object({
+        documentId: z.string().describe('ID of the document to update'),
+        patch: z.object({
+          set: z.record(z.any()).optional().describe('Fields to set'),
+          setIfMissing: z.record(z.any()).optional().describe('Fields to set only if missing'),
+          unset: z.array(z.string()).optional().describe('Fields to unset'),
+          inc: z.record(z.number()).optional().describe('Fields to increment'),
+          dec: z.record(z.number()).optional().describe('Fields to decrement'),
+          insert: z.record(z.any()).optional().describe('Fields to insert at position')
+        }).describe('The patch operations to apply'),
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)'),
+        returnDocument: z.boolean().optional().default(true).describe('If true, returns the updated document')
+      }),
+      handler: async ({ documentId, patch, projectId, dataset, returnDocument }: { documentId: string, patch: Record<string, any>, projectId: string, dataset: string, returnDocument?: boolean }) => {
+        const mutations = [{ patch: { id: documentId, ...patch } }];
+        return await mutateController.modifyDocuments(projectId, dataset, mutations, returnDocument);
+      }
+    },
+    
+    {
+      name: 'deleteDocument',
+      description: 'Deletes a document',
+      parameters: z.object({
+        documentId: z.string().describe('ID of the document to delete'),
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
+      }),
+      handler: async ({ documentId, projectId, dataset }: { documentId: string, projectId: string, dataset: string }) => {
+        const mutations = [{ delete: { id: documentId } }];
+        return await mutateController.modifyDocuments(projectId, dataset, mutations);
+      }
+    },
+    
+    {
+      name: 'batchMutations',
+      description: 'Performs multiple document mutations in a single batch operation',
       parameters: z.object({
         mutations: z.array(z.object({
           create: z.record(z.any()).optional(),
@@ -403,13 +495,12 @@ export function getToolDefinitions(): ToolDefinition[] {
         returnDocuments: z.boolean().optional().default(false).describe('If true, returns the modified documents')
       }),
       handler: async ({ mutations, projectId, dataset, returnDocuments }: { mutations: any[], projectId: string, dataset: string, returnDocuments?: boolean }) => {
-        // Fixed: modifyDocuments takes 3 parameters: projectId, dataset, mutations
-        return await mutateController.modifyDocuments(projectId, dataset, mutations);
+        return await mutateController.modifyDocuments(projectId, dataset, mutations, returnDocuments);
       }
     },
     
     {
-      name: 'modifyPortableTextField',
+      name: 'updatePortableText',
       description: 'Updates a portable text field using operations',
       parameters: z.object({
         documentId: z.string().describe('ID of the document containing the portable text field'),
@@ -421,15 +512,15 @@ export function getToolDefinitions(): ToolDefinition[] {
           value: z.any().optional()
         })).describe('Operations to perform on the portable text field'),
         projectId: z.string().describe('The Sanity project ID'),
-        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)'),
+        returnDocument: z.boolean().optional().default(true).describe('If true, returns the updated document')
       }),
-      handler: async ({ documentId, fieldPath, operations, projectId, dataset }: { documentId: string, fieldPath: string, operations: any[], projectId: string, dataset: string }) => {
-        // Fixed: order should be projectId, dataset, documentId, fieldPath, operations
-        return await mutateController.modifyPortableTextField(projectId, dataset, documentId, fieldPath, operations);
+      handler: async ({ documentId, fieldPath, operations, projectId, dataset, returnDocument }: { documentId: string, fieldPath: string, operations: any[], projectId: string, dataset: string, returnDocument?: boolean }) => {
+        return await mutateController.modifyPortableTextField(projectId, dataset, documentId, fieldPath, operations, returnDocument);
       }
     },
     
-    // Search tools
+    // Embeddings tools
     {
       name: 'listEmbeddingsIndices',
       description: 'Lists available embeddings indices in a dataset',
@@ -457,29 +548,6 @@ export function getToolDefinitions(): ToolDefinition[] {
         return await embeddingsController.semanticSearch(query, { indexName, maxResults, types, projectId, dataset });
       }
     },
-    
-    // Get GROQ specification
-    {
-      name: 'getGroqSpecification',
-      description: 'Get the GROQ query language specification with examples and documentation',
-      parameters: z.object({}),
-      handler: async () => {
-        return await groqController.getGroqSpecification();
-      }
-    },
-    
-    // List embeddings indices
-    {
-      name: 'listEmbeddingsIndices',
-      description: 'Lists available embeddings indices in a dataset',
-      parameters: z.object({
-        projectId: z.string().describe('The Sanity project ID'),
-        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
-      }),
-      handler: async ({ projectId, dataset }: { projectId: string, dataset: string }) => {
-        return await embeddingsController.listEmbeddingsIndices({ projectId, dataset });
-      }
-    }
   ];
 }
 

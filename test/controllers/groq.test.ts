@@ -111,7 +111,7 @@ describe('GROQ Controller', () => {
       mockClient.fetch.mockRejectedValueOnce(new Error('GROQ syntax error'));
       
       await expect(searchContent('project123', 'dataset123', '*')).rejects.toThrow(
-        'Failed to search content: GROQ syntax error'
+        'Failed to execute GROQ query: GROQ syntax error'
       );
     });
   });

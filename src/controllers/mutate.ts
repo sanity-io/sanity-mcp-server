@@ -94,16 +94,19 @@ export interface PortableTextOperation {
  * @param projectId - Sanity project ID
  * @param dataset - Dataset name
  * @param mutations - Array of mutation objects following Sanity mutation format
+ * @param returnDocuments - Whether to return modified documents in response
  * @returns Result of the mutations operation
  */
 export async function modifyDocuments(
   projectId: string, 
   dataset: string, 
-  mutations: Mutation[]
+  mutations: Mutation[],
+  returnDocuments: boolean = false
 ): Promise<{
   success: boolean;
   message: string;
   result: any;
+  documents?: any[];
 }> {
   try {
     const client = createSanityClient(projectId, dataset);
@@ -205,11 +208,30 @@ export async function modifyDocuments(
     // Commit the transaction
     const result = await transaction.commit();
     
-    return {
-      success: true,
-      message: `Successfully applied ${mutations.length} mutations`,
-      result
-    };
+    if (returnDocuments) {
+      const documents = await Promise.all(mutations.map(async (mutation) => {
+        if ('create' in mutation || 'createOrReplace' in mutation || 'createIfNotExists' in mutation) {
+          return client.getDocument(mutation.create._id);
+        } else if ('patch' in mutation) {
+          return client.getDocument(mutation.patch.id);
+        } else {
+          return null;
+        }
+      }));
+      
+      return {
+        success: true,
+        message: `Successfully applied ${mutations.length} mutations`,
+        result,
+        documents: documents.filter(Boolean)
+      };
+    } else {
+      return {
+        success: true,
+        message: `Successfully applied ${mutations.length} mutations`,
+        result
+      };
+    }
   } catch (error: any) {
     console.error(`Error modifying documents:`, error);
     throw new Error(`Failed to modify documents: ${error.message}`);
@@ -224,6 +246,7 @@ export async function modifyDocuments(
  * @param documentId - Document ID to modify
  * @param fieldPath - Path to the Portable Text field (e.g., "body")
  * @param operations - Array of operations to perform on the field
+ * @param returnDocument - Whether to return the modified document
  * @returns Result of the modification operation
  */
 export async function modifyPortableTextField(
@@ -231,13 +254,15 @@ export async function modifyPortableTextField(
   dataset: string, 
   documentId: string, 
   fieldPath: string, 
-  operations: PortableTextOperation[]
+  operations: PortableTextOperation[],
+  returnDocument: boolean = false
 ): Promise<{
   success: boolean;
   message: string;
   documentId: string;
   operations: number;
   result: any;
+  document?: any;
 }> {
   try {
     const client = createSanityClient(projectId, dataset);
@@ -343,13 +368,26 @@ export async function modifyPortableTextField(
     // Commit the patches
     const result = await patch.commit();
     
-    return {
-      success: true,
-      message: `Modified Portable Text field '${fieldPath}' in document ${documentId}`,
-      documentId,
-      operations: operations.length,
-      result
-    };
+    if (returnDocument) {
+      const document = await client.getDocument(documentId);
+      
+      return {
+        success: true,
+        message: `Modified Portable Text field '${fieldPath}' in document ${documentId}`,
+        documentId,
+        operations: operations.length,
+        result,
+        document
+      };
+    } else {
+      return {
+        success: true,
+        message: `Modified Portable Text field '${fieldPath}' in document ${documentId}`,
+        documentId,
+        operations: operations.length,
+        result
+      };
+    }
   } catch (error: any) {
     console.error(`Error modifying Portable Text field:`, error);
     throw new Error(`Failed to modify Portable Text field: ${error.message}`);
