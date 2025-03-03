@@ -1,0 +1,33 @@
+{
+  "name": "sanity-mcp-server",
+  "version": "1.0.0",
+  "description": "Model Context Protocol server for Sanity.io",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.6.1",
+    "@sanity/client": "^6.12.3",
+    "dotenv": "^16.3.1",
+    "marked": "^9.1.5",
+    "marked-gfm-heading-id": "^3.1.0",
+    "node-fetch": "^3.3.2",
+    "openai": "^4.28.0",
+    "zod": "^3.22.4",
+    "zod-to-json-schema": "^3.22.3"
+  },
+  "bin": {
+    "sanity-mcp-server": "./src/index.js"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "jest": "^29.7.0"
+  }
+}
