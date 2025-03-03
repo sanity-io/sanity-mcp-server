@@ -66,6 +66,34 @@ interface SanityActionResult {
 }
 
 /**
+ * Checks if the given API version is greater than or equal to the required version
+ * 
+ * @param currentVersion - The current API version (e.g., "2023-10-01")
+ * @param requiredVersion - The minimum required API version (e.g., "2025-02-19") 
+ * @returns True if the current version is sufficient, false otherwise
+ */
+export function isSufficientApiVersion(currentVersion: string, requiredVersion: string): boolean {
+  // Strip any 'v' prefix that might be present
+  const current = currentVersion.replace(/^v/, '');
+  const required = requiredVersion.replace(/^v/, '');
+  
+  // Split versions by hyphens (e.g., "2025-02-19" -> ["2025", "02", "19"])
+  const currentParts = current.split('-').map(Number);
+  const requiredParts = required.split('-').map(Number);
+  
+  // Compare year
+  if (currentParts[0] > requiredParts[0]) return true;
+  if (currentParts[0] < requiredParts[0]) return false;
+  
+  // Years equal, compare month
+  if (currentParts[1] > requiredParts[1]) return true;
+  if (currentParts[1] < requiredParts[1]) return false;
+  
+  // Year and month equal, compare day
+  return currentParts[2] >= requiredParts[2];
+}
+
+/**
  * Makes direct HTTP requests to Sanity APIs not covered by the client
  */
 export const sanityApi = {

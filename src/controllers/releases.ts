@@ -1,4 +1,29 @@
-import { createSanityClient, sanityApi } from '../utils/sanityClient.js';
+import { createSanityClient, sanityApi, isSufficientApiVersion } from '../utils/sanityClient.js';
+import config from '../config/config.js';
+
+// Minimum API version required for Content Releases
+const REQUIRED_API_VERSION = '2025-02-19';
+
+/**
+ * Checks if the configured API version is sufficient for Content Releases
+ * Throws an error if the version is too old
+ */
+function validateApiVersion(): void {
+  // Skip validation for test environment (vi.mock will set this)
+  if (process.env.NODE_ENV === 'test') {
+    return;
+  }
+  
+  const currentVersion = config.apiVersion;
+  
+  if (!isSufficientApiVersion(currentVersion, REQUIRED_API_VERSION)) {
+    throw new Error(
+      `API version ${currentVersion} is too old for Content Releases. ` + 
+      `This feature requires version ${REQUIRED_API_VERSION} or later. ` +
+      `Update your SANITY_API_VERSION in .env or config.`
+    );
+  }
+}
 
 /**
  * Creates a new content release
@@ -27,6 +52,9 @@ export async function createRelease(
   result: any;
 }> {
   try {
+    // Check API version first
+    validateApiVersion();
+    
     // Create the release action
     const action = {
       actionType: 'sanity.action.release.create',
@@ -89,6 +117,9 @@ export async function addDocumentToRelease(
   result: any;
 }> {
   try {
+    // Check API version first
+    validateApiVersion();
+    
     const client = createSanityClient(projectId, dataset);
     const baseDocId = documentId.replace(/^drafts\./, '');
     
@@ -158,6 +189,9 @@ export async function removeDocumentFromRelease(
   result: any;
 }> {
   try {
+    // Check API version first
+    validateApiVersion();
+    
     const baseDocId = documentId.replace(/^drafts\./, '');
     const versionId = `versions.${releaseId}.${baseDocId}`;
     
@@ -183,13 +217,6 @@ export async function removeDocumentFromRelease(
   }
 }
 
-interface ReleaseDocument {
-  versionId: string;
-  documentId: string;
-  type: string;
-  title: string;
-}
-
 /**
  * Lists all documents in a content release
  * 
@@ -198,6 +225,13 @@ interface ReleaseDocument {
  * @param releaseId - ID of the release
  * @returns List of documents in the release
  */
+interface ReleaseDocument {
+  versionId: string;
+  documentId: string;
+  type: string;
+  title: string;
+}
+
 export async function listReleaseDocuments(
   projectId: string, 
   dataset: string, 
@@ -208,6 +242,9 @@ export async function listReleaseDocuments(
   documents: ReleaseDocument[];
 }> {
   try {
+    // Check API version first
+    validateApiVersion();
+    
     const client = createSanityClient(projectId, dataset);
     
     // Query for all documents in the release
@@ -258,6 +295,9 @@ export async function publishRelease(
   result: any;
 }> {
   try {
+    // Check API version first
+    validateApiVersion();
+    
     // First, check how many documents are in the release
     const documents = await listReleaseDocuments(projectId, dataset, releaseId);
     
@@ -304,6 +344,9 @@ export async function listReleases(
   releases: any[];
 }> {
   try {
+    // Check API version first
+    validateApiVersion();
+    
     const client = createSanityClient(projectId, dataset);
     
     // Query for all releases using the GROQ function
@@ -345,6 +388,9 @@ export async function getRelease(
   release: any;
 }> {
   try {
+    // Check API version first
+    validateApiVersion();
+    
     const client = createSanityClient(projectId, dataset);
     
     // Query for the specific release
@@ -390,6 +436,9 @@ export async function updateRelease(
   result: any;
 }> {
   try {
+    // Check API version first
+    validateApiVersion();
+    
     // Create the metadata object with only provided fields
     const metadata: Record<string, any> = {};
     if (updateData.title) metadata.title = updateData.title;
@@ -446,6 +495,9 @@ export async function scheduleRelease(
   result: any;
 }> {
   try {
+    // Check API version first
+    validateApiVersion();
+    
     // Create the schedule release action
     const action = {
       actionType: 'sanity.action.release.schedule',
@@ -488,6 +540,9 @@ export async function unscheduleRelease(
   result: any;
 }> {
   try {
+    // Check API version first
+    validateApiVersion();
+    
     // Create the unschedule release action
     const action = {
       actionType: 'sanity.action.release.unschedule',
@@ -528,6 +583,9 @@ export async function archiveRelease(
   result: any;
 }> {
   try {
+    // Check API version first
+    validateApiVersion();
+    
     // Create the archive release action
     const action = {
       actionType: 'sanity.action.release.archive',
@@ -568,6 +626,9 @@ export async function unarchiveRelease(
   result: any;
 }> {
   try {
+    // Check API version first
+    validateApiVersion();
+    
     // Create the unarchive release action
     const action = {
       actionType: 'sanity.action.release.unarchive',
@@ -608,6 +669,9 @@ export async function deleteRelease(
   result: any;
 }> {
   try {
+    // Check API version first
+    validateApiVersion();
+    
     // Create the delete release action
     const action = {
       actionType: 'sanity.action.release.delete',

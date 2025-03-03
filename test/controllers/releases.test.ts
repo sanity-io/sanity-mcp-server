@@ -1,6 +1,7 @@
 import { expect, describe, it, vi, beforeEach, afterEach } from 'vitest';
 import * as releasesController from '../../src/controllers/releases.js';
 import { sanityApi, createSanityClient } from '../../src/utils/sanityClient.js';
+import config from '../../src/config/config.js';
 
 // Mock the sanityClient module
 vi.mock('../../src/utils/sanityClient.js', () => {
@@ -11,8 +12,21 @@ vi.mock('../../src/utils/sanityClient.js', () => {
     createSanityClient: vi.fn(() => ({
       fetch: vi.fn(),
       getDocument: vi.fn()
-    }))
+    })),
+    isSufficientApiVersion: vi.fn().mockReturnValue(true)
   };
+});
+
+// Mock the config module to return a valid API version
+vi.mock('../../src/config/config.js', () => {
+  return {
+    default: {
+      apiVersion: '2025-02-19',
+      token: 'mock-token',
+      projectId: 'mock-project',
+      dataset: 'production'
+    }
+  }
 });
 
 describe('Releases Controller', () => {
