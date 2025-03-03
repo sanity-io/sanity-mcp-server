@@ -365,6 +365,7 @@ describe('Releases Controller', () => {
             actionType: 'sanity.action.release.edit',
             releaseId: mockReleaseId,
             patch: {
+              id: mockReleaseId,
               set: {
                 metadata: {
                   title: 'Updated Title',

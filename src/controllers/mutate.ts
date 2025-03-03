@@ -210,13 +210,24 @@ export async function modifyDocuments(
     
     if (returnDocuments) {
       const documents = await Promise.all(mutations.map(async (mutation) => {
-        if ('create' in mutation || 'createOrReplace' in mutation || 'createIfNotExists' in mutation) {
+        // Type guard for different mutation types
+        if ('create' in mutation) {
           return client.getDocument(mutation.create._id);
+        } else if ('createOrReplace' in mutation) {
+          return client.getDocument(mutation.createOrReplace._id);
+        } else if ('createIfNotExists' in mutation) {
+          return client.getDocument(mutation.createIfNotExists._id);
         } else if ('patch' in mutation) {
-          return client.getDocument(mutation.patch.id);
-        } else {
-          return null;
+          // Need to handle both patch by ID and patch by query
+          if ('id' in mutation.patch) {
+            return client.getDocument(mutation.patch.id);
+          } else if ('query' in mutation.patch) {
+            // For query-based patches we can't easily get the document
+            // without executing the query again
+            return null;
+          }
         }
+        return null;
       }));
       
       return {

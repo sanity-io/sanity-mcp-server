@@ -63,7 +63,10 @@ export async function query(
     };
   } catch (error) {
     console.error('Error executing GROQ query:', error);
-    throw new Error(`Failed to execute GROQ query: ${error.message}`);
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : String(error);
+    throw new Error(`Failed to execute GROQ query: ${errorMessage}`);
   }
 }
 
@@ -141,7 +144,10 @@ export async function subscribeToUpdates(
     };
   } catch (error: any) {
     console.error(`Error setting up subscription:`, error);
-    throw new Error(`Failed to subscribe to updates: ${error.message}`);
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : String(error);
+    throw new Error(`Failed to subscribe to updates: ${errorMessage}`);
   }
 }
 
@@ -321,6 +327,9 @@ export async function getGroqSpecification(): Promise<{
     };
   } catch (error: any) {
     console.error("Error fetching GROQ specification:", error);
-    throw new Error(`Failed to get GROQ specification: ${error.message}`);
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : String(error);
+    throw new Error(`Failed to get GROQ specification: ${errorMessage}`);
   }
 }

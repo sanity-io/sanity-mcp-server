@@ -382,6 +382,7 @@ export async function updateRelease(
       actionType: 'sanity.action.release.edit',
       releaseId,
       patch: {
+        id: releaseId, // Add the id property required by SanityAction interface
         set: {
           metadata
         }

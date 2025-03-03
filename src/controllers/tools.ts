@@ -429,7 +429,12 @@ export function getToolDefinitions(): ToolDefinition[] {
         returnDocument: z.boolean().optional().default(true).describe('If true, returns the created document')
       }),
       handler: async ({ document, projectId, dataset, returnDocument }: { document: Record<string, any>, projectId: string, dataset: string, returnDocument?: boolean }) => {
-        const mutations = [{ create: document }];
+        // Ensure document has a _type property as required by CreateMutation
+        if (!document._type) {
+          throw new Error('Document must have a _type property');
+        }
+        // Explicitly cast mutations to Mutation[] type
+        const mutations = [{ create: document }] as import('../controllers/mutate.js').Mutation[];
         return await mutateController.modifyDocuments(projectId, dataset, mutations, returnDocument);
       }
     },
@@ -452,7 +457,8 @@ export function getToolDefinitions(): ToolDefinition[] {
         returnDocument: z.boolean().optional().default(true).describe('If true, returns the updated document')
       }),
       handler: async ({ documentId, patch, projectId, dataset, returnDocument }: { documentId: string, patch: Record<string, any>, projectId: string, dataset: string, returnDocument?: boolean }) => {
-        const mutations = [{ patch: { id: documentId, ...patch } }];
+        // Explicitly cast mutations to Mutation[] type
+        const mutations = [{ patch: { id: documentId, ...patch } }] as import('../controllers/mutate.js').Mutation[];
         return await mutateController.modifyDocuments(projectId, dataset, mutations, returnDocument);
       }
     },
@@ -465,6 +471,7 @@ export function getToolDefinitions(): ToolDefinition[] {
         mutations: z.object({
           create: z.record(z.any()).optional().describe('Create the document if it doesn\'t exist (must include _id)'),
           createOrReplace: z.record(z.any()).optional().describe('Create or replace the document'),
+          createIfNotExists: z.record(z.any()).optional().describe('Create the document if it doesn\'t exist'),
           patch: z.object({
             set: z.record(z.any()).optional().describe('Fields to set'),
             setIfMissing: z.record(z.any()).optional().describe('Fields to set only if missing'),
@@ -479,22 +486,42 @@ export function getToolDefinitions(): ToolDefinition[] {
         returnDocument: z.boolean().optional().default(true).describe('If true, returns the mutated document')
       }),
       handler: async ({ documentId, mutations, projectId, dataset, returnDocument }: { documentId: string, mutations: Record<string, any>, projectId: string, dataset: string, returnDocument?: boolean }) => {
-        let sanityMutations = [];
+        let sanityMutations = [] as import('../controllers/mutate.js').Mutation[];
         
         if (mutations.create) {
           const create = { ...mutations.create };
-          if (!create._id) create._id = documentId;
-          sanityMutations.push({ create });
+          // Always add the documentId to the create object
+          if (!create._id) {
+            create._id = documentId;
+          }
+          // Ensure document has a _type property as required by CreateMutation
+          if (!create._type) {
+            throw new Error('Document must have a _type property for create mutation');
+          }
+          sanityMutations.push({ create } as import('../controllers/mutate.js').Mutation);
         }
         
         if (mutations.createOrReplace) {
           const createOrReplace = { ...mutations.createOrReplace };
-          if (!createOrReplace._id) createOrReplace._id = documentId;
-          sanityMutations.push({ createOrReplace });
+          // Always add the documentId to the createOrReplace object
+          if (!createOrReplace._id) {
+            createOrReplace._id = documentId;
+          }
+          // Ensure document has a _type property
+          if (!createOrReplace._type) {
+            throw new Error('Document must have a _type property for createOrReplace mutation');
+          }
+          sanityMutations.push({ createOrReplace } as import('../controllers/mutate.js').Mutation);
         }
         
         if (mutations.patch) {
-          sanityMutations.push({ patch: { id: documentId, ...mutations.patch } });
+          // For patch operations, add the id to the patch object if not already present
+          const patchObj = { ...mutations.patch };
+          if (!patchObj.id) {
+            sanityMutations.push({ patch: { id: documentId, ...mutations.patch } } as import('../controllers/mutate.js').Mutation);
+          } else {
+            sanityMutations.push({ patch: patchObj } as import('../controllers/mutate.js').Mutation);
+          }
         }
         
         return await mutateController.modifyDocuments(projectId, dataset, sanityMutations, returnDocument);
@@ -510,7 +537,8 @@ export function getToolDefinitions(): ToolDefinition[] {
         dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
       handler: async ({ documentId, projectId, dataset }: { documentId: string, projectId: string, dataset: string }) => {
-        const mutations = [{ delete: { id: documentId } }];
+        // Explicitly cast mutations to Mutation[] type
+        const mutations = [{ delete: { id: documentId } }] as import('../controllers/mutate.js').Mutation[];
         return await mutateController.modifyDocuments(projectId, dataset, mutations);
       }
     },
@@ -539,7 +567,71 @@ export function getToolDefinitions(): ToolDefinition[] {
         returnDocuments: z.boolean().optional().default(false).describe('If true, returns the modified documents')
       }),
       handler: async ({ mutations, projectId, dataset, returnDocuments }: { mutations: any[], projectId: string, dataset: string, returnDocuments?: boolean }) => {
-        return await mutateController.modifyDocuments(projectId, dataset, mutations, returnDocuments);
+        let sanityMutations = [] as import('../controllers/mutate.js').Mutation[];
+        
+        for (const mutation of mutations) {
+          if (mutation.create) {
+            const create = { ...mutation.create };
+            // Ensure _id is present, but don't throw an error if not
+            if (!create._id && create._id !== '') {
+              throw new Error('Create mutation must have an _id property');
+            }
+            // Ensure document has a _type property
+            if (!create._type) {
+              throw new Error('Document must have a _type property for create mutation');
+            }
+            sanityMutations.push({ create } as import('../controllers/mutate.js').Mutation);
+          }
+          
+          if (mutation.createOrReplace) {
+            const createOrReplace = { ...mutation.createOrReplace };
+            // Ensure _id is present, but don't throw an error if not
+            if (!createOrReplace._id && createOrReplace._id !== '') {
+              throw new Error('Create or replace mutation must have an _id property');
+            }
+            // Ensure document has a _type property
+            if (!createOrReplace._type) {
+              throw new Error('Document must have a _type property for createOrReplace mutation');
+            }
+            sanityMutations.push({ createOrReplace } as import('../controllers/mutate.js').Mutation);
+          }
+          
+          if (mutation.createIfNotExists) {
+            const createIfNotExists = { ...mutation.createIfNotExists };
+            // Ensure _id is present, but don't throw an error if not
+            if (!createIfNotExists._id && createIfNotExists._id !== '') {
+              throw new Error('Create if not exists mutation must have an _id property');
+            }
+            // Ensure document has a _type property
+            if (!createIfNotExists._type) {
+              throw new Error('Document must have a _type property for createIfNotExists mutation');
+            }
+            sanityMutations.push({ createIfNotExists } as import('../controllers/mutate.js').Mutation);
+          }
+          
+          if (mutation.patch) {
+            if (typeof mutation.patch === 'object') {
+              // Handle both direct patch objects and those with nested properties
+              if (mutation.patch.id) {
+                sanityMutations.push({ patch: mutation.patch } as import('../controllers/mutate.js').Mutation);
+              } else {
+                throw new Error('Patch mutation must have an id property');
+              }
+            }
+          }
+          
+          if (mutation.delete) {
+            if (typeof mutation.delete === 'object') {
+              if (mutation.delete.id) {
+                sanityMutations.push({ delete: mutation.delete } as import('../controllers/mutate.js').Mutation);
+              } else {
+                throw new Error('Delete mutation must have an id property');
+              }
+            }
+          }
+        }
+        
+        return await mutateController.modifyDocuments(projectId, dataset, sanityMutations, returnDocuments);
       }
     },
     
