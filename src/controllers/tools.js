@@ -39,13 +39,41 @@ export function getToolDefinitions() {
           };
         }
         
-        return {
-          message: "Welcome to the Sanity MCP Server!",
-          instructions: "For this prototype, please only query the following Sanity project and dataset:",
-          projectId: config.projectId,
-          dataset: config.dataset || "production",
-          note: "Future versions will support querying any project the user has access to, but for now, please restrict queries to this specific project and dataset."
-        };
+        try {
+          // Get embeddings indices
+          const embeddingsIndices = await searchController.listEmbeddingsIndices({
+            projectId: config.projectId,
+            dataset: config.dataset || "production"
+          });
+          
+          // Get schema types - only document types
+          const schemaTypes = await schemaController.listSchemaTypes(
+            config.projectId,
+            config.dataset || "production",
+            { allTypes: false }
+          );
+          
+          return {
+            message: "Welcome to the Sanity MCP Server!",
+            instructions: "For this prototype, please only query the following Sanity project and dataset:",
+            projectId: config.projectId,
+            dataset: config.dataset || "production",
+            embeddingsIndices: embeddingsIndices || [], // listEmbeddingsIndices returns an array directly
+            documentTypes: schemaTypes || [], // schemaTypes is already an array of objects with name and type
+            note: "Future versions will support querying any project the user has access to, but for now, please restrict queries to this specific project and dataset."
+          };
+        } catch (error) {
+          // If we encounter an error fetching the additional data, fall back to basic info
+          console.error("Error fetching additional context data:", error);
+          return {
+            message: "Welcome to the Sanity MCP Server!",
+            instructions: "For this prototype, please only query the following Sanity project and dataset:",
+            projectId: config.projectId,
+            dataset: config.dataset || "production",
+            note: "Future versions will support querying any project the user has access to, but for now, please restrict queries to this specific project and dataset.",
+            warning: "Unable to fetch embeddings indices and schema types due to an error. You can manually call listEmbeddingsIndices and listSchemaTypes to get this information."
+          };
+        }
       }
     },
     
