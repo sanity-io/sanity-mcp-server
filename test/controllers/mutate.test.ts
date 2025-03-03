@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createSanityClient } from '../../src/utils/sanityClient.js';
-import { modifyDocuments, modifyPortableTextField } from '../../src/controllers/mutate.js';
+import { modifyDocuments, modifyPortableTextField, Mutation, PortableTextOperation } from '../../src/controllers/mutate.js';
 import { markdownToPortableText } from '../../src/utils/portableText.js';
 
 // Mock the sanityClient and portableText utils
@@ -39,12 +39,12 @@ describe('Mutate Controller', () => {
   
   beforeEach(() => {
     // Set up mocks
-    createSanityClient.mockReturnValue(mockClient);
+    (createSanityClient as any).mockReturnValue(mockClient);
     mockClient.transaction.mockReturnValue(mockTransaction);
     mockClient.patch.mockReturnValue(mockPatch);
     
     // Mock document retrieval
-    mockClient.getDocument.mockImplementation((id) => {
+    mockClient.getDocument.mockImplementation((id: string) => {
       if (id === 'article123') {
         return Promise.resolve({
           _id: 'article123',
@@ -58,7 +58,7 @@ describe('Mutate Controller', () => {
     });
     
     // Mock portable text conversion
-    markdownToPortableText.mockImplementation((markdown) => {
+    (markdownToPortableText as any).mockImplementation((markdown: string) => {
       return [
         { 
           _type: 'block', 
@@ -81,7 +81,7 @@ describe('Mutate Controller', () => {
     });
     
     it('should create a document', async () => {
-      const mutations = [{
+      const mutations: Mutation[] = [{
         create: {
           _id: 'person-123',
           _type: 'person',
@@ -104,7 +104,7 @@ describe('Mutate Controller', () => {
     });
     
     it('should createOrReplace a document', async () => {
-      const mutations = [{
+      const mutations: Mutation[] = [{
         createOrReplace: {
           _id: 'person-123',
           _type: 'person',
@@ -124,7 +124,7 @@ describe('Mutate Controller', () => {
     });
     
     it('should createIfNotExists a document', async () => {
-      const mutations = [{
+      const mutations: Mutation[] = [{
         createIfNotExists: {
           _id: 'person-123',
           _type: 'person',
@@ -144,7 +144,7 @@ describe('Mutate Controller', () => {
     });
     
     it('should delete a document by id', async () => {
-      const mutations = [{
+      const mutations: Mutation[] = [{
         delete: {
           id: 'person-123'
         }
@@ -161,7 +161,7 @@ describe('Mutate Controller', () => {
     });
     
     it('should delete documents by query', async () => {
-      const mutations = [{
+      const mutations: Mutation[] = [{
         delete: {
           query: '*[_type == "person" && age < $age]',
           params: { age: 18 }
@@ -182,7 +182,7 @@ describe('Mutate Controller', () => {
     });
     
     it('should patch a document by id', async () => {
-      const mutations = [{
+      const mutations: Mutation[] = [{
         patch: {
           id: 'person-123',
           set: {
@@ -212,7 +212,7 @@ describe('Mutate Controller', () => {
     });
     
     it('should patch documents by query', async () => {
-      const mutations = [{
+      const mutations: Mutation[] = [{
         patch: {
           query: '*[_type == "person" && age >= $age]',
           params: { age: 18 },
@@ -238,7 +238,7 @@ describe('Mutate Controller', () => {
     });
     
     it('should support optimistic locking with ifRevisionID', async () => {
-      const mutations = [{
+      const mutations: Mutation[] = [{
         patch: {
           id: 'person-123',
           ifRevisionID: 'rev-abc-123',
@@ -260,7 +260,7 @@ describe('Mutate Controller', () => {
     });
     
     it('should handle array insertions with various positions', async () => {
-      const mutations = [{
+      const mutations: Mutation[] = [{
         patch: {
           id: 'article-123',
           insert: {
@@ -286,7 +286,7 @@ describe('Mutate Controller', () => {
     });
     
     it('should handle multiple mutations in a single transaction', async () => {
-      const mutations = [
+      const mutations: Mutation[] = [
         {
           create: {
             _id: 'person-123',
@@ -319,7 +319,7 @@ describe('Mutate Controller', () => {
     it('should throw an error when the transaction fails', async () => {
       mockTransaction.commit.mockRejectedValueOnce(new Error('Transaction failed'));
       
-      const mutations = [{
+      const mutations: Mutation[] = [{
         create: {
           _id: 'person-123',
           _type: 'person',
@@ -334,7 +334,7 @@ describe('Mutate Controller', () => {
   
   describe('modifyPortableTextField', () => {
     it('should replace portable text field with new content', async () => {
-      const operations = [
+      const operations: PortableTextOperation[] = [
         {
           type: 'replace',
           value: 'New markdown content'
@@ -358,7 +358,7 @@ describe('Mutate Controller', () => {
     });
     
     it('should insert content at the beginning of field', async () => {
-      const operations = [
+      const operations: PortableTextOperation[] = [
         {
           type: 'insert',
           position: 'beginning',
@@ -383,7 +383,7 @@ describe('Mutate Controller', () => {
     });
     
     it('should insert content at the end of field', async () => {
-      const operations = [
+      const operations: PortableTextOperation[] = [
         {
           type: 'insert',
           position: 'end',
@@ -408,7 +408,7 @@ describe('Mutate Controller', () => {
     });
     
     it('should insert content at a specific position', async () => {
-      const operations = [
+      const operations: PortableTextOperation[] = [
         {
           type: 'insert',
           position: 'at',
@@ -429,7 +429,7 @@ describe('Mutate Controller', () => {
     });
     
     it('should replace content at a specific position', async () => {
-      const operations = [
+      const operations: PortableTextOperation[] = [
         {
           type: 'replace',
           position: 'at',
@@ -450,7 +450,7 @@ describe('Mutate Controller', () => {
     });
     
     it('should remove content at a specific position', async () => {
-      const operations = [
+      const operations: PortableTextOperation[] = [
         {
           type: 'remove',
           position: 'at',
@@ -471,7 +471,7 @@ describe('Mutate Controller', () => {
     });
     
     it('should handle multiple operations in sequence', async () => {
-      const operations = [
+      const operations: PortableTextOperation[] = [
         {
           type: 'replace',
           value: 'Initial content'
@@ -497,7 +497,7 @@ describe('Mutate Controller', () => {
     it('should throw an error when the patch fails', async () => {
       mockPatch.commit.mockRejectedValueOnce(new Error('Patch failed'));
       
-      const operations = [
+      const operations: PortableTextOperation[] = [
         {
           type: 'replace',
           value: 'New content'

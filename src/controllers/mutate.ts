@@ -1,15 +1,101 @@
 import { createSanityClient } from '../utils/sanityClient.js';
 import { markdownToPortableText } from '../utils/portableText.js';
 
+// Define types for mutations
+export interface CreateMutation {
+  create: Record<string, any>;
+}
+
+export interface CreateOrReplaceMutation {
+  createOrReplace: Record<string, any>;
+}
+
+export interface CreateIfNotExistsMutation {
+  createIfNotExists: Record<string, any>;
+}
+
+export interface DeleteByIdMutation {
+  delete: {
+    id: string;
+  };
+}
+
+export interface DeleteByQueryMutation {
+  delete: {
+    query: string;
+    params?: Record<string, any>;
+  };
+}
+
+export interface PatchByIdMutation {
+  patch: {
+    id: string;
+    ifRevisionID?: string;
+    set?: Record<string, any>;
+    setIfMissing?: Record<string, any>;
+    unset?: string | string[];
+    inc?: Record<string, number>;
+    dec?: Record<string, number>;
+    insert?: {
+      items: any[] | any;
+      position: 'before' | 'after' | 'replace';
+      at: string;
+    };
+    diffMatchPatch?: Record<string, string>;
+  };
+}
+
+export interface PatchByQueryMutation {
+  patch: {
+    query: string;
+    params?: Record<string, any>;
+    set?: Record<string, any>;
+    setIfMissing?: Record<string, any>;
+    unset?: string | string[];
+    inc?: Record<string, number>;
+    dec?: Record<string, number>;
+    insert?: {
+      items: any[] | any;
+      position: 'before' | 'after' | 'replace';
+      at: string;
+    };
+    diffMatchPatch?: Record<string, string>;
+  };
+}
+
+export type Mutation = 
+  | CreateMutation 
+  | CreateOrReplaceMutation 
+  | CreateIfNotExistsMutation 
+  | DeleteByIdMutation 
+  | DeleteByQueryMutation 
+  | PatchByIdMutation 
+  | PatchByQueryMutation;
+
+export interface PortableTextOperation {
+  type: 'insert' | 'replace' | 'remove';
+  position?: 'beginning' | 'end' | 'at';
+  atIndex?: number;
+  value?: string | any[] | any;
+}
+
 /**
  * Creates or updates documents using Sanity mutations
  * 
- * @param {string} projectId - Sanity project ID
- * @param {string} dataset - Dataset name
- * @param {Array<Object>} mutations - Array of mutation objects following Sanity mutation format
- * @returns {Promise<Object>} Result of the mutations operation
+ * @param projectId - Sanity project ID
+ * @param dataset - Dataset name
+ * @param mutations - Array of mutation objects following Sanity mutation format
+ * @returns Result of the mutations operation
  */
-export async function modifyDocuments(projectId, dataset, mutations) {
+export async function modifyDocuments(
+  projectId: string, 
+  dataset: string, 
+  mutations: Mutation[]
+): Promise<{
+  success: boolean;
+  message: string;
+  result: any;
+}> {
   try {
     const client = createSanityClient(projectId, dataset);
     
@@ -24,37 +110,37 @@ export async function modifyDocuments(projectId, dataset, mutations) {
     // Process each mutation
     mutations.forEach(mutation => {
       // Handle create mutation
-      if (mutation.create) {
+      if ('create' in mutation) {
         transaction.create(mutation.create);
       }
       
       // Handle createOrReplace mutation
-      if (mutation.createOrReplace) {
+      if ('createOrReplace' in mutation) {
         transaction.createOrReplace(mutation.createOrReplace);
       }
       
       // Handle createIfNotExists mutation
-      if (mutation.createIfNotExists) {
+      if ('createIfNotExists' in mutation) {
         transaction.createIfNotExists(mutation.createIfNotExists);
       }
       
       // Handle delete mutation
-      if (mutation.delete) {
-        if (mutation.delete.query) {
+      if ('delete' in mutation) {
+        if ('query' in mutation.delete) {
           // Delete by query
           transaction.delete({
             query: mutation.delete.query,
             params: mutation.delete.params
           });
-        } else if (mutation.delete.id) {
+        } else if ('id' in mutation.delete) {
           // Delete by ID
           transaction.delete(mutation.delete.id);
         }
       }
       
       // Handle patch mutation
-      if (mutation.patch) {
-        const { id, query, params, ifRevisionID, ...patchOperations } = mutation.patch;
+      if ('patch' in mutation) {
+        const { id, query, params, ifRevisionID, ...patchOperations } = mutation.patch as any;
         
         if (query) {
           // Patch by query
@@ -118,7 +204,7 @@ export async function modifyDocuments(projectId, dataset, mutations) {
       message: `Successfully applied ${mutations.length} mutations`,
       result
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error modifying documents:`, error);
     throw new Error(`Failed to modify documents: ${error.message}`);
   }
@@ -127,14 +213,26 @@ export async function modifyDocuments(projectId, dataset, mutations) {
 /**
  * Modifies a Portable Text field using Markdown
  * 
- * @param {string} projectId - Sanity project ID
- * @param {string} dataset - Dataset name
- * @param {string} documentId - Document ID to modify
- * @param {string} fieldPath - Path to the Portable Text field (e.g., "body")
- * @param {Array<Object>} operations - Array of operations to perform on the field
- * @returns {Promise<Object>} Result of the modification operation
+ * @param projectId - Sanity project ID
+ * @param dataset - Dataset name
+ * @param documentId - Document ID to modify
+ * @param fieldPath - Path to the Portable Text field (e.g., "body")
+ * @param operations - Array of operations to perform on the field
+ * @returns Result of the modification operation
  */
-export async function modifyPortableTextField(projectId, dataset, documentId, fieldPath, operations) {
+export async function modifyPortableTextField(
+  projectId: string, 
+  dataset: string, 
+  documentId: string, 
+  fieldPath: string, 
+  operations: PortableTextOperation[]
+): Promise<{
+  success: boolean;
+  message: string;
+  documentId: string;
+  operations: number;
+  result: any;
+}> {
   try {
     const client = createSanityClient(projectId, dataset);
     
@@ -246,7 +344,7 @@ export async function modifyPortableTextField(projectId, dataset, documentId, fi
       operations: operations.length,
       result
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error modifying Portable Text field:`, error);
     throw new Error(`Failed to modify Portable Text field: ${error.message}`);
   }
@@ -255,12 +353,12 @@ export async function modifyPortableTextField(projectId, dataset, documentId, fi
 /**
  * Helper function to construct patch operations
  * 
- * @param {Object} patch - Raw patch object with operations
- * @returns {Object} Formatted patch operations
+ * @param patch - Raw patch object with operations
+ * @returns Formatted patch operations
  */
-function constructPatchOperations(patch) {
+function constructPatchOperations(patch: Record<string, any>): Record<string, any> {
   // Extract operations from the patch object
-  const operations = {};
+  const operations: Record<string, any> = {};
   
   // Handle 'set' operations
   if (patch.set) {

@@ -6,6 +6,7 @@
  */
 import { z } from 'zod';
 import config from '../config/config.js';
+import { ToolDefinition, InitialContext } from '../types/tools.js';
 
 // Import controllers
 // import * as projectsController from './projects.js'; // Commented out as requested - no way to mint tokens yet
@@ -18,16 +19,16 @@ import * as searchController from './search.js';
 /**
  * Get all tool definitions
  * 
- * @returns {Array} Array of tool definition objects
+ * @returns Array of tool definition objects
  */
-export function getToolDefinitions() {
+export function getToolDefinitions(): ToolDefinition[] {
   return [
     // Initial context tool - ALWAYS CALL THIS FIRST
     {
       name: 'getInitialContext',
       description: 'IMPORTANT: Call this tool first to get initial context and usage instructions for this MCP server. This provides critical information about which projects and datasets you should use.',
       parameters: z.object({}),
-      handler: async () => {
+      handler: async (): Promise<InitialContext> => {
         // Validate that we have project ID and dataset configured
         if (!config.projectId) {
           return {
@@ -85,7 +86,7 @@ export function getToolDefinitions() {
         projectId: z.string().describe('The Sanity project ID'),
         dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
-      handler: async ({ projectId, dataset }) => {
+      handler: async ({ projectId, dataset }: { projectId: string, dataset: string }) => {
         return await schemaController.getSchema(projectId, dataset);
       }
     },
@@ -98,208 +99,194 @@ export function getToolDefinitions() {
         dataset: z.string().default('production').describe('The dataset name (defaults to production)'),
         allTypes: z.boolean().optional().default(false).describe('If true, returns all types, not just document types')
       }),
-      handler: async ({ projectId, dataset, allTypes }) => {
+      handler: async ({ projectId, dataset, allTypes }: { projectId: string, dataset: string, allTypes?: boolean }) => {
         return await schemaController.listSchemaTypes(projectId, dataset, { allTypes });
       }
     },
     
     {
       name: 'getTypeSchema',
-      description: 'Gets the detailed schema definition for a specific type',
+      description: 'Gets the schema definition for a specific type',
       parameters: z.object({
+        typeName: z.string().describe('The name of the type to get the schema for'),
         projectId: z.string().describe('The Sanity project ID'),
-        dataset: z.string().default('production').describe('The dataset name (defaults to production)'),
-        typeName: z.string().describe('The name of the type to retrieve')
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
-      handler: async ({ projectId, dataset, typeName }) => {
-        return await schemaController.getTypeSchema(projectId, dataset, typeName);
+      handler: async ({ typeName, projectId, dataset }: { typeName: string, projectId: string, dataset: string }) => {
+        return await schemaController.getTypeSchema(typeName, projectId, dataset);
       }
     },
     
     // Content tools
     {
       name: 'searchContent',
-      description: 'Searches for content using GROQ query language',
+      description: 'Searches for content using GROQ queries',
       parameters: z.object({
+        query: z.string().describe('The GROQ query to execute'),
+        params: z.record(z.any()).optional().describe('Query parameters'),
         projectId: z.string().describe('The Sanity project ID'),
-        dataset: z.string().default('production').describe('The dataset name (defaults to production)'),
-        query: z.string().describe('GROQ query string'),
-        params: z.record(z.any()).optional().describe('Query parameters')
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
-      handler: async ({ projectId, dataset, query, params }) => {
-        return await contentController.searchContent(projectId, dataset, query, params);
+      handler: async ({ query, params, projectId, dataset }: { query: string, params?: Record<string, any>, projectId: string, dataset: string }) => {
+        return await contentController.searchContent(query, params, projectId, dataset);
       }
     },
     
     {
       name: 'subscribeToUpdates',
-      description: 'Subscribes to real-time updates for documents matching a query',
+      description: 'Creates a real-time update listener for a query',
       parameters: z.object({
+        query: z.string().describe('The GROQ query to listen to'),
         projectId: z.string().describe('The Sanity project ID'),
-        dataset: z.string().default('production').describe('The dataset name (defaults to production)'),
-        query: z.string().describe('GROQ query defining which documents to watch')
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
-      handler: async ({ projectId, dataset, query }) => {
-        return await contentController.subscribeToUpdates(projectId, dataset, query);
+      handler: async ({ query, projectId, dataset }: { query: string, projectId: string, dataset: string }) => {
+        return await contentController.subscribeToUpdates({ projectId, dataset, query });
       }
     },
     
-    // Actions tools
+    // Action tools
     {
       name: 'publishDocument',
-      description: 'Publishes a document (makes draft the published version)',
+      description: 'Publishes a draft document',
       parameters: z.object({
+        documentId: z.string().describe('The ID of the draft document to publish'),
         projectId: z.string().describe('The Sanity project ID'),
-        dataset: z.string().default('production').describe('The dataset name (defaults to production)'),
-        documentId: z.string().describe('ID of the document to publish')
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
-      handler: async ({ projectId, dataset, documentId }) => {
-        return await actionsController.publishDocument(projectId, dataset, documentId);
+      handler: async ({ documentId, projectId, dataset }: { documentId: string, projectId: string, dataset: string }) => {
+        return await actionsController.publishDocument(documentId, projectId, dataset);
       }
     },
     
     {
       name: 'unpublishDocument',
-      description: 'Unpublishes a document (keeps it as draft only)',
+      description: 'Unpublishes a published document',
       parameters: z.object({
+        documentId: z.string().describe('The ID of the published document to unpublish'),
         projectId: z.string().describe('The Sanity project ID'),
-        dataset: z.string().default('production').describe('The dataset name (defaults to production)'),
-        documentId: z.string().describe('ID of the document to unpublish')
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
-      handler: async ({ projectId, dataset, documentId }) => {
-        return await actionsController.unpublishDocument(projectId, dataset, documentId);
+      handler: async ({ documentId, projectId, dataset }: { documentId: string, projectId: string, dataset: string }) => {
+        return await actionsController.unpublishDocument(documentId, projectId, dataset);
       }
     },
     
     {
       name: 'createRelease',
-      description: 'Creates a new release for staged publishing',
+      description: 'Creates a new release',
       parameters: z.object({
+        title: z.string().describe('Title of the release'),
+        description: z.string().optional().describe('Optional description of the release'),
         projectId: z.string().describe('The Sanity project ID'),
-        dataset: z.string().default('production').describe('The dataset name (defaults to production)'),
-        title: z.string().describe('Title for the release'),
-        description: z.string().optional().describe('Optional description for the release')
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
-      handler: async ({ projectId, dataset, title, description }) => {
-        return await actionsController.createRelease(projectId, dataset, title, description);
+      handler: async ({ title, description, projectId, dataset }: { title: string, description?: string, projectId: string, dataset: string }) => {
+        return await actionsController.createRelease(title, description, projectId, dataset);
       }
     },
     
     {
       name: 'addDocumentToRelease',
-      description: 'Adds a document to a release for staged publishing',
+      description: 'Adds a document to a release',
       parameters: z.object({
+        releaseId: z.string().describe('ID of the release'),
+        documentId: z.string().describe('ID of the document to add to the release'),
         projectId: z.string().describe('The Sanity project ID'),
-        dataset: z.string().default('production').describe('The dataset name (defaults to production)'),
-        releaseId: z.string().describe('ID of the release to add the document to'),
-        documentId: z.string().describe('ID of the document to add to the release')
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
-      handler: async ({ projectId, dataset, releaseId, documentId }) => {
-        return await actionsController.addDocumentToRelease(projectId, dataset, releaseId, documentId);
+      handler: async ({ releaseId, documentId, projectId, dataset }: { releaseId: string, documentId: string, projectId: string, dataset: string }) => {
+        return await actionsController.addDocumentToRelease(releaseId, documentId, projectId, dataset);
       }
     },
     
     {
       name: 'listReleaseDocuments',
-      description: 'Lists all documents included in a release',
+      description: 'Lists documents in a release',
       parameters: z.object({
+        releaseId: z.string().describe('ID of the release'),
         projectId: z.string().describe('The Sanity project ID'),
-        dataset: z.string().default('production').describe('The dataset name (defaults to production)'),
-        releaseId: z.string().describe('ID of the release to list documents for')
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
-      handler: async ({ projectId, dataset, releaseId }) => {
-        return await actionsController.listReleaseDocuments(projectId, dataset, releaseId);
+      handler: async ({ releaseId, projectId, dataset }: { releaseId: string, projectId: string, dataset: string }) => {
+        return await actionsController.listReleaseDocuments(releaseId, projectId, dataset);
       }
     },
     
-    {
-      name: 'publishRelease',
-      description: 'Publishes all documents in a release',
-      parameters: z.object({
-        projectId: z.string().describe('The Sanity project ID'),
-        dataset: z.string().default('production').describe('The dataset name (defaults to production)'),
-        releaseId: z.string().describe('ID of the release to publish')
-      }),
-      handler: async ({ projectId, dataset, releaseId }) => {
-        return await actionsController.publishRelease(projectId, dataset, releaseId);
-      }
-    },
-    
-    // Modify tools
+    // Mutation tools
     {
       name: 'modifyDocuments',
-      description: 'Creates or updates documents',
+      description: 'Creates, updates or deletes documents',
       parameters: z.object({
-        projectId: z.string().describe('The Sanity project ID'),
-        dataset: z.string().default('production').describe('The dataset name (defaults to production)'),
         mutations: z.array(z.object({
-          create: z.object({}).optional(),
-          createOrReplace: z.object({}).optional(),
-          createIfNotExists: z.object({}).optional(),
+          create: z.record(z.any()).optional(),
+          createOrReplace: z.record(z.any()).optional(),
+          createIfNotExists: z.record(z.any()).optional(),
           patch: z.object({
             id: z.string(),
-            set: z.object({}).optional(),
-            setIfMissing: z.object({}).optional(),
+            set: z.record(z.any()).optional(),
+            setIfMissing: z.record(z.any()).optional(),
             unset: z.array(z.string()).optional(),
-            insert: z.object({}).optional(),
-            inc: z.object({}).optional(),
-            dec: z.object({}).optional()
+            inc: z.record(z.number()).optional(),
+            dec: z.record(z.number()).optional(),
+            insert: z.record(z.any()).optional()
           }).optional(),
-          delete: z.object({
-            id: z.string()
-          }).optional()
-        }))
+          delete: z.object({ id: z.string() }).optional()
+        })).describe('Array of mutation objects'),
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)'),
+        returnDocuments: z.boolean().optional().default(false).describe('If true, returns the modified documents')
       }),
-      handler: async ({ projectId, dataset, mutations }) => {
-        return await mutateController.modifyDocuments(projectId, dataset, mutations);
+      handler: async ({ mutations, projectId, dataset, returnDocuments }: { mutations: any[], projectId: string, dataset: string, returnDocuments?: boolean }) => {
+        return await mutateController.modifyDocuments(mutations, projectId, dataset, returnDocuments);
       }
     },
     
     {
       name: 'modifyPortableTextField',
-      description: 'Modifies a portable text field in a document, with enhanced handling for complex text structures',
+      description: 'Updates a portable text field using operations',
       parameters: z.object({
-        projectId: z.string().describe('The Sanity project ID'),
-        dataset: z.string().default('production').describe('The dataset name (defaults to production)'),
-        documentId: z.string().describe('ID of the document to modify'),
-        fieldPath: z.string().describe('Path to the portable text field (e.g. "content" or "sections[0].body")'),
+        documentId: z.string().describe('ID of the document containing the portable text field'),
+        fieldPath: z.string().describe('Path to the portable text field (e.g. "body" or "sections[0].content")'),
         operations: z.array(z.object({
           type: z.enum(['insert', 'replace', 'remove']),
           position: z.enum(['beginning', 'end', 'at']),
           atIndex: z.number().optional(),
           value: z.any().optional()
-        }))
+        })).describe('Operations to perform on the portable text field'),
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
-      handler: async ({ projectId, dataset, documentId, fieldPath, operations }) => {
-        return await mutateController.modifyPortableTextField(projectId, dataset, documentId, fieldPath, operations);
+      handler: async ({ documentId, fieldPath, operations, projectId, dataset }: { documentId: string, fieldPath: string, operations: any[], projectId: string, dataset: string }) => {
+        return await mutateController.modifyPortableTextField(documentId, fieldPath, operations, projectId, dataset);
       }
     },
     
     // Search tools
     {
       name: 'listEmbeddingsIndices',
-      description: 'List all available embeddings indices for a dataset',
+      description: 'Lists available embeddings indices in a dataset',
       parameters: z.object({
-        projectId: z.string().optional().describe('The Sanity project ID (defaults to env variable)'),
-        dataset: z.string().optional().describe('The dataset to list indices from (defaults to env variable)')
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
-      handler: async ({ projectId, dataset }) => {
+      handler: async ({ projectId, dataset }: { projectId: string, dataset: string }) => {
         return await searchController.listEmbeddingsIndices({ projectId, dataset });
       }
     },
     
     {
       name: 'semanticSearch',
-      description: 'Perform semantic search using embeddings',
+      description: 'Performs semantic search using embeddings',
       parameters: z.object({
-        query: z.string().describe('Natural language query to search for semantically similar content'),
-        indexName: z.string().describe('Name of the embeddings index to search'),
-        maxResults: z.number().optional().default(8).describe('Maximum number of results to return (default: 8)'),
+        query: z.string().describe('The natural language query to search for'),
+        indexName: z.string().describe('The name of the embeddings index to search'),
+        maxResults: z.number().optional().default(10).describe('Maximum number of results to return'),
         types: z.array(z.string()).optional().describe('Optional filter to select specific document types'),
-        projectId: z.string().optional().describe('The Sanity project ID (defaults to env variable)'),
-        dataset: z.string().optional().describe('The dataset to search in (defaults to env variable)')
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
-      handler: async ({ query, indexName, maxResults, types, projectId, dataset }) => {
+      handler: async ({ query, indexName, maxResults, types, projectId, dataset }: { query: string, indexName: string, maxResults?: number, types?: string[], projectId: string, dataset: string }) => {
         return await searchController.semanticSearch(query, { indexName, maxResults, types, projectId, dataset });
       }
     }
@@ -309,10 +296,10 @@ export function getToolDefinitions() {
 /**
  * Get a specific tool definition by name
  * 
- * @param {string} toolName - The name of the tool to retrieve
- * @returns {Object|null} The tool definition object or null if not found
+ * @param toolName - The name of the tool to retrieve
+ * @returns The tool definition object or null if not found
  */
-export function getToolDefinition(toolName) {
+export function getToolDefinition(toolName: string): ToolDefinition | null {
   const tools = getToolDefinitions();
   return tools.find(tool => tool.name === toolName) || null;
 }
@@ -320,11 +307,11 @@ export function getToolDefinition(toolName) {
 /**
  * Execute a tool by name with the provided arguments
  * 
- * @param {string} toolName - The name of the tool to execute
- * @param {Object} args - The arguments to pass to the tool handler
- * @returns {Promise<any>} The result of the tool execution
+ * @param toolName - The name of the tool to execute
+ * @param args - The arguments to pass to the tool handler
+ * @returns The result of the tool execution
  */
-export async function executeTool(toolName, args = {}) {
+export async function executeTool(toolName: string, args: Record<string, any> = {}): Promise<any> {
   const tool = getToolDefinition(toolName);
   
   if (!tool) {
@@ -337,7 +324,7 @@ export async function executeTool(toolName, args = {}) {
     
     // Execute the handler with validated arguments
     return await tool.handler(validatedArgs);
-  } catch (error) {
+  } catch (error: any) {
     if (error.errors) {
       // Zod validation error
       throw new Error(`Invalid arguments for tool '${toolName}': ${error.message}`);

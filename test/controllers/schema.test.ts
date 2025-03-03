@@ -10,7 +10,7 @@ import config from '../../src/config/config.js';
 import * as schemaController from '../../src/controllers/schema.js';
 
 // Suppress console.error during tests
-let originalConsoleError = console.error;
+const originalConsoleError = console.error;
 console.error = vi.fn();
 
 // Load the schema fixture for assertions
@@ -29,11 +29,11 @@ if (!fs.existsSync(targetDir)) {
 }
 
 // Helper to setup/teardown test schema file
-function setupTestFile() {
+function setupTestFile(): void {
   fs.writeFileSync(testSchemaPath, JSON.stringify(schemaData, null, 2));
 }
 
-function cleanupTestFile() {
+function cleanupTestFile(): void {
   if (fs.existsSync(testSchemaPath)) {
     fs.unlinkSync(testSchemaPath);
   }
@@ -41,7 +41,7 @@ function cleanupTestFile() {
 
 // Patching config getSchemaPath to return our test path
 const originalGetSchemaPath = config.getSchemaPath;
-config.getSchemaPath = function(projectId, dataset) {
+config.getSchemaPath = function(projectId: string, dataset: string): string {
   if (projectId === 'mock-project' && dataset === 'mock-dataset') {
     return testSchemaPath;
   }

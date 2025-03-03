@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { dirname } from 'path';
 import fs from 'fs';
 import path from 'path';
 
@@ -17,7 +17,18 @@ if (!fs.existsSync(schemasDir)) {
   fs.mkdirSync(schemasDir, { recursive: true });
 }
 
-const config = {
+interface Config {
+  sanityToken?: string;
+  projectId?: string;
+  dataset?: string;
+  apiVersion: string;
+  openAiApiKey?: string;
+  port: number;
+  schemasDir: string;
+  getSchemaPath: (projectId: string, dataset: string) => string;
+}
+
+const config: Config = {
   // Sanity token from environment variable
   sanityToken: process.env.SANITY_TOKEN,
   
@@ -32,7 +43,7 @@ const config = {
   openAiApiKey: process.env.OPENAI_API_KEY,
   
   // Server port
-  port: process.env.PORT || 3000,
+  port: parseInt(process.env.PORT || '3000', 10),
   
   // Path to schema files
   schemasDir,
@@ -40,11 +51,11 @@ const config = {
   /**
    * Get the path to the schema file for a specific project and dataset
    * 
-   * @param {string} projectId - Sanity project ID
-   * @param {string} dataset - Dataset name
-   * @returns {string} The path to the schema file
+   * @param projectId - Sanity project ID
+   * @param dataset - Dataset name
+   * @returns The path to the schema file
    */
-  getSchemaPath(projectId, dataset) {
+  getSchemaPath(projectId: string, dataset: string): string {
     return path.join(this.schemasDir, `${projectId}_${dataset}.json`);
   }
 };

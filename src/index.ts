@@ -7,8 +7,8 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 
-import config from './config/config.js';
-import * as toolsController from './controllers/tools.js';
+import config from './config/config.ts';
+import * as toolsController from './controllers/tools.ts';
 
 // Create MCP server
 const server = new Server(
@@ -58,13 +58,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 });
 
 // Run the server
-async function runServer() {
+async function runServer(): Promise<void> {
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error("Sanity MCP Server running on stdio");
 }
 
-runServer().catch((error) => {
+runServer().catch((error: Error) => {
   console.error("Fatal error in main():", error);
   process.exit(1);
 });

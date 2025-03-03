@@ -2,12 +2,16 @@
   "name": "sanity-mcp-server",
   "version": "1.0.0",
   "description": "Model Context Protocol server for Sanity.io",
-  "main": "src/index.js",
+  "main": "dist/index.js",
   "type": "module",
   "scripts": {
-    "start": "node src/index.js",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc -w & node --watch dist/index.js",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "test:ts": "tsc && vitest run"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.6.1",
@@ -21,13 +25,16 @@
     "zod-to-json-schema": "^3.22.3"
   },
   "bin": {
-    "sanity-mcp-server": "./src/index.js"
+    "sanity-mcp-server": "./dist/index.js"
   },
   "engines": {
     "node": ">=16.0.0"
   },
   "license": "MIT",
   "devDependencies": {
+    "@types/node": "^20.11.20",
+    "@types/ws": "^8.5.14",
+    "typescript": "^5.3.3",
     "vitest": "^3.0.7"
   }
 }

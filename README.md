@@ -6,10 +6,30 @@ An implementation of the [Model Context Protocol (MCP)](https://modelcontextprot
 
 This server implements the MCP protocol using stdio transport, making it suitable for direct integration with LLM assistants that support the MCP protocol. The server provides tools for interacting with Sanity's content management system.
 
+## Technical Details
+
+- Built with TypeScript for type safety and better developer experience
+- Uses Vitest for testing, with better ES Modules support
+- Implements controllers for various Sanity.io features
+
 ## Installation
 
 ```bash
 npm install
+```
+
+## Building the Project
+
+This project is built with TypeScript. To compile the TypeScript files to JavaScript:
+
+```bash
+npm run build
+```
+
+You can also start the development server with automatic recompilation:
+
+```bash
+npm run dev
 ```
 
 ## Usage
@@ -17,7 +37,13 @@ npm install
 ### Using as a direct command line tool
 
 ```bash
-./src/index.js
+npm start
+```
+
+Or after building:
+
+```bash
+node dist/index.js
 ```
 
 ### Integration with AI assistants
@@ -30,15 +56,32 @@ To see an example of how to integrate with the MCP client, check out the `usage-
 
 The server provides the following tools:
 
-- `listOrganizationsAndProjects`: Lists all organizations and their projects
-- `listStudios`: Lists all studios for a specific project
-- `getSchema`: Gets the full schema for a project and dataset
-- `getSchemaForType`: Gets the schema definition for a specific document type
-- `searchContent`: Searches for content using GROQ query language
-- `publishDocument`: Publishes a document
-- `unpublishDocument`: Unpublishes a document
-- `createRelease`: Creates a new content release
-- `addDocumentToRelease`: Adds a document to a content release
+- **Content Management**
+  - `searchContent`: Searches for content using GROQ query language
+  - `subscribeToUpdates`: Subscribes to real-time updates for documents
+
+- **Schema Management**
+  - `listSchemaTypes`: Lists available schema types
+  - `getTypeSchema`: Gets detailed schema for a specific type
+
+- **Document Actions**
+  - `publishDocument`: Publishes a document
+  - `unpublishDocument`: Unpublishes a document
+  - `createRelease`: Creates a new content release
+  - `addDocumentToRelease`: Adds a document to a content release
+  - `listReleaseDocuments`: Lists documents in a release
+
+- **Document Mutations**
+  - `modifyDocuments`: Performs document mutations (create, update, delete)
+  - `modifyPortableTextField`: Modifies Portable Text fields
+
+- **Search**
+  - `semanticSearch`: Performs semantic search on embeddings indices
+  - `listEmbeddingsIndices`: Lists available embeddings indices
+
+- **Project Management**
+  - `listOrganizationsAndProjects`: Lists all organizations and their projects
+  - `listStudios`: Lists all studios for a specific project
 
 ## Environment Variables
 
@@ -49,18 +92,33 @@ SANITY_TOKEN=your_sanity_api_token
 SANITY_PROJECT_ID=your_sanity_project_id
 SANITY_DATASET=your_sanity_dataset
 SANITY_API_VERSION=your_sanity_api_version
-# Add any other required environment variables
+# Optional: for LLM verification of content
+OPENAI_API_KEY=your_openai_api_key
 ```
 
 ## Development
 
-Start the server with:
+### Type Checking
+
+Run the TypeScript type checker:
 
 ```bash
-npm run dev
+npm run typecheck
 ```
 
-To add new tools or modify existing ones, update the tool definitions in `src/index.js` and implement the appropriate controller functions.
+### Testing
+
+Run tests:
+
+```bash
+npm test
+```
+
+Or in watch mode:
+
+```bash
+npm run test:watch
+```
 
 ## Schema Management
 

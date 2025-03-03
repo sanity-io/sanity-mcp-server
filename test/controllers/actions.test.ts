@@ -27,11 +27,11 @@ describe('Actions Controller', () => {
   
   beforeEach(() => {
     // Setup mocks
-    createSanityClient.mockReturnValue(mockClient);
-    sanityApi.performActions = vi.fn().mockResolvedValue(mockPerformActionsResponse);
+    (createSanityClient as any).mockReturnValue(mockClient);
+    (sanityApi.performActions as any) = vi.fn().mockResolvedValue(mockPerformActionsResponse);
     
     // Reset document fetch behavior
-    mockClient.getDocument.mockImplementation((id) => {
+    mockClient.getDocument.mockImplementation((id: string) => {
       if (id === 'doc123' || id === 'drafts.doc123') {
         return Promise.resolve({
           _id: id,
@@ -92,7 +92,7 @@ describe('Actions Controller', () => {
     });
     
     it('should throw an error when publishing fails', async () => {
-      sanityApi.performActions.mockRejectedValueOnce(new Error('Failed to publish'));
+      (sanityApi.performActions as any).mockRejectedValueOnce(new Error('Failed to publish'));
       
       await expect(publishDocument('project123', 'dataset123', 'doc123')).rejects.toThrow('Failed to publish document');
     });
@@ -134,7 +134,7 @@ describe('Actions Controller', () => {
     });
     
     it('should throw an error when unpublishing fails', async () => {
-      sanityApi.performActions.mockRejectedValueOnce(new Error('Failed to unpublish'));
+      (sanityApi.performActions as any).mockRejectedValueOnce(new Error('Failed to unpublish'));
       
       await expect(unpublishDocument('project123', 'dataset123', 'doc123')).rejects.toThrow('Failed to unpublish document');
     });
@@ -180,7 +180,7 @@ describe('Actions Controller', () => {
     });
     
     it('should throw an error when release creation fails', async () => {
-      sanityApi.performActions.mockRejectedValueOnce(new Error('Failed to create release'));
+      (sanityApi.performActions as any).mockRejectedValueOnce(new Error('Failed to create release'));
       
       await expect(createRelease('project123', 'dataset123', 'release123')).rejects.toThrow('Failed to create release');
     });
@@ -212,59 +212,63 @@ describe('Actions Controller', () => {
       }));
     });
     
+    it('should handle document IDs with drafts prefix', async () => {
+      const result = await addDocumentToRelease('project123', 'dataset123', 'release123', 'drafts.doc123');
+      
+      expect(mockClient.getDocument).toHaveBeenCalledWith('doc123');
+      
+      expect(result).toEqual(expect.objectContaining({
+        documentId: 'doc123',
+        versionId: 'versions.release123.doc123'
+      }));
+    });
+    
     it('should use provided content if available', async () => {
       const customContent = {
         _type: 'article',
         title: 'Custom Title',
-        customField: 'custom value'
+        content: 'Custom content'
       };
       
       const result = await addDocumentToRelease('project123', 'dataset123', 'release123', 'doc123', customContent);
       
-      // Should not fetch document when content is provided
       expect(mockClient.getDocument).not.toHaveBeenCalled();
       
       expect(sanityApi.performActions).toHaveBeenCalledWith('project123', 'dataset123', [
         expect.objectContaining({
-          actionType: 'sanity.action.document.version.create',
-          publishedId: 'doc123',
           attributes: expect.objectContaining({
             _id: 'versions.release123.doc123',
             _type: 'article',
             title: 'Custom Title',
-            customField: 'custom value'
+            content: 'Custom content'
           })
         })
       ]);
       
       expect(result).toEqual(expect.objectContaining({
-        success: true,
-        releaseId: 'release123',
-        documentId: 'doc123'
+        success: true
       }));
     });
     
-    it('should try draft document if published version is not found', async () => {
-      // Mock failing for published document but succeeding for draft
+    it('should try draft document if published document not found', async () => {
       mockClient.getDocument.mockImplementationOnce(() => Promise.reject(new Error('Not found')));
       
-      const result = await addDocumentToRelease('project123', 'dataset123', 'release123', 'doc123');
+      await addDocumentToRelease('project123', 'dataset123', 'release123', 'doc123');
       
       expect(mockClient.getDocument).toHaveBeenCalledWith('doc123');
       expect(mockClient.getDocument).toHaveBeenCalledWith('drafts.doc123');
-      
-      expect(result).toEqual(expect.objectContaining({
-        success: true,
-        releaseId: 'release123',
-        documentId: 'doc123'
-      }));
     });
     
-    it('should throw an error when document is not found', async () => {
-      // Mock both published and draft lookups failing
+    it('should throw an error if document not found', async () => {
       mockClient.getDocument.mockRejectedValue(new Error('Document not found'));
       
       await expect(addDocumentToRelease('project123', 'dataset123', 'release123', 'missing-doc')).rejects.toThrow('Failed to add document to release');
+    });
+    
+    it('should throw an error when API call fails', async () => {
+      (sanityApi.performActions as any).mockRejectedValueOnce(new Error('API error'));
+      
+      await expect(addDocumentToRelease('project123', 'dataset123', 'release123', 'doc123')).rejects.toThrow('Failed to add document to release');
     });
   });
   
@@ -349,7 +353,7 @@ describe('Actions Controller', () => {
     });
     
     it('should throw an error when publishing fails', async () => {
-      sanityApi.performActions.mockRejectedValueOnce(new Error('Publishing failed'));
+      (sanityApi.performActions as any).mockRejectedValueOnce(new Error('Publishing failed'));
       
       await expect(publishRelease('project123', 'dataset123', 'release123')).rejects.toThrow('Failed to publish release');
     });

@@ -3,12 +3,21 @@ import { createSanityClient, sanityApi } from '../utils/sanityClient.js';
 /**
  * Publishes a document (makes draft the published version)
  * 
- * @param {string} projectId - Sanity project ID
- * @param {string} dataset - Dataset name
- * @param {string} documentId - The document ID to publish
- * @returns {Promise<Object>} Result of the publish operation
+ * @param projectId - Sanity project ID
+ * @param dataset - Dataset name
+ * @param documentId - The document ID to publish
+ * @returns Result of the publish operation
  */
-export async function publishDocument(projectId, dataset, documentId) {
+export async function publishDocument(
+  projectId: string, 
+  dataset: string, 
+  documentId: string
+): Promise<{
+  success: boolean;
+  message: string;
+  documentId: string;
+  result: any;
+}> {
   try {
     // Ensure document ID doesn't already have 'drafts.' prefix
     const baseDocId = documentId.replace(/^drafts\./, '');
@@ -30,7 +39,7 @@ export async function publishDocument(projectId, dataset, documentId) {
       documentId: baseDocId,
       result
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error publishing document ${documentId}:`, error);
     throw new Error(`Failed to publish document: ${error.message}`);
   }
@@ -39,12 +48,21 @@ export async function publishDocument(projectId, dataset, documentId) {
 /**
  * Unpublishes a document (keeps it as draft only)
  * 
- * @param {string} projectId - Sanity project ID
- * @param {string} dataset - Dataset name
- * @param {string} documentId - The document ID to unpublish
- * @returns {Promise<Object>} Result of the unpublish operation
+ * @param projectId - Sanity project ID
+ * @param dataset - Dataset name
+ * @param documentId - The document ID to unpublish
+ * @returns Result of the unpublish operation
  */
-export async function unpublishDocument(projectId, dataset, documentId) {
+export async function unpublishDocument(
+  projectId: string, 
+  dataset: string, 
+  documentId: string
+): Promise<{
+  success: boolean;
+  message: string;
+  draftId: string;
+  result: any;
+}> {
   try {
     // Ensure document ID doesn't already have 'drafts.' prefix
     const baseDocId = documentId.replace(/^drafts\./, '');
@@ -66,7 +84,7 @@ export async function unpublishDocument(projectId, dataset, documentId) {
       draftId,
       result
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error unpublishing document ${documentId}:`, error);
     throw new Error(`Failed to unpublish document: ${error.message}`);
   }
@@ -75,13 +93,23 @@ export async function unpublishDocument(projectId, dataset, documentId) {
 /**
  * Creates a new content release
  * 
- * @param {string} projectId - Sanity project ID
- * @param {string} dataset - Dataset name
- * @param {string} releaseId - Unique ID for the release
- * @param {string} title - Display title for the release
- * @returns {Promise<Object>} Result of creating the release
+ * @param projectId - Sanity project ID
+ * @param dataset - Dataset name
+ * @param releaseId - Unique ID for the release
+ * @param title - Display title for the release
+ * @returns Result of creating the release
  */
-export async function createRelease(projectId, dataset, releaseId, title) {
+export async function createRelease(
+  projectId: string, 
+  dataset: string, 
+  releaseId: string, 
+  title?: string
+): Promise<{
+  success: boolean;
+  message: string;
+  releaseId: string;
+  result: any;
+}> {
   try {
     // Create the release action
     const action = {
@@ -101,7 +129,7 @@ export async function createRelease(projectId, dataset, releaseId, title) {
       releaseId,
       result
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error creating release ${releaseId}:`, error);
     throw new Error(`Failed to create release: ${error.message}`);
   }
@@ -110,14 +138,27 @@ export async function createRelease(projectId, dataset, releaseId, title) {
 /**
  * Adds a document to a content release
  * 
- * @param {string} projectId - Sanity project ID
- * @param {string} dataset - Dataset name
- * @param {string} releaseId - ID of the release
- * @param {string} documentId - ID of the document to add to the release
- * @param {Object} content - Optional content changes to apply
- * @returns {Promise<Object>} Result of adding the document to the release
+ * @param projectId - Sanity project ID
+ * @param dataset - Dataset name
+ * @param releaseId - ID of the release
+ * @param documentId - ID of the document to add to the release
+ * @param content - Optional content changes to apply
+ * @returns Result of adding the document to the release
  */
-export async function addDocumentToRelease(projectId, dataset, releaseId, documentId, content) {
+export async function addDocumentToRelease(
+  projectId: string, 
+  dataset: string, 
+  releaseId: string, 
+  documentId: string, 
+  content?: Record<string, any>
+): Promise<{
+  success: boolean;
+  message: string;
+  releaseId: string;
+  documentId: string;
+  versionId: string;
+  result: any;
+}> {
   try {
     const client = createSanityClient(projectId, dataset);
     const baseDocId = documentId.replace(/^drafts\./, '');
@@ -160,21 +201,36 @@ export async function addDocumentToRelease(projectId, dataset, releaseId, docume
       versionId: `versions.${releaseId}.${baseDocId}`,
       result
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error adding document ${documentId} to release ${releaseId}:`, error);
     throw new Error(`Failed to add document to release: ${error.message}`);
   }
 }
 
+interface ReleaseDocument {
+  versionId: string;
+  documentId: string;
+  type: string;
+  title: string;
+}
+
 /**
  * Lists all documents in a content release
  * 
- * @param {string} projectId - Sanity project ID
- * @param {string} dataset - Dataset name
- * @param {string} releaseId - ID of the release
- * @returns {Promise<Object>} List of documents in the release
+ * @param projectId - Sanity project ID
+ * @param dataset - Dataset name
+ * @param releaseId - ID of the release
+ * @returns List of documents in the release
  */
-export async function listReleaseDocuments(projectId, dataset, releaseId) {
+export async function listReleaseDocuments(
+  projectId: string, 
+  dataset: string, 
+  releaseId: string
+): Promise<{
+  releaseId: string;
+  documentCount: number;
+  documents: ReleaseDocument[];
+}> {
   try {
     const client = createSanityClient(projectId, dataset);
     
@@ -183,7 +239,7 @@ export async function listReleaseDocuments(projectId, dataset, releaseId) {
     const documents = await client.fetch(query);
     
     // Map version documents to their base documents
-    const mappedDocuments = documents.map(doc => {
+    const mappedDocuments: ReleaseDocument[] = documents.map((doc: any) => {
       // Extract the base document ID from the version ID
       const baseId = doc._id.replace(`versions.${releaseId}.`, '');
       
@@ -201,7 +257,7 @@ export async function listReleaseDocuments(projectId, dataset, releaseId) {
       documentCount: mappedDocuments.length,
       documents: mappedDocuments
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error listing documents in release ${releaseId}:`, error);
     throw new Error(`Failed to list release documents: ${error.message}`);
   }
@@ -210,12 +266,22 @@ export async function listReleaseDocuments(projectId, dataset, releaseId) {
 /**
  * Publishes all documents in a release
  * 
- * @param {string} projectId - Sanity project ID
- * @param {string} dataset - Dataset name
- * @param {string} releaseId - ID of the release to publish
- * @returns {Promise<Object>} Result of publishing the release
+ * @param projectId - Sanity project ID
+ * @param dataset - Dataset name
+ * @param releaseId - ID of the release to publish
+ * @returns Result of publishing the release
  */
-export async function publishRelease(projectId, dataset, releaseId) {
+export async function publishRelease(
+  projectId: string, 
+  dataset: string, 
+  releaseId: string
+): Promise<{
+  success: boolean;
+  message: string;
+  releaseId: string;
+  documentCount: number;
+  result: any;
+}> {
   try {
     // First, check how many documents are in the release
     const documents = await listReleaseDocuments(projectId, dataset, releaseId);
@@ -243,7 +309,7 @@ export async function publishRelease(projectId, dataset, releaseId) {
       documentCount: documents.documentCount,
       result
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error publishing release ${releaseId}:`, error);
     throw new Error(`Failed to publish release: ${error.message}`);
   }

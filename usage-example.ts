@@ -4,7 +4,7 @@ import { spawn } from 'child_process';
 import { createClient } from '@modelcontextprotocol/sdk/client';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 
-async function runExample() {
+async function runExample(): Promise<void> {
   // Spawn the MCP server as a child process
   const serverProcess = spawn('./src/index.js', [], { 
     stdio: ['pipe', 'pipe', process.stderr],

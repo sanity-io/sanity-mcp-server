@@ -33,7 +33,7 @@ describe('Content Controller', () => {
   
   beforeEach(() => {
     // Setup mocks
-    createSanityClient.mockReturnValue(mockClient);
+    (createSanityClient as any).mockReturnValue(mockClient);
     mockClient.fetch.mockResolvedValue([
       { _id: 'doc1', title: 'Document 1', body: 'Simple text' },
       { 
@@ -48,7 +48,7 @@ describe('Content Controller', () => {
     mockClient.listen.mockReturnValue(mockSubscription);
     mockSubscription.subscribe.mockReturnValue({ unsubscribe: vi.fn() });
     
-    portableTextToMarkdown.mockReturnValue('Converted Markdown');
+    (portableTextToMarkdown as any).mockReturnValue('Converted Markdown');
     
     // Clear mock call history
     vi.clearAllMocks();
@@ -147,7 +147,7 @@ describe('Content Controller', () => {
       const consoleSpy = vi.spyOn(console, 'log');
       
       // Simulate the callback being called with an update
-      mockSubscription.subscribe.mockImplementationOnce((callback) => {
+      mockSubscription.subscribe.mockImplementationOnce((callback: any) => {
         callback({ 
           documentId: 'doc123', 
           type: 'update',

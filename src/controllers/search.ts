@@ -3,6 +3,7 @@
  */
 import config from '../config/config.js';
 import { createClient } from '@sanity/client';
+import { EmbeddingIndex, SearchOptions, SearchResponse } from '../types/index.js';
 
 // Initialize Sanity client only if project ID is available
 const projectId = config.projectId || process.env.SANITY_PROJECT_ID;
@@ -22,15 +23,13 @@ if (projectId) {
 /**
  * Lists all embeddings indices for a dataset
  * 
- * @param {Object} options - Options for listing embeddings indices
- * @param {string} options.projectId - The Sanity project ID to use (defaults to config.projectId)
- * @param {string} options.dataset - The dataset to list indices from (defaults to config.dataset)
- * @returns {Promise<Array>} Array of embeddings indices
+ * @param options - Options for listing embeddings indices
+ * @returns Promise with array of embeddings indices
  */
 export async function listEmbeddingsIndices({
   projectId = config.projectId || process.env.SANITY_PROJECT_ID,
   dataset = config.dataset || process.env.SANITY_DATASET
-} = {}) {
+} = {}): Promise<EmbeddingIndex[]> {
   try {
     // Ensure we have the necessary info
     if (!projectId) {
@@ -65,41 +64,35 @@ export async function listEmbeddingsIndices({
       if (response.status === 401 || response.status === 403) {
         throw new Error("Authentication failed: Your Sanity token is invalid or doesn't have access to embeddings.");
       } else if (response.status === 404) {
-        throw new Error(`Dataset "${dataset}" not found or no embeddings indices exist.`);
+        throw new Error(`No embeddings indices found for dataset '${dataset}'. You may need to create one first.`);
       } else {
         const errorText = await response.text();
         throw new Error(`API request failed with status ${response.status}: ${errorText}`);
       }
     }
     
-    const indices = await response.json();
+    const indices = await response.json() as EmbeddingIndex[];
     return indices;
   } catch (error) {
-    // Provide a helpful error message with additional context
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    throw new Error(`Failed to list embeddings indices: ${errorMessage}`);
+    console.error(`Error listing embeddings indices:`, error);
+    throw new Error(`Failed to list embeddings indices: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
 /**
  * Performs semantic search on Sanity documentation and guides using embeddings
  * 
- * @param {string} query - Natural language query to search for semantically similar content
- * @param {Object} options - Additional search options
- * @param {string} options.indexName - The name of the embeddings index to search (required)
- * @param {number} options.maxResults - Maximum number of results to return (default: 10)
- * @param {string[]} options.types - Optional filter to select specific document types
- * @param {string} options.projectId - The Sanity project ID to use (defaults to config.projectId)
- * @param {string} options.dataset - The dataset to search in (defaults to config.dataset)
- * @returns {Promise<Object>} Search results with hits and total properties
+ * @param query - Natural language query to search for semantically similar content
+ * @param options - Additional search options
+ * @returns Promise with search results containing hits and total properties
  */
-export async function semanticSearch(query, { 
+export async function semanticSearch(query: string, { 
   indexName,
   maxResults = 10, 
   types = [],
   projectId = config.projectId || process.env.SANITY_PROJECT_ID,
   dataset = config.dataset || process.env.SANITY_DATASET
-} = {}) {
+}: SearchOptions = {} as SearchOptions): Promise<SearchResponse> {
   try {
     // Ensure we have the necessary info
     if (!query) {
@@ -168,7 +161,7 @@ export async function semanticSearch(query, {
     
     // If for some reason we get an object with hits already, just return it
     if (rawResults.hits) {
-      return rawResults;
+      return rawResults as SearchResponse;
     }
     
     // If we somehow got an empty response or invalid format
