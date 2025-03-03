@@ -7,8 +7,8 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 
-import config from './config/config.ts';
-import * as toolsController from './controllers/tools.ts';
+import config from './config/config.js';
+import * as toolsController from './controllers/tools.js';
 
 // Create MCP server
 const server = new Server(

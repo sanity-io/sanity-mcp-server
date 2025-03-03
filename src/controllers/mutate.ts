@@ -2,16 +2,25 @@ import { createSanityClient } from '../utils/sanityClient.js';
 import { markdownToPortableText } from '../utils/portableText.js';
 
 // Define types for mutations
+interface SanityDocumentStub<T extends { _type: string }> {
+  _type: string;
+  [key: string]: any;
+}
+
+interface IdentifiedSanityDocumentStub<T extends Record<string, any>> extends SanityDocumentStub<T & { _type: string }> {
+  _id: string;
+}
+
 export interface CreateMutation {
-  create: Record<string, any>;
+  create: SanityDocumentStub<{ _type: string }>;
 }
 
 export interface CreateOrReplaceMutation {
-  createOrReplace: Record<string, any>;
+  createOrReplace: IdentifiedSanityDocumentStub<Record<string, any>>;
 }
 
 export interface CreateIfNotExistsMutation {
-  createIfNotExists: Record<string, any>;
+  createIfNotExists: IdentifiedSanityDocumentStub<Record<string, any>>;
 }
 
 export interface DeleteByIdMutation {
@@ -128,10 +137,7 @@ export async function modifyDocuments(
       if ('delete' in mutation) {
         if ('query' in mutation.delete) {
           // Delete by query
-          transaction.delete({
-            query: mutation.delete.query,
-            params: mutation.delete.params
-          });
+          transaction.delete(mutation.delete.query);
         } else if ('id' in mutation.delete) {
           // Delete by ID
           transaction.delete(mutation.delete.id);

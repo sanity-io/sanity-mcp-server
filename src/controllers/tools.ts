@@ -128,7 +128,9 @@ export function getToolDefinitions(): ToolDefinition[] {
         dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
       handler: async ({ query, params, projectId, dataset }: { query: string, params?: Record<string, any>, projectId: string, dataset: string }) => {
-        return await contentController.searchContent(query, params, projectId, dataset);
+        // Fixed parameter order to match function signature:
+        // searchContent(projectId, dataset, query, params = {}, verifyWithLLM = false)
+        return await contentController.searchContent(projectId, dataset, query, params || {});
       }
     },
     
@@ -141,7 +143,7 @@ export function getToolDefinitions(): ToolDefinition[] {
         dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
       handler: async ({ query, projectId, dataset }: { query: string, projectId: string, dataset: string }) => {
-        return await contentController.subscribeToUpdates({ projectId, dataset, query });
+        return await contentController.subscribeToUpdates(projectId, dataset, query);
       }
     },
     
@@ -155,7 +157,7 @@ export function getToolDefinitions(): ToolDefinition[] {
         dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
       handler: async ({ documentId, projectId, dataset }: { documentId: string, projectId: string, dataset: string }) => {
-        return await actionsController.publishDocument(documentId, projectId, dataset);
+        return await actionsController.publishDocument(projectId, dataset, documentId);
       }
     },
     
@@ -168,7 +170,7 @@ export function getToolDefinitions(): ToolDefinition[] {
         dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
       handler: async ({ documentId, projectId, dataset }: { documentId: string, projectId: string, dataset: string }) => {
-        return await actionsController.unpublishDocument(documentId, projectId, dataset);
+        return await actionsController.unpublishDocument(projectId, dataset, documentId);
       }
     },
     
@@ -182,7 +184,8 @@ export function getToolDefinitions(): ToolDefinition[] {
         dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
       handler: async ({ title, description, projectId, dataset }: { title: string, description?: string, projectId: string, dataset: string }) => {
-        return await actionsController.createRelease(title, description, projectId, dataset);
+        const releaseId = `release-${Date.now()}-${title.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+        return await actionsController.createRelease(projectId, dataset, releaseId, title);
       }
     },
     
@@ -238,7 +241,8 @@ export function getToolDefinitions(): ToolDefinition[] {
         returnDocuments: z.boolean().optional().default(false).describe('If true, returns the modified documents')
       }),
       handler: async ({ mutations, projectId, dataset, returnDocuments }: { mutations: any[], projectId: string, dataset: string, returnDocuments?: boolean }) => {
-        return await mutateController.modifyDocuments(mutations, projectId, dataset, returnDocuments);
+        // Fixed: modifyDocuments takes 3 parameters: projectId, dataset, mutations
+        return await mutateController.modifyDocuments(projectId, dataset, mutations);
       }
     },
     
@@ -258,7 +262,8 @@ export function getToolDefinitions(): ToolDefinition[] {
         dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
       handler: async ({ documentId, fieldPath, operations, projectId, dataset }: { documentId: string, fieldPath: string, operations: any[], projectId: string, dataset: string }) => {
-        return await mutateController.modifyPortableTextField(documentId, fieldPath, operations, projectId, dataset);
+        // Fixed: order should be projectId, dataset, documentId, fieldPath, operations
+        return await mutateController.modifyPortableTextField(projectId, dataset, documentId, fieldPath, operations);
       }
     },
     

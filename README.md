@@ -18,7 +18,7 @@ This server implements the MCP protocol using stdio transport, making it suitabl
 npm install
 ```
 
-## Building the Project
+## Building and Running
 
 This project is built with TypeScript. To compile the TypeScript files to JavaScript:
 
@@ -26,10 +26,23 @@ This project is built with TypeScript. To compile the TypeScript files to JavaSc
 npm run build
 ```
 
-You can also start the development server with automatic recompilation:
+### Development Mode
+
+Start the development server with automatic recompilation and restart on changes:
 
 ```bash
 npm run dev
+```
+
+This uses `tsc -w` to watch TypeScript files and recompile them when they change, plus `node --watch` to restart the server when the compiled JavaScript changes.
+
+### Production Mode
+
+For production or regular usage:
+
+```bash
+npm run build
+npm start
 ```
 
 ## Usage

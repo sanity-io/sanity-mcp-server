@@ -1,6 +1,6 @@
 import { createClient, SanityClient } from '@sanity/client';
 import fetch from 'node-fetch';
-import config from '../config/config.ts';
+import config from '../config/config.js';
 
 /**
  * Creates a Sanity client for a specific project and dataset
@@ -48,6 +48,13 @@ interface SanityAction {
   delete?: {
     id: string;
   };
+  // Custom Sanity actions
+  actionType?: string;
+  draftId?: string;
+  publishedId?: string;
+  releaseId?: string;
+  metadata?: Record<string, any>;
+  attributes?: Record<string, any>;
 }
 
 interface SanityActionResult {
