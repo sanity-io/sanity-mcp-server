@@ -1,7 +1,7 @@
 /**
  * Direct integration tests for schema controller
  */
-import { jest } from '@jest/globals';
+import { describe, it, expect, vi, beforeEach, afterEach, afterAll } from 'vitest';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -11,7 +11,7 @@ import * as schemaController from '../../src/controllers/schema.js';
 
 // Suppress console.error during tests
 let originalConsoleError = console.error;
-console.error = jest.fn();
+console.error = vi.fn();
 
 // Load the schema fixture for assertions
 const __filename = fileURLToPath(import.meta.url);
@@ -52,7 +52,7 @@ describe('Schema Controller', () => {
   // Setup and teardown for each test
   beforeEach(() => {
     setupTestFile();
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
   
   afterEach(() => {

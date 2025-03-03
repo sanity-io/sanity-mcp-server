@@ -8,11 +8,11 @@ import { z } from 'zod';
 import config from '../config/config.js';
 
 // Import controllers
-import * as projectsController from './projects.js';
+// import * as projectsController from './projects.js'; // Commented out as requested - no way to mint tokens yet
 import * as schemaController from './schema.js';
 import * as contentController from './content.js';
 import * as actionsController from './actions.js';
-import * as modifyController from './modify.js';
+import * as mutateController from './mutate.js';
 import * as searchController from './search.js';
 
 /**
@@ -46,27 +46,6 @@ export function getToolDefinitions() {
           dataset: config.dataset || "production",
           note: "Future versions will support querying any project the user has access to, but for now, please restrict queries to this specific project and dataset."
         };
-      }
-    },
-    
-    // Project/Org tools
-    {
-      name: 'listOrganizationsAndProjects',
-      description: 'Lists all organizations and their projects that the user has access to',
-      parameters: z.object({}),
-      handler: async () => {
-        return await projectsController.listOrganizationsAndProjects();
-      }
-    },
-    
-    {
-      name: 'listStudios',
-      description: 'Lists all studios (editing interfaces) for a specific project',
-      parameters: z.object({
-        projectId: z.string().describe('The Sanity project ID')
-      }),
-      handler: async ({ projectId }) => {
-        return await projectsController.listStudios(projectId);
       }
     },
     
@@ -164,21 +143,138 @@ export function getToolDefinitions() {
       }
     },
     
-    // Search tools
     {
-      name: 'semanticSearch',
-      description: 'Perform semantic search on Sanity documentation and guides using embeddings',
+      name: 'createRelease',
+      description: 'Creates a new release for staged publishing',
       parameters: z.object({
-        query: z.string().describe('Natural language query to search for semantically similar content'),
-        maxResults: z.number().optional().default(8).describe('Maximum number of results to return (default: 8)'),
-        types: z.array(z.string()).optional().default(["article", "guide"]).describe('Optional filter to select specific document types')
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)'),
+        title: z.string().describe('Title for the release'),
+        description: z.string().optional().describe('Optional description for the release')
       }),
-      handler: async ({ query, maxResults, types }) => {
-        return await searchController.semanticSearch(query, maxResults, types);
+      handler: async ({ projectId, dataset, title, description }) => {
+        return await actionsController.createRelease(projectId, dataset, title, description);
       }
     },
     
-    // Any additional tools would be added here...
+    {
+      name: 'addDocumentToRelease',
+      description: 'Adds a document to a release for staged publishing',
+      parameters: z.object({
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)'),
+        releaseId: z.string().describe('ID of the release to add the document to'),
+        documentId: z.string().describe('ID of the document to add to the release')
+      }),
+      handler: async ({ projectId, dataset, releaseId, documentId }) => {
+        return await actionsController.addDocumentToRelease(projectId, dataset, releaseId, documentId);
+      }
+    },
+    
+    {
+      name: 'listReleaseDocuments',
+      description: 'Lists all documents included in a release',
+      parameters: z.object({
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)'),
+        releaseId: z.string().describe('ID of the release to list documents for')
+      }),
+      handler: async ({ projectId, dataset, releaseId }) => {
+        return await actionsController.listReleaseDocuments(projectId, dataset, releaseId);
+      }
+    },
+    
+    {
+      name: 'publishRelease',
+      description: 'Publishes all documents in a release',
+      parameters: z.object({
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)'),
+        releaseId: z.string().describe('ID of the release to publish')
+      }),
+      handler: async ({ projectId, dataset, releaseId }) => {
+        return await actionsController.publishRelease(projectId, dataset, releaseId);
+      }
+    },
+    
+    // Modify tools
+    {
+      name: 'modifyDocuments',
+      description: 'Creates or updates documents',
+      parameters: z.object({
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)'),
+        mutations: z.array(z.object({
+          create: z.object({}).optional(),
+          createOrReplace: z.object({}).optional(),
+          createIfNotExists: z.object({}).optional(),
+          patch: z.object({
+            id: z.string(),
+            set: z.object({}).optional(),
+            setIfMissing: z.object({}).optional(),
+            unset: z.array(z.string()).optional(),
+            insert: z.object({}).optional(),
+            inc: z.object({}).optional(),
+            dec: z.object({}).optional()
+          }).optional(),
+          delete: z.object({
+            id: z.string()
+          }).optional()
+        }))
+      }),
+      handler: async ({ projectId, dataset, mutations }) => {
+        return await mutateController.modifyDocuments(projectId, dataset, mutations);
+      }
+    },
+    
+    {
+      name: 'modifyPortableTextField',
+      description: 'Modifies a portable text field in a document, with enhanced handling for complex text structures',
+      parameters: z.object({
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)'),
+        documentId: z.string().describe('ID of the document to modify'),
+        fieldPath: z.string().describe('Path to the portable text field (e.g. "content" or "sections[0].body")'),
+        operations: z.array(z.object({
+          type: z.enum(['insert', 'replace', 'remove']),
+          position: z.enum(['beginning', 'end', 'at']),
+          atIndex: z.number().optional(),
+          value: z.any().optional()
+        }))
+      }),
+      handler: async ({ projectId, dataset, documentId, fieldPath, operations }) => {
+        return await mutateController.modifyPortableTextField(projectId, dataset, documentId, fieldPath, operations);
+      }
+    },
+    
+    // Search tools
+    {
+      name: 'listEmbeddingsIndices',
+      description: 'List all available embeddings indices for a dataset',
+      parameters: z.object({
+        projectId: z.string().optional().describe('The Sanity project ID (defaults to env variable)'),
+        dataset: z.string().optional().describe('The dataset to list indices from (defaults to env variable)')
+      }),
+      handler: async ({ projectId, dataset }) => {
+        return await searchController.listEmbeddingsIndices({ projectId, dataset });
+      }
+    },
+    
+    {
+      name: 'semanticSearch',
+      description: 'Perform semantic search using embeddings',
+      parameters: z.object({
+        query: z.string().describe('Natural language query to search for semantically similar content'),
+        indexName: z.string().describe('Name of the embeddings index to search'),
+        maxResults: z.number().optional().default(8).describe('Maximum number of results to return (default: 8)'),
+        types: z.array(z.string()).optional().describe('Optional filter to select specific document types'),
+        projectId: z.string().optional().describe('The Sanity project ID (defaults to env variable)'),
+        dataset: z.string().optional().describe('The dataset to search in (defaults to env variable)')
+      }),
+      handler: async ({ query, indexName, maxResults, types, projectId, dataset }) => {
+        return await searchController.semanticSearch(query, { indexName, maxResults, types, projectId, dataset });
+      }
+    }
   ];
 }
 

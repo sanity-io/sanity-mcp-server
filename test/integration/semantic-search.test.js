@@ -1,10 +1,10 @@
 /**
- * Integration test for semantic search tool
+ * Integration test for semantic search tools
  */
-import { jest } from '@jest/globals';
+import { describe, it, expect } from 'vitest';
 import { getToolDefinitions } from '../../src/controllers/tools.js';
 
-describe('Semantic Search Integration', () => {
+describe('Search Tools Integration', () => {
   it('should have semanticSearch tool registered with correct parameters', () => {
     const tools = getToolDefinitions();
     const searchTool = tools.find(tool => tool.name === 'semanticSearch');
@@ -15,7 +15,23 @@ describe('Semantic Search Integration', () => {
     // Check parameter schema
     const paramsSchema = searchTool.parameters._def.shape();
     expect(paramsSchema.query).toBeDefined();
+    expect(paramsSchema.indexName).toBeDefined(); // Verify new required parameter
     expect(paramsSchema.maxResults).toBeDefined();
     expect(paramsSchema.types).toBeDefined();
+    expect(paramsSchema.projectId).toBeDefined();
+    expect(paramsSchema.dataset).toBeDefined();
+  });
+  
+  it('should have listEmbeddingsIndices tool registered with correct parameters', () => {
+    const tools = getToolDefinitions();
+    const indicesListTool = tools.find(tool => tool.name === 'listEmbeddingsIndices');
+    
+    expect(indicesListTool).toBeDefined();
+    expect(indicesListTool.description).toContain('embeddings indices');
+    
+    // Check parameter schema
+    const paramsSchema = indicesListTool.parameters._def.shape();
+    expect(paramsSchema.projectId).toBeDefined();
+    expect(paramsSchema.dataset).toBeDefined();
   });
 });
