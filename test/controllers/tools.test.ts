@@ -1,9 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { getToolDefinitions } from '../../src/controllers/tools.js';
 import * as mutateController from '../../src/controllers/mutate.js';
+import * as groqController from '../../src/controllers/groq.js';
 
-// Mock the mutate controller
+// Mock the controllers
 vi.mock('../../src/controllers/mutate.js');
+vi.mock('../../src/controllers/groq.js');
 
 describe('Tools', () => {
   beforeEach(() => {
@@ -14,11 +16,69 @@ describe('Tools', () => {
     vi.resetAllMocks();
   });
 
-  // Get all tools and find the mutateDocument tool
+  // Get all tools
   const tools = getToolDefinitions();
-  const mutateDocumentTool = tools.find(tool => tool.name === 'mutateDocument');
+  
+  describe('getDocuments', () => {
+    // Find the getDocuments tool
+    const getDocumentsTool = tools.find(tool => tool.name === 'getDocuments');
+    
+    it('should exist', () => {
+      expect(getDocumentsTool).toBeDefined();
+    });
+    
+    it('should fetch multiple documents by their IDs', async () => {
+      if (!getDocumentsTool) return;
+      
+      // Mock the searchContent function (which getDocuments uses internally)
+      vi.mocked(groqController.searchContent).mockResolvedValueOnce([
+        { _id: 'doc1', title: 'Document 1' },
+        { _id: 'doc2', title: 'Document 2' }
+      ]);
+      
+      const result = await getDocumentsTool.handler({
+        documentIds: ['doc1', 'doc2'],
+        projectId: 'project123',
+        dataset: 'dataset123'
+      });
+      
+      // Verify that searchContent was called with the correct parameters
+      expect(groqController.searchContent).toHaveBeenCalledWith(
+        'project123',
+        'dataset123',
+        '*[_id in $documentIds]',
+        { documentIds: ['doc1', 'doc2'] }
+      );
+      
+      // Verify the results
+      expect(result).toEqual([
+        { _id: 'doc1', title: 'Document 1' },
+        { _id: 'doc2', title: 'Document 2' }
+      ]);
+    });
+    
+    it('should handle errors properly', async () => {
+      if (!getDocumentsTool) return;
+      
+      // Mock error response
+      vi.mocked(groqController.searchContent).mockRejectedValueOnce(
+        new Error('Failed to fetch documents')
+      );
+      
+      // Assert that the error is properly propagated
+      await expect(getDocumentsTool.handler({
+        documentIds: ['doc1', 'doc2'],
+        projectId: 'project123',
+        dataset: 'dataset123'
+      })).rejects.toThrow('Failed to fetch documents');
+      
+      expect(groqController.searchContent).toHaveBeenCalled();
+    });
+  });
 
   describe('mutateDocument', () => {
+    const mutateDocumentTool = tools.find(tool => tool.name === 'mutateDocument');
+
     it('should exist', () => {
       expect(mutateDocumentTool).toBeDefined();
     });
