@@ -66,31 +66,46 @@ interface SanityActionResult {
 }
 
 /**
- * Checks if the given API version is greater than or equal to the required version
+ * Checks if the provided API version is sufficient for the required minimum version
  * 
- * @param currentVersion - The current API version (e.g., "2023-10-01")
- * @param requiredVersion - The minimum required API version (e.g., "2025-02-19") 
- * @returns True if the current version is sufficient, false otherwise
+ * @param currentVersion - Current API version (e.g., '2024-05-23')
+ * @param requiredVersion - Minimum required API version
+ * @returns True if current version is equal to or newer than required
  */
 export function isSufficientApiVersion(currentVersion: string, requiredVersion: string): boolean {
-  // Strip any 'v' prefix that might be present
-  const current = currentVersion.replace(/^v/, '');
-  const required = requiredVersion.replace(/^v/, '');
+  // Convert versions to comparable format (YYYY-MM-DD → YYYYMMDD)
+  const formatVersion = (version: string): number => {
+    // Remove 'v' prefix if present
+    const cleanVersion = version.replace(/^v/, '');
+    
+    // Handle versions without dashes (already in YYYYMMDD format)
+    if (!cleanVersion.includes('-')) {
+      // Make sure it's a valid 8-digit number
+      const numVersion = parseInt(cleanVersion, 10);
+      if (!isNaN(numVersion) && cleanVersion.length === 8) {
+        return numVersion;
+      }
+    }
+    
+    // Convert from YYYY-MM-DD format
+    const parts = cleanVersion.split('-');
+    if (parts.length !== 3) {
+      throw new Error(`Invalid version format: ${version}. Expected YYYY-MM-DD`);
+    }
+    
+    return parseInt(parts.join(''), 10);
+  };
   
-  // Split versions by hyphens (e.g., "2025-02-19" -> ["2025", "02", "19"])
-  const currentParts = current.split('-').map(Number);
-  const requiredParts = required.split('-').map(Number);
-  
-  // Compare year
-  if (currentParts[0] > requiredParts[0]) return true;
-  if (currentParts[0] < requiredParts[0]) return false;
-  
-  // Years equal, compare month
-  if (currentParts[1] > requiredParts[1]) return true;
-  if (currentParts[1] < requiredParts[1]) return false;
-  
-  // Year and month equal, compare day
-  return currentParts[2] >= requiredParts[2];
+  try {
+    const current = formatVersion(currentVersion);
+    const required = formatVersion(requiredVersion);
+    
+    return current >= required;
+  } catch (error) {
+    console.error(`Error comparing API versions: ${error}`);
+    // If there's any error in parsing, assume version is insufficient
+    return false;
+  }
 }
 
 /**
@@ -125,7 +140,12 @@ export const sanityApi = {
    * @returns Promise with action result
    */
   async performActions(projectId: string, dataset: string, actions: SanityAction[]): Promise<SanityActionResult> {
-    const url = `https://${projectId}.api.sanity.io/v${config.apiVersion}/data/action/${dataset}`;
+    // IMPORTANT: The Actions API requires at least API version 2024-05-23
+    // The correct endpoint is: https://{projectId}.api.sanity.io/v{apiVersion}/data/actions/{dataset}
+    // Note: "actions" (plural) not "action" (singular)
+    const url = `https://${projectId}.api.sanity.io/v${config.apiVersion}/data/actions/${dataset}`;
+    
+    console.log(`Calling actions API: ${url}`);
     
     const response = await fetch(url, {
       method: 'POST',
@@ -138,6 +158,12 @@ export const sanityApi = {
     
     if (!response.ok) {
       const errorText = await response.text();
+      console.error(`Action API error response:`, {
+        status: response.status,
+        statusText: response.statusText,
+        errorText,
+        url
+      });
       throw new Error(`Action API error: ${response.status} ${response.statusText} - ${errorText}`);
     }
     

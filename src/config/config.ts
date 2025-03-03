@@ -37,7 +37,7 @@ const config: Config = {
   dataset: process.env.SANITY_DATASET,
   
   // Sanity API version
-  apiVersion: process.env.SANITY_API_VERSION || '2025-02-19',
+  apiVersion: process.env.SANITY_API_VERSION || '2024-05-23',
   
   // OpenAI API key for optional LLM verification
   openAiApiKey: process.env.OPENAI_API_KEY,

@@ -2,7 +2,7 @@ import { createSanityClient, sanityApi, isSufficientApiVersion } from '../utils/
 import config from '../config/config.js';
 
 // Minimum API version required for Content Releases
-const REQUIRED_API_VERSION = '2025-02-19';
+const REQUIRED_API_VERSION = '2024-05-23';
 
 /**
  * Checks if the configured API version is sufficient for Content Releases
@@ -18,9 +18,7 @@ function validateApiVersion(): void {
   
   if (!isSufficientApiVersion(currentVersion, REQUIRED_API_VERSION)) {
     throw new Error(
-      `API version ${currentVersion} is too old for Content Releases. ` + 
-      `This feature requires version ${REQUIRED_API_VERSION} or later. ` +
-      `Update your SANITY_API_VERSION in .env or config.`
+      `API version ${currentVersion} is outdated. Please update to version ${REQUIRED_API_VERSION} or later to use Content Releases. You can do this by updating your SANITY_API_VERSION in .env or config.`
     );
   }
 }
@@ -81,7 +79,7 @@ export async function createRelease(
     
     // Check for common issues
     if (error.message?.includes('API version')) {
-      throw new Error(`Failed to create release: Make sure you're using API version 2025-02-19 or later.`);
+      throw new Error(`Failed to create release: Make sure you're using API version 2024-05-23 or later.`);
     } else if (error.statusCode === 404 || error.message?.includes('not found')) {
       throw new Error(`Failed to create release: The Content Releases feature might not be enabled for this project or the API token lacks permissions.`);
     } else if (error.statusCode === 401 || error.statusCode === 403 || error.message?.includes('Not authorized')) {
@@ -361,7 +359,7 @@ export async function listReleases(
     
     // Check for common issues
     if (error.message?.includes('Unknown GROQ function "releases::all"')) {
-      throw new Error(`Failed to list releases: The releases::all() function is not available. Make sure you're using API version 2025-02-19 or later.`);
+      throw new Error(`Failed to list releases: The releases::all() function is not available. Make sure you're using API version 2024-05-23 or later.`);
     } else if (error.statusCode === 404) {
       throw new Error(`Failed to list releases: The Content Releases feature might not be enabled for this project or the API token lacks permissions.`);
     } else if (error.statusCode === 401 || error.statusCode === 403) {
