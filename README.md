@@ -10,7 +10,14 @@ This server implements the MCP protocol using stdio transport, making it suitabl
 
 - Built with TypeScript for type safety and better developer experience
 - Uses Vitest for testing, with better ES Modules support
-- Implements controllers for various Sanity.io features
+- Implements controllers for various Sanity.io features:
+  - `actions.ts`: Document publishing and unpublishing operations
+  - `embeddings.ts`: Embeddings and semantic search
+  - `groq.ts`: GROQ queries and real-time updates
+  - `mutate.ts`: Document mutations and modifications
+  - `releases.ts`: Content release management
+  - `schema.ts`: Schema type information
+  - `tools.ts`: Tool definitions for MCP
 
 ## Installation
 
@@ -63,15 +70,39 @@ node dist/index.js
 
 The server can be integrated with AI assistants that support the MCP protocol. It uses stdio transport (standard input/output) to communicate.
 
-To see an example of how to integrate with the MCP client, check out the `usage-example.js` file.
+To see an example of how to integrate with the MCP client, check out the `usage-example.ts` file.
+
+#### Claude AI Configuration Example
+
+For Anthropic's Claude AI, you can configure it to use this MCP server by adding the following to your Claude configuration:
+
+```json
+{
+  "tools": [
+    {
+      "name": "sanity-mcp",
+      "type": "mcp",
+      "path": "/path/to/sanity-mcp-server/dist/index.js",
+      "env": {
+        "SANITY_TOKEN": "your_sanity_api_token",
+        "SANITY_PROJECT_ID": "your_sanity_project_id",
+        "SANITY_DATASET": "your_sanity_dataset",
+        "SANITY_API_VERSION": "2023-03-15",
+        "OPENAI_API_KEY": "your_openai_api_key"
+      }
+    }
+  ]
+}
+```
 
 ## Available Tools
 
 The server provides the following tools:
 
-- **Content Management**
+- **GROQ Queries**
   - `searchContent`: Searches for content using GROQ query language
   - `subscribeToUpdates`: Subscribes to real-time updates for documents
+  - `getGroqSpecification`: Gets the GROQ query language specification
 
 - **Schema Management**
   - `listSchemaTypes`: Lists available schema types
@@ -88,7 +119,7 @@ The server provides the following tools:
   - `modifyDocuments`: Performs document mutations (create, update, delete)
   - `modifyPortableTextField`: Modifies Portable Text fields
 
-- **Search**
+- **Embeddings and Semantic Search**
   - `semanticSearch`: Performs semantic search on embeddings indices
   - `listEmbeddingsIndices`: Lists available embeddings indices
 
