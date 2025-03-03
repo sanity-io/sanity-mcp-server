@@ -11,10 +11,11 @@ import { ToolDefinition, InitialContext } from '../types/tools.js';
 // Import controllers
 // import * as projectsController from './projects.js'; // Commented out as requested - no way to mint tokens yet
 import * as schemaController from './schema.js';
-import * as contentController from './content.js';
+import * as groqController from './groq.js';
 import * as actionsController from './actions.js';
+import * as releasesController from './releases.js';
 import * as mutateController from './mutate.js';
-import * as searchController from './search.js';
+import * as embeddingsController from './embeddings.js';
 
 /**
  * Get all tool definitions
@@ -42,7 +43,7 @@ export function getToolDefinitions(): ToolDefinition[] {
         
         try {
           // Get embeddings indices
-          const embeddingsIndices = await searchController.listEmbeddingsIndices({
+          const embeddingsIndices = await embeddingsController.listEmbeddingsIndices({
             projectId: config.projectId,
             dataset: config.dataset || "production"
           });
@@ -130,7 +131,7 @@ export function getToolDefinitions(): ToolDefinition[] {
       handler: async ({ query, params, projectId, dataset }: { query: string, params?: Record<string, any>, projectId: string, dataset: string }) => {
         // Fixed parameter order to match function signature:
         // searchContent(projectId, dataset, query, params = {}, verifyWithLLM = false)
-        return await contentController.searchContent(projectId, dataset, query, params || {});
+        return await groqController.searchContent(projectId, dataset, query, params || {});
       }
     },
     
@@ -143,7 +144,7 @@ export function getToolDefinitions(): ToolDefinition[] {
         dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
       handler: async ({ query, projectId, dataset }: { query: string, projectId: string, dataset: string }) => {
-        return await contentController.subscribeToUpdates(projectId, dataset, query);
+        return await groqController.subscribeToUpdates(projectId, dataset, query);
       }
     },
     
@@ -174,18 +175,34 @@ export function getToolDefinitions(): ToolDefinition[] {
       }
     },
     
+    // Release tools
     {
       name: 'createRelease',
       description: 'Creates a new release',
       parameters: z.object({
         title: z.string().describe('Title of the release'),
         description: z.string().optional().describe('Optional description of the release'),
+        releaseType: z.enum(['asap', 'scheduled']).optional().describe('Type of release (asap or scheduled)'),
+        intendedPublishAt: z.string().optional().describe('ISO datetime string for when to publish a scheduled release'),
         projectId: z.string().describe('The Sanity project ID'),
         dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
-      handler: async ({ title, description, projectId, dataset }: { title: string, description?: string, projectId: string, dataset: string }) => {
+      handler: async ({ title, description, releaseType, intendedPublishAt, projectId, dataset }: { 
+        title: string, 
+        description?: string, 
+        releaseType?: 'asap' | 'scheduled',
+        intendedPublishAt?: string,
+        projectId: string, 
+        dataset: string 
+      }) => {
         const releaseId = `release-${Date.now()}-${title.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
-        return await actionsController.createRelease(projectId, dataset, releaseId, title);
+        return await releasesController.createRelease(
+          projectId, 
+          dataset, 
+          releaseId, 
+          title, 
+          { description, releaseType, intendedPublishAt }
+        );
       }
     },
     
@@ -199,7 +216,21 @@ export function getToolDefinitions(): ToolDefinition[] {
         dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
       handler: async ({ releaseId, documentId, projectId, dataset }: { releaseId: string, documentId: string, projectId: string, dataset: string }) => {
-        return await actionsController.addDocumentToRelease(releaseId, documentId, projectId, dataset);
+        return await releasesController.addDocumentToRelease(projectId, dataset, releaseId, documentId);
+      }
+    },
+    
+    {
+      name: 'removeDocumentFromRelease',
+      description: 'Removes a document from a release',
+      parameters: z.object({
+        releaseId: z.string().describe('ID of the release'),
+        documentId: z.string().describe('ID of the document to remove from the release'),
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
+      }),
+      handler: async ({ releaseId, documentId, projectId, dataset }: { releaseId: string, documentId: string, projectId: string, dataset: string }) => {
+        return await releasesController.removeDocumentFromRelease(projectId, dataset, releaseId, documentId);
       }
     },
     
@@ -212,7 +243,138 @@ export function getToolDefinitions(): ToolDefinition[] {
         dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
       handler: async ({ releaseId, projectId, dataset }: { releaseId: string, projectId: string, dataset: string }) => {
-        return await actionsController.listReleaseDocuments(releaseId, projectId, dataset);
+        return await releasesController.listReleaseDocuments(projectId, dataset, releaseId);
+      }
+    },
+    
+    {
+      name: 'publishRelease',
+      description: 'Publishes all documents in a release',
+      parameters: z.object({
+        releaseId: z.string().describe('ID of the release to publish'),
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
+      }),
+      handler: async ({ releaseId, projectId, dataset }: { releaseId: string, projectId: string, dataset: string }) => {
+        return await releasesController.publishRelease(projectId, dataset, releaseId);
+      }
+    },
+    
+    {
+      name: 'listReleases',
+      description: 'Lists all releases for a project and dataset',
+      parameters: z.object({
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
+      }),
+      handler: async ({ projectId, dataset }: { projectId: string, dataset: string }) => {
+        return await releasesController.listReleases(projectId, dataset);
+      }
+    },
+    
+    {
+      name: 'getRelease',
+      description: 'Gets a specific release by ID',
+      parameters: z.object({
+        releaseId: z.string().describe('ID of the release to retrieve'),
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
+      }),
+      handler: async ({ releaseId, projectId, dataset }: { releaseId: string, projectId: string, dataset: string }) => {
+        return await releasesController.getRelease(projectId, dataset, releaseId);
+      }
+    },
+    
+    {
+      name: 'updateRelease',
+      description: 'Updates a release\'s information',
+      parameters: z.object({
+        releaseId: z.string().describe('ID of the release to update'),
+        title: z.string().optional().describe('New title for the release'),
+        description: z.string().optional().describe('New description for the release'),
+        releaseType: z.enum(['asap', 'scheduled']).optional().describe('New type for the release'),
+        intendedPublishAt: z.string().optional().describe('New scheduled publish date (ISO string)'),
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
+      }),
+      handler: async ({ releaseId, title, description, releaseType, intendedPublishAt, projectId, dataset }: {
+        releaseId: string,
+        title?: string,
+        description?: string,
+        releaseType?: 'asap' | 'scheduled',
+        intendedPublishAt?: string,
+        projectId: string,
+        dataset: string
+      }) => {
+        return await releasesController.updateRelease(projectId, dataset, releaseId, {
+          title, description, releaseType, intendedPublishAt
+        });
+      }
+    },
+    
+    {
+      name: 'scheduleRelease',
+      description: 'Schedules a release for publishing at a specific time',
+      parameters: z.object({
+        releaseId: z.string().describe('ID of the release to schedule'),
+        publishAt: z.string().describe('ISO datetime string of when to publish the release'),
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
+      }),
+      handler: async ({ releaseId, publishAt, projectId, dataset }: { releaseId: string, publishAt: string, projectId: string, dataset: string }) => {
+        return await releasesController.scheduleRelease(projectId, dataset, releaseId, publishAt);
+      }
+    },
+    
+    {
+      name: 'unscheduleRelease',
+      description: 'Unschedules a previously scheduled release',
+      parameters: z.object({
+        releaseId: z.string().describe('ID of the release to unschedule'),
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
+      }),
+      handler: async ({ releaseId, projectId, dataset }: { releaseId: string, projectId: string, dataset: string }) => {
+        return await releasesController.unscheduleRelease(projectId, dataset, releaseId);
+      }
+    },
+    
+    {
+      name: 'archiveRelease',
+      description: 'Archives a release',
+      parameters: z.object({
+        releaseId: z.string().describe('ID of the release to archive'),
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
+      }),
+      handler: async ({ releaseId, projectId, dataset }: { releaseId: string, projectId: string, dataset: string }) => {
+        return await releasesController.archiveRelease(projectId, dataset, releaseId);
+      }
+    },
+    
+    {
+      name: 'unarchiveRelease',
+      description: 'Unarchives a previously archived release',
+      parameters: z.object({
+        releaseId: z.string().describe('ID of the release to unarchive'),
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
+      }),
+      handler: async ({ releaseId, projectId, dataset }: { releaseId: string, projectId: string, dataset: string }) => {
+        return await releasesController.unarchiveRelease(projectId, dataset, releaseId);
+      }
+    },
+    
+    {
+      name: 'deleteRelease',
+      description: 'Deletes an archived release',
+      parameters: z.object({
+        releaseId: z.string().describe('ID of the release to delete'),
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
+      }),
+      handler: async ({ releaseId, projectId, dataset }: { releaseId: string, projectId: string, dataset: string }) => {
+        return await releasesController.deleteRelease(projectId, dataset, releaseId);
       }
     },
     
@@ -276,7 +438,7 @@ export function getToolDefinitions(): ToolDefinition[] {
         dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
       handler: async ({ projectId, dataset }: { projectId: string, dataset: string }) => {
-        return await searchController.listEmbeddingsIndices({ projectId, dataset });
+        return await embeddingsController.listEmbeddingsIndices({ projectId, dataset });
       }
     },
     
@@ -292,7 +454,30 @@ export function getToolDefinitions(): ToolDefinition[] {
         dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
       handler: async ({ query, indexName, maxResults, types, projectId, dataset }: { query: string, indexName: string, maxResults?: number, types?: string[], projectId: string, dataset: string }) => {
-        return await searchController.semanticSearch(query, { indexName, maxResults, types, projectId, dataset });
+        return await embeddingsController.semanticSearch(query, { indexName, maxResults, types, projectId, dataset });
+      }
+    },
+    
+    // Get GROQ specification
+    {
+      name: 'getGroqSpecification',
+      description: 'Get the GROQ query language specification with examples and documentation',
+      parameters: z.object({}),
+      handler: async () => {
+        return await groqController.getGroqSpecification();
+      }
+    },
+    
+    // List embeddings indices
+    {
+      name: 'listEmbeddingsIndices',
+      description: 'Lists available embeddings indices in a dataset',
+      parameters: z.object({
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
+      }),
+      handler: async ({ projectId, dataset }: { projectId: string, dataset: string }) => {
+        return await embeddingsController.listEmbeddingsIndices({ projectId, dataset });
       }
     }
   ];

@@ -1,5 +1,5 @@
 /**
- * Search controller for semantic search functionality
+ * Embeddings controller for semantic search functionality
  */
 import config from '../config/config.js';
 import { createClient } from '@sanity/client';
@@ -32,12 +32,8 @@ export async function listEmbeddingsIndices({
 } = {}): Promise<EmbeddingIndex[]> {
   try {
     // Ensure we have the necessary info
-    if (!projectId) {
-      throw new Error("Project ID is required. Please set SANITY_PROJECT_ID in your environment variables or provide it as a parameter.");
-    }
-    
-    if (!dataset) {
-      throw new Error("Dataset name is required. Please set SANITY_DATASET in your environment variables or provide it as a parameter.");
+    if (!projectId || !dataset) {
+      throw new Error("Project ID and Dataset name are required. Please set SANITY_PROJECT_ID and SANITY_DATASET in your environment variables or provide them as parameters.");
     }
 
     // Validate token exists
@@ -103,12 +99,8 @@ export async function semanticSearch(query: string, {
       throw new Error("indexName parameter is required for semantic search. Use listEmbeddingsIndices to get available indices.");
     }
     
-    if (!projectId) {
-      throw new Error("Project ID is required. Please set SANITY_PROJECT_ID in your environment variables or provide it as a parameter.");
-    }
-    
-    if (!dataset) {
-      throw new Error("Dataset name is required. Please set SANITY_DATASET in your environment variables or provide it as a parameter.");
+    if (!projectId || !dataset) {
+      throw new Error("Project ID and Dataset name are required. Please set SANITY_PROJECT_ID and SANITY_DATASET in your environment variables or provide them as parameters.");
     }
 
     // Validate token exists
