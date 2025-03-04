@@ -9,7 +9,7 @@ vi.mock('../../src/utils/sanityClient.js', () => {
     sanityApi: {
       performActions: vi.fn()
     },
-    createSanityClient: vi.fn(() => ({
+    createSanityClient: vi.fn((_projectId, _dataset, _options = {}) => ({
       fetch: vi.fn(),
       getDocument: vi.fn()
     })),
@@ -241,7 +241,10 @@ describe('Releases Controller', () => {
         mockReleaseId
       );
 
-      expect(mockClient.fetch).toHaveBeenCalledWith(`*[_id match "versions.${mockReleaseId}.*"]{ _id, _type, title }`);
+      expect(mockClient.fetch).toHaveBeenCalledWith(
+        `*[sanity::partOfRelease($releaseId)]{ _id, _type, title }`,
+        { releaseId: mockReleaseId }
+      );
       expect(result).toEqual({
         releaseId: mockReleaseId,
         documentCount: 2,
@@ -269,6 +272,11 @@ describe('Releases Controller', () => {
         mockProjectId,
         mockDataset,
         mockReleaseId
+      );
+      
+      expect(mockClient.fetch).toHaveBeenCalledWith(
+        `*[sanity::partOfRelease($releaseId)]{ _id, _type, title }`,
+        { releaseId: mockReleaseId }
       );
       
       expect(result).toEqual({
