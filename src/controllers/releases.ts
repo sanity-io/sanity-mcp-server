@@ -123,10 +123,28 @@ export async function addDocumentToRelease(
     // Check API version first
     validateApiVersion();
     
-    // Convert single documentId to array for consistent processing
-    const docIds = Array.isArray(documentIds) ? documentIds : [documentIds];
+    // WORKAROUND: Handle the case where documentIds might be a JSON string representation of an array
+    // Due to an issue in the JSON-RPC layer, arrays of strings sometimes arrive as serialized JSON strings
+    // rather than being properly deserialized into actual arrays.
+    // This workaround detects and parses such strings to ensure consistent handling.
+    // TODO: This should ideally be fixed in the MCP SDK's transport layer.
+    let parsedDocIds: string[];
     
-    if (docIds.length === 0) {
+    if (typeof documentIds === 'string' && documentIds.startsWith('[') && documentIds.endsWith(']')) {
+      try {
+        // Attempt to parse as JSON
+        const parsed = JSON.parse(documentIds);
+        parsedDocIds = Array.isArray(parsed) ? parsed : [documentIds];
+      } catch (e) {
+        // If parsing fails, treat as a single string
+        parsedDocIds = [documentIds];
+      }
+    } else {
+      // Regular handling for string or array
+      parsedDocIds = Array.isArray(documentIds) ? documentIds : [documentIds];
+    }
+    
+    if (parsedDocIds.length === 0) {
       throw new Error("No document IDs provided");
     }
     
@@ -139,7 +157,7 @@ export async function addDocumentToRelease(
     const client = createSanityClient(projectId, dataset);
     
     // Process each document ID individually
-    for (const documentId of docIds) {
+    for (const documentId of parsedDocIds) {
       try {
         const baseDocId = documentId.replace(/^drafts\./, '');
         
@@ -226,8 +244,8 @@ export async function addDocumentToRelease(
 export async function removeDocumentFromRelease(
   projectId: string,
   dataset: string,
-  releaseId: string,
-  documentId: string | string[]
+  releaseId: string, 
+  documentIds: string | string[]
 ): Promise<{
   success: boolean;
   message: string;
@@ -239,41 +257,57 @@ export async function removeDocumentFromRelease(
     // Check API version first
     validateApiVersion();
     
-    // Convert single documentId to array for consistent processing
-    const docIds = Array.isArray(documentId) ? documentId : [documentId];
+    // WORKAROUND: Handle the case where documentIds might be a JSON string representation of an array
+    // Due to an issue in the JSON-RPC layer, arrays of strings sometimes arrive as serialized JSON strings
+    // rather than being properly deserialized into actual arrays.
+    // This workaround detects and parses such strings to ensure consistent handling.
+    // TODO: This should ideally be fixed in the MCP SDK's transport layer.
+    let parsedDocIds: string[];
     
-    if (docIds.length === 0) {
+    if (typeof documentIds === 'string' && documentIds.startsWith('[') && documentIds.endsWith(']')) {
+      try {
+        // Attempt to parse as JSON
+        const parsed = JSON.parse(documentIds);
+        parsedDocIds = Array.isArray(parsed) ? parsed : [documentIds];
+      } catch (e) {
+        // If parsing fails, treat as a single string
+        parsedDocIds = [documentIds];
+      }
+    } else {
+      // Regular handling for string or array
+      parsedDocIds = Array.isArray(documentIds) ? documentIds : [documentIds];
+    }
+    
+    if (parsedDocIds.length === 0) {
       throw new Error("No document IDs provided");
     }
     
-    const baseDocIds = docIds.map(id => id.replace(/^drafts\./, ''));
-    const processedDocIds: string[] = [];
+    const processedDocIds = [];
     const errors: string[] = [];
+    
+    // Create delete actions for all documents at once
     const actions = [];
     
     // Process each document ID individually
-    for (const baseDocId of baseDocIds) {
+    for (const documentId of parsedDocIds) {
       try {
-        const versionId = `versions.${releaseId}.${baseDocId}`;
+        const baseDocId = documentId.replace(/^drafts\./, '');
         
-        // Add to the list of successfully processed documents
-        processedDocIds.push(baseDocId);
+        // Use the version ID format directly: versions.{releaseId}.{documentId}
+        const versionId = `versions.${releaseId}.${baseDocId}`;
         
         // Create the delete action for this document version
         actions.push({
           actionType: 'sanity.action.document.delete',
           id: versionId
         });
+        
+        processedDocIds.push(baseDocId);
       } catch (documentError: any) {
         // Log and collect errors for individual documents
-        console.error(`Error processing document removal ${baseDocId}:`, documentError);
-        errors.push(`Document ID ${baseDocId}: ${documentError.message}`);
+        console.error(`Error processing document removal ${documentId}:`, documentError);
+        errors.push(`Document ID ${documentId}: ${documentError.message}`);
       }
-    }
-    
-    // If no documents were processed successfully, throw an error with all collected error messages
-    if (processedDocIds.length === 0) {
-      throw new Error(`Failed to remove any documents from release: ${errors.join('; ')}`);
     }
     
     // Call the Actions API once with all delete actions
