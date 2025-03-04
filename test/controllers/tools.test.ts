@@ -31,10 +31,12 @@ describe('Tools', () => {
       if (!getDocumentsTool) return;
       
       // Mock the searchContent function (which getDocuments uses internally)
-      vi.mocked(groqController.searchContent).mockResolvedValueOnce([
-        { _id: 'doc1', title: 'Document 1' },
-        { _id: 'doc2', title: 'Document 2' }
-      ]);
+      vi.mocked(groqController.searchContent).mockResolvedValueOnce({
+        results: [
+          { _id: 'doc1', title: 'Document 1' },
+          { _id: 'doc2', title: 'Document 2' }
+        ]
+      });
       
       const result = await getDocumentsTool.handler({
         documentIds: ['doc1', 'doc2'],
@@ -51,10 +53,12 @@ describe('Tools', () => {
       );
       
       // Verify the results
-      expect(result).toEqual([
-        { _id: 'doc1', title: 'Document 1' },
-        { _id: 'doc2', title: 'Document 2' }
-      ]);
+      expect(result).toEqual({
+        results: [
+          { _id: 'doc1', title: 'Document 1' },
+          { _id: 'doc2', title: 'Document 2' }
+        ]
+      });
     });
     
     it('should handle errors properly', async () => {
@@ -90,7 +94,7 @@ describe('Tools', () => {
       vi.mocked(mutateController.modifyDocuments).mockResolvedValueOnce({
         success: true,
         message: 'Successfully applied 1 mutations',
-        documentIds: ['doc123']
+        documents: ['doc123']
       });
 
       const result = await mutateDocumentTool.handler({
@@ -117,7 +121,7 @@ describe('Tools', () => {
       expect(result).toEqual({
         success: true,
         message: 'Successfully applied 1 mutations',
-        documentIds: ['doc123']
+        documents: ['doc123']
       });
     });
 
@@ -127,7 +131,7 @@ describe('Tools', () => {
       vi.mocked(mutateController.modifyDocuments).mockResolvedValueOnce({
         success: true,
         message: 'Successfully applied 1 mutations',
-        documentIds: ['doc123']
+        documents: ['doc123']
       });
 
       const result = await mutateDocumentTool.handler({
@@ -154,7 +158,7 @@ describe('Tools', () => {
       expect(result).toEqual({
         success: true,
         message: 'Successfully applied 1 mutations',
-        documentIds: ['doc123']
+        documents: ['doc123']
       });
     });
 
@@ -164,7 +168,7 @@ describe('Tools', () => {
       vi.mocked(mutateController.modifyDocuments).mockResolvedValueOnce({
         success: true,
         message: 'Successfully applied 1 mutations',
-        documentIds: ['doc123']
+        documents: ['doc123']
       });
 
       const result = await mutateDocumentTool.handler({
@@ -198,7 +202,7 @@ describe('Tools', () => {
       expect(result).toEqual({
         success: true,
         message: 'Successfully applied 1 mutations',
-        documentIds: ['doc123']
+        documents: ['doc123']
       });
     });
 
@@ -208,7 +212,7 @@ describe('Tools', () => {
       vi.mocked(mutateController.modifyDocuments).mockResolvedValueOnce({
         success: true,
         message: 'Successfully applied 2 mutations',
-        documentIds: ['doc123']
+        documents: ['doc123']
       });
 
       const result = await mutateDocumentTool.handler({
@@ -241,7 +245,7 @@ describe('Tools', () => {
       expect(result).toEqual({
         success: true,
         message: 'Successfully applied 2 mutations',
-        documentIds: ['doc123']
+        documents: ['doc123']
       });
     });
 

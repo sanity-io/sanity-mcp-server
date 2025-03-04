@@ -188,7 +188,8 @@ describe('Release and Document Workflow Integration', () => {
     const updatedDocument = {
       ...currentDocument,
       updatedAt: new Date().toISOString(),
-      status: 'updated'
+      status: 'updated',
+      _id: documentId // Ensure _id is explicitly set
     };
     
     // Replace the document

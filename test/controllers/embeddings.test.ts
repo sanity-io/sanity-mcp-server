@@ -29,35 +29,31 @@ describe('Embeddings Controller', () => {
     // Setup fetch mock for embeddings API
     (global.fetch as any).mockResolvedValue({
       ok: true,
-      json: vi.fn().mockResolvedValue({
-        indices: [
-          {
-            name: 'test-index',
-            status: 'ready',
-            documentCount: 100,
-            dimensions: 1536,
-            createdAt: '2023-01-01T00:00:00Z',
-            updatedAt: '2023-01-01T00:00:00Z'
-          }
-        ]
-      })
+      json: vi.fn().mockResolvedValue([
+        {
+          name: 'test-index',
+          status: 'ready',
+          documentCount: 100,
+          dimensions: 1536,
+          createdAt: '2023-01-01T00:00:00Z',
+          updatedAt: '2023-01-01T00:00:00Z'
+        }
+      ])
     });
   });
   
   describe('listEmbeddingsIndices', () => {
     it('should list embeddings indices for a dataset', async () => {
-      const mockResponseJson = {
-        indices: [
-          {
-            name: 'test-index',
-            status: 'ready',
-            documentCount: 100,
-            dimensions: 1536,
-            createdAt: '2023-01-01T00:00:00Z',
-            updatedAt: '2023-01-01T00:00:00Z'
-          }
-        ]
-      };
+      const mockResponseJson = [
+        {
+          name: 'test-index',
+          status: 'ready',
+          documentCount: 100,
+          dimensions: 1536,
+          createdAt: '2023-01-01T00:00:00Z',
+          updatedAt: '2023-01-01T00:00:00Z'
+        }
+      ];
       
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
@@ -70,9 +66,9 @@ describe('Embeddings Controller', () => {
       });
       
       expect(indices).toBeDefined();
-      expect(indices.indices).toBeDefined();
-      expect(indices.indices).toHaveLength(1);
-      expect(indices.indices[0].name).toBe('test-index');
+      expect(Array.isArray(indices)).toBe(true);
+      expect(indices).toHaveLength(1);
+      expect(indices[0].name).toBe('test-index');
       expect(global.fetch).toHaveBeenCalledWith(
         'https://test-project.api.sanity.io/vX/embeddings-index/test-dataset',
         expect.objectContaining({
@@ -144,7 +140,9 @@ describe('Embeddings Controller', () => {
       const result = await semanticSearch('test query', {
         indexName: 'test-index',
         maxResults: 10,
-        types: ['article']
+        types: ['article'],
+        projectId: 'test-project',
+        dataset: 'test-dataset'
       });
       
       expect(result.hits).toHaveLength(2);
@@ -168,7 +166,9 @@ describe('Embeddings Controller', () => {
       });
       
       await expect(semanticSearch('test query', {
-        indexName: 'nonexistent-index'
+        indexName: 'nonexistent-index',
+        projectId: 'test-project',
+        dataset: 'test-dataset'
       })).rejects.toThrow('Embeddings index "nonexistent-index" not found');
     });
     
@@ -182,7 +182,9 @@ describe('Embeddings Controller', () => {
     
     it('should require an index name', async () => {
       await expect(semanticSearch('test query', {
-        indexName: ''
+        indexName: '',
+        projectId: 'test-project',
+        dataset: 'test-dataset'
       })).rejects.toThrow('indexName parameter is required for semantic search');
     });
   });
