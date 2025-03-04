@@ -53,6 +53,11 @@ export async function createRelease(
     // Check API version first
     validateApiVersion();
     
+    // Validate that scheduled releases have intendedPublishAt
+    if (options?.releaseType === 'scheduled' && !options?.intendedPublishAt) {
+      throw new Error('publishAt is required for scheduled releases');
+    }
+    
     // Create the release action
     const action = {
       actionType: 'sanity.action.release.create',
@@ -91,27 +96,27 @@ export async function createRelease(
 }
 
 /**
- * Adds a document to a content release
+ * Adds a document or multiple documents to a content release
  * 
  * @param projectId - Sanity project ID
  * @param dataset - Dataset name
  * @param releaseId - ID of the release
- * @param documentId - ID of the document to add to the release
- * @param content - Optional content changes to apply
- * @returns Result of adding the document to the release
+ * @param documentIds - ID or array of IDs of the document(s) to add to the release
+ * @param content - Optional custom content to use for the document version
+ * @returns Result of adding the document(s) to the release
  */
 export async function addDocumentToRelease(
   projectId: string, 
   dataset: string, 
   releaseId: string, 
-  documentId: string, 
+  documentIds: string | string[], 
   content?: Record<string, any>
 ): Promise<{
   success: boolean;
   message: string;
   releaseId: string;
-  documentId: string;
-  versionId: string;
+  documentIds: string[];
+  versionIds: string[];
   result: any;
 }> {
   try {
@@ -119,49 +124,64 @@ export async function addDocumentToRelease(
     validateApiVersion();
     
     const client = createSanityClient(projectId, dataset);
-    const baseDocId = documentId.replace(/^drafts\./, '');
     
-    // Determine if we need to fetch the current document content
-    let attributes = content;
+    // Convert single documentId to array for consistent processing
+    const docIds = Array.isArray(documentIds) ? documentIds : [documentIds];
     
-    if (!attributes) {
-      // Fetch the current document content (try published first, then draft)
-      try {
-        attributes = await client.getDocument(baseDocId);
-      } catch {
-        // If published version doesn't exist, try draft
-        attributes = await client.getDocument(`drafts.${baseDocId}`);
-      }
+    // Process each document
+    const actions = [];
+    const versionIds = [];
+    const processedDocIds = [];
+    
+    for (const documentId of docIds) {
+      const baseDocId = documentId.replace(/^drafts\./, '');
+      processedDocIds.push(baseDocId);
+      
+      // Determine if we need to fetch the current document content
+      let attributes = content;
       
       if (!attributes) {
-        throw new Error(`Document ${baseDocId} not found`);
+        // Fetch the current document content (try published first, then draft)
+        try {
+          attributes = await client.getDocument(baseDocId);
+        } catch {
+          // If published version doesn't exist, try draft
+          attributes = await client.getDocument(`drafts.${baseDocId}`);
+        }
+        
+        if (!attributes) {
+          throw new Error(`Document ${baseDocId} not found`);
+        }
       }
+      
+      // Create the version action for this document
+      const versionId = `versions.${releaseId}.${baseDocId}`;
+      versionIds.push(versionId);
+      
+      actions.push({
+        actionType: 'sanity.action.document.version.create',
+        publishedId: baseDocId,
+        attributes: {
+          ...attributes,
+          _id: versionId
+        }
+      });
     }
     
-    // Create the version action
-    const action = {
-      actionType: 'sanity.action.document.version.create',
-      publishedId: baseDocId,
-      attributes: {
-        ...attributes,
-        _id: `versions.${releaseId}.${baseDocId}`
-      }
-    };
-    
-    // Call the Actions API
-    const result = await sanityApi.performActions(projectId, dataset, [action]);
+    // Call the Actions API with all document actions
+    const result = await sanityApi.performActions(projectId, dataset, actions);
     
     return {
       success: true,
-      message: `Document ${baseDocId} added to release ${releaseId} successfully`,
+      message: `${processedDocIds.length} document(s) added to release ${releaseId} successfully`,
       releaseId,
-      documentId: baseDocId,
-      versionId: `versions.${releaseId}.${baseDocId}`,
+      documentIds: processedDocIds,
+      versionIds,
       result
     };
   } catch (error: any) {
-    console.error(`Error adding document ${documentId} to release ${releaseId}:`, error);
-    throw new Error(`Failed to add document to release: ${error.message}`);
+    console.error(`Error adding document(s) to release ${releaseId}:`, error);
+    throw new Error(`Failed to add document(s) to release: ${error.message}`);
   }
 }
 
@@ -439,6 +459,11 @@ export async function updateRelease(
   try {
     // Check API version first
     validateApiVersion();
+    
+    // Validate required fields for scheduled releases
+    if (updateData.releaseType === 'scheduled' && !updateData.intendedPublishAt) {
+      throw new Error('intendedPublishAt is required for scheduled releases');
+    }
     
     // Create the metadata object with only provided fields
     const metadata: Record<string, any> = {};

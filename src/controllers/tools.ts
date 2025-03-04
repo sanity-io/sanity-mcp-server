@@ -206,6 +206,51 @@ export function getToolDefinitions(): ToolDefinition[] {
     
     // Document operations
     {
+      name: 'createDocument',
+      description: 'Creates a new document',
+      parameters: z.object({
+        document: z.record(z.any()).describe('The document to create'),
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)'),
+        ifExists: z.enum(['fail', 'ignore']).optional().describe('How to handle existing documents with same ID')
+      }),
+      handler: async ({ document, projectId, dataset, ifExists }: { 
+        document: Record<string, any>, 
+        projectId: string, 
+        dataset: string, 
+        ifExists?: 'fail' | 'ignore' 
+      }) => {
+        return await actionsController.createDocument(projectId, dataset, document, { ifExists });
+      }
+    },
+    
+    {
+      name: 'editDocument',
+      description: 'Applies a patch to an existing document',
+      parameters: z.object({
+        documentId: z.string().describe('ID of the document to edit'),
+        patch: z.object({
+          set: z.record(z.any()).optional().describe('Fields to set'),
+          setIfMissing: z.record(z.any()).optional().describe('Fields to set only if missing'),
+          unset: z.array(z.string()).optional().describe('Fields to unset'),
+          inc: z.record(z.number()).optional().describe('Fields to increment'),
+          dec: z.record(z.number()).optional().describe('Fields to decrement'),
+          insert: z.record(z.any()).optional().describe('Fields to insert at position')
+        }).describe('The patch operations to apply'),
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
+      }),
+      handler: async ({ documentId, patch, projectId, dataset }: { 
+        documentId: string, 
+        patch: Record<string, any>, 
+        projectId: string, 
+        dataset: string
+      }) => {
+        return await actionsController.editDocument(projectId, dataset, documentId, patch);
+      }
+    },
+    
+    {
       name: 'publishDocument',
       description: 'Publishes a draft document',
       parameters: z.object({
@@ -231,6 +276,103 @@ export function getToolDefinitions(): ToolDefinition[] {
       }
     },
     
+    {
+      name: 'deleteDocument',
+      description: 'Deletes a document and its drafts',
+      parameters: z.object({
+        documentId: z.string().describe('ID of the document to delete'),
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)'),
+        includeDrafts: z.array(z.string()).optional().describe('Specific draft IDs to include in deletion'),
+        purge: z.boolean().optional().describe('Permanently remove from history')
+      }),
+      handler: async ({ documentId, projectId, dataset, includeDrafts, purge }: { 
+        documentId: string, 
+        projectId: string, 
+        dataset: string,
+        includeDrafts?: string[],
+        purge?: boolean
+      }) => {
+        return await actionsController.deleteDocument(projectId, dataset, documentId, { includeDrafts, purge });
+      }
+    },
+    
+    {
+      name: 'replaceDraftDocument',
+      description: 'Replaces an existing draft document',
+      parameters: z.object({
+        document: z.record(z.any()).describe('The replacement document'),
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
+      }),
+      handler: async ({ document, projectId, dataset }: { 
+        document: Record<string, any>, 
+        projectId: string, 
+        dataset: string
+      }) => {
+        return await actionsController.replaceDraftDocument(projectId, dataset, document);
+      }
+    },
+    
+    {
+      name: 'createDocumentVersion',
+      description: 'Creates a version of a document in a specific release',
+      parameters: z.object({
+        releaseId: z.string().describe('ID of the release to add the document version to'),
+        documentId: z.string().describe('ID of the document to create a version of'),
+        content: z.record(z.any()).optional().describe('Optional content to use for the version'),
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
+      }),
+      handler: async ({ releaseId, documentId, content, projectId, dataset }: { 
+        releaseId: string, 
+        documentId: string,
+        content?: Record<string, any>,
+        projectId: string, 
+        dataset: string
+      }) => {
+        return await actionsController.createDocumentVersion(projectId, dataset, releaseId, documentId, content);
+      }
+    },
+    
+    {
+      name: 'discardDocumentVersion',
+      description: 'Discards a specific version of a document',
+      parameters: z.object({
+        versionId: z.string().describe('ID of the version to discard'),
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)'),
+        purge: z.boolean().optional().describe('Permanently remove from history')
+      }),
+      handler: async ({ versionId, projectId, dataset, purge }: { 
+        versionId: string, 
+        projectId: string, 
+        dataset: string,
+        purge?: boolean
+      }) => {
+        return await actionsController.discardDocumentVersion(projectId, dataset, versionId, { purge });
+      }
+    },
+    
+    {
+      name: 'unpublishDocumentWithRelease',
+      description: 'Marks a document for unpublishing when a release is published',
+      parameters: z.object({
+        releaseId: z.string().describe('ID of the release'),
+        documentId: z.string().describe('ID of the document to unpublish'),
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
+      }),
+      handler: async ({ releaseId, documentId, projectId, dataset }: { 
+        releaseId: string, 
+        documentId: string, 
+        projectId: string, 
+        dataset: string
+      }) => {
+        return await actionsController.unpublishDocumentWithRelease(projectId, dataset, releaseId, documentId);
+      }
+    },
+    
     // Release tools
     {
       name: 'createRelease',
@@ -238,41 +380,75 @@ export function getToolDefinitions(): ToolDefinition[] {
       parameters: z.object({
         title: z.string().describe('Title of the release'),
         description: z.string().optional().describe('Optional description of the release'),
-        releaseType: z.enum(['asap', 'scheduled']).optional().describe('Type of release (asap or scheduled)'),
-        intendedPublishAt: z.string().optional().describe('ISO datetime string for when to publish a scheduled release'),
+        releaseType: z.enum(['asap', 'scheduled']).describe('Type of release (asap or scheduled)'),
+        publishAt: z.date().optional().describe('When to publish a scheduled release'),
         projectId: z.string().describe('The Sanity project ID'),
         dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
-      handler: async ({ title, description, releaseType, intendedPublishAt, projectId, dataset }: { 
+      handler: async ({ title, description, releaseType, publishAt, projectId, dataset }: { 
         title: string, 
         description?: string, 
-        releaseType?: 'asap' | 'scheduled',
-        intendedPublishAt?: string,
+        releaseType: 'asap' | 'scheduled',
+        publishAt?: Date,
         projectId: string, 
         dataset: string 
       }) => {
-        const releaseId = `release-${Date.now()}-${title.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
-        return await releasesController.createRelease(
-          projectId, 
-          dataset, 
-          releaseId, 
+        // Generate a unique release ID if not provided
+        const releaseId = `release-${new Date().getTime()}`;
+        return await releasesController.createRelease(projectId, dataset, releaseId, title, { 
+          description, 
+          releaseType, 
+          intendedPublishAt: publishAt ? publishAt.toISOString() : undefined
+        });
+      }
+    },
+    
+    {
+      name: 'editRelease',
+      description: 'Edits metadata for an existing release',
+      parameters: z.object({
+        releaseId: z.string().describe('ID of the release to edit'),
+        title: z.string().optional().describe('New title for the release'),
+        description: z.string().optional().describe('New description for the release'),
+        releaseType: z.enum(['asap', 'scheduled']).optional().describe('New type for the release'),
+        publishAt: z.date().optional().describe('New date when to publish (for scheduled releases)'),
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
+      }),
+      handler: async ({ releaseId, title, description, releaseType, publishAt, projectId, dataset }: {
+        releaseId: string,
+        title?: string,
+        description?: string,
+        releaseType?: 'asap' | 'scheduled',
+        publishAt?: Date,
+        projectId: string,
+        dataset: string
+      }) => {
+        return await releasesController.updateRelease(projectId, dataset, releaseId, {
           title, 
-          { description, releaseType, intendedPublishAt }
-        );
+          description, 
+          releaseType, 
+          intendedPublishAt: publishAt ? publishAt.toISOString() : undefined
+        });
       }
     },
     
     {
       name: 'addDocumentToRelease',
-      description: 'Adds a document to a release',
+      description: 'Adds a document or multiple documents to a release',
       parameters: z.object({
         releaseId: z.string().describe('ID of the release'),
-        documentId: z.string().describe('ID of the document to add to the release'),
+        documentIds: z.union([z.string(), z.array(z.string())]).describe('ID or array of IDs of the document(s) to add to the release'),
         projectId: z.string().describe('The Sanity project ID'),
         dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
-      handler: async ({ releaseId, documentId, projectId, dataset }: { releaseId: string, documentId: string, projectId: string, dataset: string }) => {
-        return await releasesController.addDocumentToRelease(projectId, dataset, releaseId, documentId);
+      handler: async ({ releaseId, documentIds, projectId, dataset }: { 
+        releaseId: string, 
+        documentIds: string | string[], 
+        projectId: string, 
+        dataset: string 
+      }) => {
+        return await releasesController.addDocumentToRelease(projectId, dataset, releaseId, documentIds);
       }
     },
     
@@ -285,7 +461,12 @@ export function getToolDefinitions(): ToolDefinition[] {
         projectId: z.string().describe('The Sanity project ID'),
         dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
-      handler: async ({ releaseId, documentId, projectId, dataset }: { releaseId: string, documentId: string, projectId: string, dataset: string }) => {
+      handler: async ({ releaseId, documentId, projectId, dataset }: { 
+        releaseId: string, 
+        documentId: string, 
+        projectId: string, 
+        dataset: string 
+      }) => {
         return await releasesController.removeDocumentFromRelease(projectId, dataset, releaseId, documentId);
       }
     },
@@ -298,8 +479,44 @@ export function getToolDefinitions(): ToolDefinition[] {
         projectId: z.string().describe('The Sanity project ID'),
         dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
-      handler: async ({ releaseId, projectId, dataset }: { releaseId: string, projectId: string, dataset: string }) => {
+      handler: async ({ releaseId, projectId, dataset }: { 
+        releaseId: string, 
+        projectId: string, 
+        dataset: string 
+      }) => {
         return await releasesController.listReleaseDocuments(projectId, dataset, releaseId);
+      }
+    },
+    
+    {
+      name: 'listReleases',
+      description: 'Lists all releases for a project and dataset',
+      parameters: z.object({
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
+      }),
+      handler: async ({ projectId, dataset }: { 
+        projectId: string, 
+        dataset: string 
+      }) => {
+        return await releasesController.listReleases(projectId, dataset);
+      }
+    },
+    
+    {
+      name: 'getRelease',
+      description: 'Gets a specific release by ID',
+      parameters: z.object({
+        releaseId: z.string().describe('ID of the release to retrieve'),
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
+      }),
+      handler: async ({ releaseId, projectId, dataset }: { 
+        releaseId: string, 
+        projectId: string, 
+        dataset: string 
+      }) => {
+        return await releasesController.getRelease(projectId, dataset, releaseId);
       }
     },
     
@@ -313,85 +530,6 @@ export function getToolDefinitions(): ToolDefinition[] {
       }),
       handler: async ({ releaseId, projectId, dataset }: { releaseId: string, projectId: string, dataset: string }) => {
         return await releasesController.publishRelease(projectId, dataset, releaseId);
-      }
-    },
-    
-    {
-      name: 'listReleases',
-      description: 'Lists all releases for a project and dataset',
-      parameters: z.object({
-        projectId: z.string().describe('The Sanity project ID'),
-        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
-      }),
-      handler: async ({ projectId, dataset }: { projectId: string, dataset: string }) => {
-        return await releasesController.listReleases(projectId, dataset);
-      }
-    },
-    
-    {
-      name: 'getRelease',
-      description: 'Gets a specific release by ID',
-      parameters: z.object({
-        releaseId: z.string().describe('ID of the release to retrieve'),
-        projectId: z.string().describe('The Sanity project ID'),
-        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
-      }),
-      handler: async ({ releaseId, projectId, dataset }: { releaseId: string, projectId: string, dataset: string }) => {
-        return await releasesController.getRelease(projectId, dataset, releaseId);
-      }
-    },
-    
-    {
-      name: 'updateRelease',
-      description: 'Updates a release\'s information',
-      parameters: z.object({
-        releaseId: z.string().describe('ID of the release to update'),
-        title: z.string().optional().describe('New title for the release'),
-        description: z.string().optional().describe('New description for the release'),
-        releaseType: z.enum(['asap', 'scheduled']).optional().describe('New type for the release'),
-        intendedPublishAt: z.string().optional().describe('New scheduled publish date (ISO string)'),
-        projectId: z.string().describe('The Sanity project ID'),
-        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
-      }),
-      handler: async ({ releaseId, title, description, releaseType, intendedPublishAt, projectId, dataset }: {
-        releaseId: string,
-        title?: string,
-        description?: string,
-        releaseType?: 'asap' | 'scheduled',
-        intendedPublishAt?: string,
-        projectId: string,
-        dataset: string
-      }) => {
-        return await releasesController.updateRelease(projectId, dataset, releaseId, {
-          title, description, releaseType, intendedPublishAt
-        });
-      }
-    },
-    
-    {
-      name: 'scheduleRelease',
-      description: 'Schedules a release for publishing at a specific time',
-      parameters: z.object({
-        releaseId: z.string().describe('ID of the release to schedule'),
-        publishAt: z.string().describe('ISO datetime string of when to publish the release'),
-        projectId: z.string().describe('The Sanity project ID'),
-        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
-      }),
-      handler: async ({ releaseId, publishAt, projectId, dataset }: { releaseId: string, publishAt: string, projectId: string, dataset: string }) => {
-        return await releasesController.scheduleRelease(projectId, dataset, releaseId, publishAt);
-      }
-    },
-    
-    {
-      name: 'unscheduleRelease',
-      description: 'Unschedules a previously scheduled release',
-      parameters: z.object({
-        releaseId: z.string().describe('ID of the release to unschedule'),
-        projectId: z.string().describe('The Sanity project ID'),
-        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
-      }),
-      handler: async ({ releaseId, projectId, dataset }: { releaseId: string, projectId: string, dataset: string }) => {
-        return await releasesController.unscheduleRelease(projectId, dataset, releaseId);
       }
     },
     
@@ -418,6 +556,38 @@ export function getToolDefinitions(): ToolDefinition[] {
       }),
       handler: async ({ releaseId, projectId, dataset }: { releaseId: string, projectId: string, dataset: string }) => {
         return await releasesController.unarchiveRelease(projectId, dataset, releaseId);
+      }
+    },
+    
+    {
+      name: 'scheduleRelease',
+      description: 'Schedules a release for publishing at a specific time',
+      parameters: z.object({
+        releaseId: z.string().describe('ID of the release to schedule'),
+        publishAt: z.date().describe('When to publish the release'),
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
+      }),
+      handler: async ({ releaseId, publishAt, projectId, dataset }: { 
+        releaseId: string, 
+        publishAt: Date, 
+        projectId: string, 
+        dataset: string 
+      }) => {
+        return await releasesController.scheduleRelease(projectId, dataset, releaseId, publishAt.toISOString());
+      }
+    },
+    
+    {
+      name: 'unscheduleRelease',
+      description: 'Unschedules a previously scheduled release',
+      parameters: z.object({
+        releaseId: z.string().describe('ID of the release to unschedule'),
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
+      }),
+      handler: async ({ releaseId, projectId, dataset }: { releaseId: string, projectId: string, dataset: string }) => {
+        return await releasesController.unscheduleRelease(projectId, dataset, releaseId);
       }
     },
     

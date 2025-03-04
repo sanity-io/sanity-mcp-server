@@ -11,7 +11,8 @@ vi.mock('../../src/utils/sanityClient.js', () => {
     },
     createSanityClient: vi.fn((_projectId, _dataset, _options = {}) => ({
       fetch: vi.fn(),
-      getDocument: vi.fn()
+      getDocument: vi.fn(),
+      query: vi.fn()
     })),
     isSufficientApiVersion: vi.fn().mockReturnValue(true)
   };
@@ -34,7 +35,7 @@ describe('Releases Controller', () => {
   const mockDataset = 'test-dataset';
   const mockReleaseId = 'test-release-123';
   const mockDocumentId = 'test-doc-123';
-  const mockClient = { fetch: vi.fn(), getDocument: vi.fn() };
+  const mockClient = { fetch: vi.fn(), getDocument: vi.fn(), query: vi.fn() };
   
   beforeEach(() => {
     vi.resetAllMocks();
@@ -183,10 +184,10 @@ describe('Releases Controller', () => {
 
       expect(result).toEqual({
         success: true,
-        message: `Document ${mockDocumentId} added to release ${mockReleaseId} successfully`,
+        message: `1 document(s) added to release ${mockReleaseId} successfully`,
         releaseId: mockReleaseId,
-        documentId: mockDocumentId,
-        versionId: `versions.${mockReleaseId}.${mockDocumentId}`,
+        documentIds: [mockDocumentId],
+        versionIds: [`versions.${mockReleaseId}.${mockDocumentId}`],
         result: mockResult
       });
     });
@@ -222,7 +223,8 @@ describe('Releases Controller', () => {
       );
 
       expect(result.success).toBe(true);
-      expect(result.documentId).toBe(mockDocumentId);
+      expect(result.documentIds).toContain(mockDocumentId);
+      expect(result.documentIds.length).toBe(1);
     });
   });
 
@@ -403,5 +405,90 @@ describe('Releases Controller', () => {
     });
   });
 
-  // Additional test cases for other methods can be added as needed
+  describe('removeDocumentFromRelease', () => {
+    it('should remove a document from a release', async () => {
+      const mockResult = { transactionId: 'tx123' };
+      
+      (sanityApi.performActions as any).mockResolvedValueOnce(mockResult);
+
+      const result = await releasesController.removeDocumentFromRelease(
+        mockProjectId,
+        mockDataset,
+        mockReleaseId,
+        mockDocumentId
+      );
+
+      expect(sanityApi.performActions).toHaveBeenCalledWith(
+        mockProjectId,
+        mockDataset,
+        [
+          {
+            actionType: 'sanity.action.document.delete',
+            id: `versions.${mockReleaseId}.${mockDocumentId}`
+          }
+        ]
+      );
+
+      expect(result).toEqual({
+        success: true,
+        message: `Document ${mockDocumentId} removed from release ${mockReleaseId} successfully`,
+        releaseId: mockReleaseId,
+        documentId: mockDocumentId,
+        result: mockResult
+      });
+    });
+
+    it('should handle errors when removing a document from a release', async () => {
+      const mockError = new Error('Version deletion failed');
+      
+      (sanityApi.performActions as any).mockRejectedValueOnce(mockError);
+
+      await expect(
+        releasesController.removeDocumentFromRelease(
+          mockProjectId,
+          mockDataset,
+          mockReleaseId,
+          mockDocumentId
+        )
+      ).rejects.toThrow('Version deletion failed');
+    });
+  });
+
+  describe('getRelease', () => {
+    it('should get a release by ID', async () => {
+      const mockReleaseData = {
+        _id: `_.releases.${mockReleaseId}`,
+        title: 'Test Release',
+        status: 'active'
+      };
+      
+      mockClient.fetch.mockResolvedValueOnce([mockReleaseData]);
+
+      const result = await releasesController.getRelease(
+        mockProjectId,
+        mockDataset,
+        mockReleaseId
+      );
+
+      expect(mockClient.fetch).toHaveBeenCalledWith(
+        `*[_id == "_.releases.${mockReleaseId}"]`
+      );
+
+      expect(result).toEqual({
+        release: mockReleaseData
+      });
+    });
+
+    it('should throw an error when release is not found', async () => {
+      mockClient.fetch.mockResolvedValueOnce([]);
+
+      await expect(
+        releasesController.getRelease(
+          mockProjectId,
+          mockDataset,
+          mockReleaseId
+        )
+      ).rejects.toThrow('Failed to get release: Release with ID');
+    });
+  });
 });
