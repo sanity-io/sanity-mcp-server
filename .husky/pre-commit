@@ -1,2 +1,2 @@
-# Run integration tests only for now (typechecking temporarily disabled)
-npm run test:integration
+# Run both unit tests and integration tests before commit
+npm test && npm run test:integration
