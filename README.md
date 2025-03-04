@@ -29,23 +29,26 @@ The server provides the following tools:
   - `getGroqSpecification`: Gets the GROQ query language specification
 
 - **Document Retrieval**
-  - `getDocument`: Gets a single document by ID
-  - `getDocuments`: Gets multiple documents by their IDs
+  - `getDocument`: Gets a document by ID or multiple documents by their IDs
+  - `getDocuments`: Gets multiple documents by their IDs (alternative to using `getDocument` with an array)
 
 - **Document Mutations**
   - `createDocument`: Creates a new document
-  - `updateDocument`: Updates an existing document
+  - `updateDocument`: Updates one or more existing documents
   - `mutateDocument`: Performs multiple operations on a single document
-  - `deleteDocument`: Deletes a document
+  - `deleteDocument`: Deletes one or more documents
   - `batchMutations`: Performs multiple mutations across different documents
   - `updatePortableText`: Updates Portable Text fields (formerly `modifyPortableTextField`)
 
 - **Document Actions**
-  - `publishDocument`: Publishes a document
-  - `unpublishDocument`: Unpublishes a document
+  - `publishDocument`: Publishes one or more documents
+  - `unpublishDocument`: Unpublishes one or more documents
   - `createRelease`: Creates a new content release
   - `addDocumentToRelease`: Adds a document to a content release
+  - `removeDocumentFromRelease`: Removes one or more documents from a content release
   - `listReleaseDocuments`: Lists documents in a release
+  - `createDocumentVersion`: Creates a version of one or more documents in a specific release
+  - `unpublishDocumentWithRelease`: Marks one or more documents for unpublishing when a release is published
 
 - **Schema Management**
   - `listSchemaTypes`: Lists available schema types
