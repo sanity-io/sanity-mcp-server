@@ -22,12 +22,19 @@ describe('Release and Document Workflow Integration', () => {
   const releaseId = `${testPrefix}-release-${uuidv4().substring(0, 8)}`;
   const documentId = `${testPrefix}-doc-${uuidv4().substring(0, 8)}`;
   const draftDocumentId = `drafts.${documentId}`;
+  const documentId2 = `${testPrefix}-doc2-${uuidv4().substring(0, 8)}`;
+  const documentId3 = `${testPrefix}-doc3-${uuidv4().substring(0, 8)}`;
+  const draftDocumentId2 = `drafts.${documentId2}`;
+  const draftDocumentId3 = `drafts.${documentId3}`;
   
   // Track created resources for cleanup
   const resourcesToCleanup = {
     releaseId: '',
     documentId: '',
-    documentVersionId: ''
+    documentVersionId: '',
+    documentId2: '',
+    documentId3: '',
+    documentVersionIds: [] as string[]
   };
 
   // Skip tests if environment is not properly configured
@@ -68,6 +75,39 @@ describe('Release and Document Workflow Integration', () => {
           console.log(`Cleaned up draft document: ${draftDocumentId}`);
         } catch (err) {
           console.log(`No draft document to clean up: ${draftDocumentId}`);
+        }
+
+        // Clean up additional documents
+        if (resourcesToCleanup.documentId2) {
+          try {
+            await client.delete(documentId2);
+            console.log(`Cleaned up published document: ${documentId2}`);
+          } catch (err) {
+            console.log(`No published document to clean up: ${documentId2}`);
+          }
+          
+          try {
+            await client.delete(draftDocumentId2);
+            console.log(`Cleaned up draft document: ${draftDocumentId2}`);
+          } catch (err) {
+            console.log(`No draft document to clean up: ${draftDocumentId2}`);
+          }
+        }
+
+        if (resourcesToCleanup.documentId3) {
+          try {
+            await client.delete(documentId3);
+            console.log(`Cleaned up published document: ${documentId3}`);
+          } catch (err) {
+            console.log(`No published document to clean up: ${documentId3}`);
+          }
+          
+          try {
+            await client.delete(draftDocumentId3);
+            console.log(`Cleaned up draft document: ${draftDocumentId3}`);
+          } catch (err) {
+            console.log(`No draft document to clean up: ${draftDocumentId3}`);
+          }
         }
       }
       
@@ -228,5 +268,85 @@ describe('Release and Document Workflow Integration', () => {
     // Verify the version was created
     expect(result.success).toBe(true);
     expect(result.versionId).toBeTruthy();
+  });
+
+  it('should create additional test documents', async () => {
+    // Create two additional test documents for the array test
+    const client = createSanityClient(projectId, dataset);
+    
+    const testDocument2 = {
+      _id: documentId2,
+      _type: 'test',
+      title: 'Integration Test Document 2',
+      description: 'Second test document for array testing',
+      createdAt: new Date().toISOString()
+    };
+    
+    const testDocument3 = {
+      _id: documentId3,
+      _type: 'test',
+      title: 'Integration Test Document 3',
+      description: 'Third test document for array testing',
+      createdAt: new Date().toISOString()
+    };
+    
+    // Create the documents
+    const createdDoc2 = await client.createOrReplace(testDocument2);
+    const createdDoc3 = await client.createOrReplace(testDocument3);
+    
+    // Store the document IDs for cleanup
+    resourcesToCleanup.documentId2 = documentId2;
+    resourcesToCleanup.documentId3 = documentId3;
+    
+    // Verify the documents were created
+    expect(createdDoc2._id).toBe(documentId2);
+    expect(createdDoc3._id).toBe(documentId3);
+  });
+
+  it('should add multiple documents to a release as an array', async () => {
+    // Add both documents to the release using the array parameter
+    const result = await releasesController.addDocumentToRelease(
+      projectId,
+      dataset,
+      releaseId,
+      [documentId2, documentId3]
+    );
+    
+    // Verify the documents were added to the release
+    expect(result.success).toBe(true);
+    expect(result.releaseId).toBe(releaseId);
+    expect(result.documentIds).toContain(documentId2);
+    expect(result.documentIds).toContain(documentId3);
+    expect(result.documentIds.length).toBe(2);
+    
+    // Store version IDs for cleanup
+    if (result.versionIds && result.versionIds.length > 0) {
+      resourcesToCleanup.documentVersionIds = [...result.versionIds];
+    }
+    
+    // Wait briefly to ensure documents are processed
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  });
+
+  it('should list all documents in the release including the array-added ones', async () => {
+    // Get list of documents in the release
+    const result = await releasesController.listReleaseDocuments(
+      projectId,
+      dataset,
+      releaseId
+    );
+    
+    // Verify all three documents are in the release
+    expect(result.releaseId).toBe(releaseId);
+    expect(result.documentCount).toBeGreaterThanOrEqual(3);
+    
+    // Find our documents in the list
+    const document1 = result.documents.find(doc => doc.documentId === documentId);
+    const document2 = result.documents.find(doc => doc.documentId === documentId2);
+    const document3 = result.documents.find(doc => doc.documentId === documentId3);
+    
+    expect(document1).toBeDefined();
+    expect(document2).toBeDefined();
+    expect(document3).toBeDefined();
   });
 });
