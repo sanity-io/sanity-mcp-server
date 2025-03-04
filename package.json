@@ -13,7 +13,10 @@
     "typecheck": "tsc --noEmit",
     "typecheck:test": "tsc --noEmit --project tsconfig.test.json",
     "typecheck:all": "npm run typecheck && npm run typecheck:test",
-    "test:ts": "tsc && vitest run"
+    "test:ts": "tsc && vitest run",
+    "test:integration": "vitest run test/integration",
+    "prerelease": "npm run test:integration",
+    "release": "npm run build && npm version patch"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.6.1",
