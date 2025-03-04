@@ -11,6 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
+    "typecheck:test": "tsc --noEmit --project tsconfig.test.json",
+    "typecheck:all": "npm run typecheck && npm run typecheck:test",
     "test:ts": "tsc && vitest run"
   },
   "dependencies": {
