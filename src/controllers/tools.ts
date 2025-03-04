@@ -552,20 +552,20 @@ export function getToolDefinitions(): ToolDefinition[] {
     
     {
       name: 'removeDocumentFromRelease',
-      description: 'Removes a document from a release',
+      description: 'Removes a document or multiple documents from a release',
       parameters: z.object({
         releaseId: z.string().describe('ID of the release'),
-        documentId: z.string().describe('ID of the document to remove from the release'),
+        documentIds: z.union([z.string(), z.array(z.string())]).describe('ID or array of IDs of the document(s) to remove from the release'),
         projectId: z.string().describe('The Sanity project ID'),
         dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
-      handler: async ({ releaseId, documentId, projectId, dataset }: { 
+      handler: async ({ releaseId, documentIds, projectId, dataset }: { 
         releaseId: string, 
-        documentId: string, 
+        documentIds: string | string[], 
         projectId: string, 
         dataset: string 
       }) => {
-        return await releasesController.removeDocumentFromRelease(projectId, dataset, releaseId, documentId);
+        return await releasesController.removeDocumentFromRelease(projectId, dataset, releaseId, documentIds);
       }
     },
     
