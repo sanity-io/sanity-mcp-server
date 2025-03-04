@@ -123,8 +123,6 @@ export async function addDocumentToRelease(
     // Check API version first
     validateApiVersion();
     
-    const client = createSanityClient(projectId, dataset);
-    
     // Convert single documentId to array for consistent processing
     const docIds = Array.isArray(documentIds) ? documentIds : [documentIds];
     
@@ -132,6 +130,8 @@ export async function addDocumentToRelease(
     const actions = [];
     const versionIds = [];
     const processedDocIds = [];
+    
+    const client = createSanityClient(projectId, dataset);
     
     for (const documentId of docIds) {
       const baseDocId = documentId.replace(/^drafts\./, '');
@@ -141,12 +141,18 @@ export async function addDocumentToRelease(
       let attributes = content;
       
       if (!attributes) {
-        // Fetch the current document content (try published first, then draft)
+        // Fetch document content individually for each ID
         try {
+          // First try to get the published version
           attributes = await client.getDocument(baseDocId);
-        } catch {
-          // If published version doesn't exist, try draft
-          attributes = await client.getDocument(`drafts.${baseDocId}`);
+        } catch (err) {
+          try {
+            // If published version doesn't exist, try draft
+            attributes = await client.getDocument(`drafts.${baseDocId}`);
+          } catch (draftErr) {
+            // Both requests failed
+            throw new Error(`Document ${baseDocId} not found (neither published nor draft version exists)`);
+          }
         }
         
         if (!attributes) {
@@ -204,7 +210,7 @@ export async function removeDocumentFromRelease(
   message: string;
   releaseId: string;
   documentIds: string[];
-  results: any[];
+  result: any;
 }> {
   try {
     // Check API version first
@@ -213,22 +219,18 @@ export async function removeDocumentFromRelease(
     // Convert single documentId to array for consistent processing
     const docIds = Array.isArray(documentId) ? documentId : [documentId];
     const baseDocIds = docIds.map(id => id.replace(/^drafts\./, ''));
-    const results = [];
     
-    // Process each document
-    for (const baseDocId of baseDocIds) {
+    // Create delete actions for all documents at once
+    const actions = baseDocIds.map(baseDocId => {
       const versionId = `versions.${releaseId}.${baseDocId}`;
-      
-      // Create the delete version action
-      const action = {
+      return {
         actionType: 'sanity.action.document.delete',
         id: versionId
       };
-      
-      // Call the Actions API
-      const result = await sanityApi.performActions(projectId, dataset, [action]);
-      results.push(result);
-    }
+    });
+    
+    // Call the Actions API once with all delete actions
+    const result = await sanityApi.performActions(projectId, dataset, actions);
     
     return {
       success: true,
@@ -237,7 +239,7 @@ export async function removeDocumentFromRelease(
         : `${baseDocIds.length} documents removed from release ${releaseId} successfully`,
       releaseId,
       documentIds: baseDocIds,
-      results
+      result
     };
   } catch (error: any) {
     console.error(`Error removing document(s) from release ${releaseId}:`, error);

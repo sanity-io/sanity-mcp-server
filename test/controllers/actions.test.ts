@@ -6,7 +6,12 @@ import {
 } from '../../src/controllers/actions.js';
 
 // Mock the sanityClient and its API
-vi.mock('../../src/utils/sanityClient.js');
+vi.mock('../../src/utils/sanityClient.js', () => ({
+  createSanityClient: vi.fn(),
+  sanityApi: {
+    performActions: vi.fn()
+  }
+}));
 
 describe('Actions Controller', () => {
   // Mock client and its methods
@@ -24,7 +29,7 @@ describe('Actions Controller', () => {
   beforeEach(() => {
     // Setup mocks
     (createSanityClient as any).mockReturnValue(mockClient);
-    (sanityApi.performActions as any) = vi.fn().mockResolvedValue(mockPerformActionsResponse);
+    (sanityApi.performActions as any).mockResolvedValue(mockPerformActionsResponse);
     
     // Reset document fetch behavior
     mockClient.getDocument.mockImplementation((id: string) => {

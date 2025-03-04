@@ -434,23 +434,16 @@ describe('Releases Controller', () => {
         message: `Document ${mockDocumentId} removed from release ${mockReleaseId} successfully`,
         releaseId: mockReleaseId,
         documentIds: [mockDocumentId],
-        results: [mockResult]
+        result: mockResult
       });
     });
 
     it('should remove multiple documents from a release when given an array of IDs', async () => {
       const mockDocumentIds = ['doc1', 'doc2', 'doc3'];
-      const mockResults = [
-        { transactionId: 'tx1' },
-        { transactionId: 'tx2' },
-        { transactionId: 'tx3' }
-      ];
+      const mockResult = { transactionId: 'tx123' };
       
-      // Mock the performActions function to be called multiple times
-      (sanityApi.performActions as any)
-        .mockResolvedValueOnce(mockResults[0])
-        .mockResolvedValueOnce(mockResults[1])
-        .mockResolvedValueOnce(mockResults[2]);
+      // Mock the performActions function to return a single result
+      (sanityApi.performActions as any).mockResolvedValueOnce(mockResult);
 
       const result = await releasesController.removeDocumentFromRelease(
         mockProjectId,
@@ -459,22 +452,28 @@ describe('Releases Controller', () => {
         mockDocumentIds
       );
 
-      // Verify that performActions was called for each document ID
-      expect(sanityApi.performActions).toHaveBeenCalledTimes(3);
+      // Verify that performActions was called once with all document actions
+      expect(sanityApi.performActions).toHaveBeenCalledTimes(1);
       
-      // Check calls for each document
-      for (let i = 0; i < mockDocumentIds.length; i++) {
-        expect(sanityApi.performActions).toHaveBeenCalledWith(
-          mockProjectId,
-          mockDataset,
-          [
-            {
-              actionType: 'sanity.action.document.delete',
-              id: `versions.${mockReleaseId}.${mockDocumentIds[i]}`
-            }
-          ]
-        );
-      }
+      // Check that all document IDs were included in a single call
+      expect(sanityApi.performActions).toHaveBeenCalledWith(
+        mockProjectId,
+        mockDataset,
+        [
+          {
+            actionType: 'sanity.action.document.delete',
+            id: `versions.${mockReleaseId}.${mockDocumentIds[0]}`
+          },
+          {
+            actionType: 'sanity.action.document.delete',
+            id: `versions.${mockReleaseId}.${mockDocumentIds[1]}`
+          },
+          {
+            actionType: 'sanity.action.document.delete',
+            id: `versions.${mockReleaseId}.${mockDocumentIds[2]}`
+          }
+        ]
+      );
 
       // Verify the result structure
       expect(result).toEqual({
@@ -482,7 +481,7 @@ describe('Releases Controller', () => {
         message: `3 documents removed from release ${mockReleaseId} successfully`,
         releaseId: mockReleaseId,
         documentIds: mockDocumentIds,
-        results: mockResults
+        result: mockResult
       });
     });
 
