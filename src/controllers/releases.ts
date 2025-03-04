@@ -186,52 +186,62 @@ export async function addDocumentToRelease(
 }
 
 /**
- * Removes a document from a content release
+ * Removes one or more documents from a content release
  * 
  * @param projectId - Sanity project ID
  * @param dataset - Dataset name
  * @param releaseId - ID of the release
- * @param documentId - ID of the document to remove from the release
- * @returns Result of removing the document from the release
+ * @param documentId - ID or array of IDs of the document(s) to remove from the release
+ * @returns Result of removing the document(s) from the release
  */
 export async function removeDocumentFromRelease(
   projectId: string,
   dataset: string,
   releaseId: string,
-  documentId: string
+  documentId: string | string[]
 ): Promise<{
   success: boolean;
   message: string;
   releaseId: string;
-  documentId: string;
-  result: any;
+  documentIds: string[];
+  results: any[];
 }> {
   try {
     // Check API version first
     validateApiVersion();
     
-    const baseDocId = documentId.replace(/^drafts\./, '');
-    const versionId = `versions.${releaseId}.${baseDocId}`;
+    // Convert single documentId to array for consistent processing
+    const docIds = Array.isArray(documentId) ? documentId : [documentId];
+    const baseDocIds = docIds.map(id => id.replace(/^drafts\./, ''));
+    const results = [];
     
-    // Create the delete version action
-    const action = {
-      actionType: 'sanity.action.document.delete',
-      id: versionId
-    };
-    
-    // Call the Actions API
-    const result = await sanityApi.performActions(projectId, dataset, [action]);
+    // Process each document
+    for (const baseDocId of baseDocIds) {
+      const versionId = `versions.${releaseId}.${baseDocId}`;
+      
+      // Create the delete version action
+      const action = {
+        actionType: 'sanity.action.document.delete',
+        id: versionId
+      };
+      
+      // Call the Actions API
+      const result = await sanityApi.performActions(projectId, dataset, [action]);
+      results.push(result);
+    }
     
     return {
       success: true,
-      message: `Document ${baseDocId} removed from release ${releaseId} successfully`,
+      message: baseDocIds.length === 1 
+        ? `Document ${baseDocIds[0]} removed from release ${releaseId} successfully`
+        : `${baseDocIds.length} documents removed from release ${releaseId} successfully`,
       releaseId,
-      documentId: baseDocId,
-      result
+      documentIds: baseDocIds,
+      results
     };
   } catch (error: any) {
-    console.error(`Error removing document ${documentId} from release ${releaseId}:`, error);
-    throw new Error(`Failed to remove document from release: ${error.message}`);
+    console.error(`Error removing document(s) from release ${releaseId}:`, error);
+    throw new Error(`Failed to remove document(s) from release: ${error.message}`);
   }
 }
 

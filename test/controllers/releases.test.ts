@@ -406,7 +406,7 @@ describe('Releases Controller', () => {
   });
 
   describe('removeDocumentFromRelease', () => {
-    it('should remove a document from a release', async () => {
+    it('should remove a single document from a release', async () => {
       const mockResult = { transactionId: 'tx123' };
       
       (sanityApi.performActions as any).mockResolvedValueOnce(mockResult);
@@ -433,8 +433,56 @@ describe('Releases Controller', () => {
         success: true,
         message: `Document ${mockDocumentId} removed from release ${mockReleaseId} successfully`,
         releaseId: mockReleaseId,
-        documentId: mockDocumentId,
-        result: mockResult
+        documentIds: [mockDocumentId],
+        results: [mockResult]
+      });
+    });
+
+    it('should remove multiple documents from a release when given an array of IDs', async () => {
+      const mockDocumentIds = ['doc1', 'doc2', 'doc3'];
+      const mockResults = [
+        { transactionId: 'tx1' },
+        { transactionId: 'tx2' },
+        { transactionId: 'tx3' }
+      ];
+      
+      // Mock the performActions function to be called multiple times
+      (sanityApi.performActions as any)
+        .mockResolvedValueOnce(mockResults[0])
+        .mockResolvedValueOnce(mockResults[1])
+        .mockResolvedValueOnce(mockResults[2]);
+
+      const result = await releasesController.removeDocumentFromRelease(
+        mockProjectId,
+        mockDataset,
+        mockReleaseId,
+        mockDocumentIds
+      );
+
+      // Verify that performActions was called for each document ID
+      expect(sanityApi.performActions).toHaveBeenCalledTimes(3);
+      
+      // Check calls for each document
+      for (let i = 0; i < mockDocumentIds.length; i++) {
+        expect(sanityApi.performActions).toHaveBeenCalledWith(
+          mockProjectId,
+          mockDataset,
+          [
+            {
+              actionType: 'sanity.action.document.delete',
+              id: `versions.${mockReleaseId}.${mockDocumentIds[i]}`
+            }
+          ]
+        );
+      }
+
+      // Verify the result structure
+      expect(result).toEqual({
+        success: true,
+        message: `3 documents removed from release ${mockReleaseId} successfully`,
+        releaseId: mockReleaseId,
+        documentIds: mockDocumentIds,
+        results: mockResults
       });
     });
 
@@ -450,7 +498,7 @@ describe('Releases Controller', () => {
           mockReleaseId,
           mockDocumentId
         )
-      ).rejects.toThrow('Version deletion failed');
+      ).rejects.toThrow('Failed to remove document(s) from release: Version deletion failed');
     });
   });
 

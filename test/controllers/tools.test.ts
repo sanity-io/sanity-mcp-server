@@ -2,10 +2,12 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { getToolDefinitions } from '../../src/controllers/tools.js';
 import * as mutateController from '../../src/controllers/mutate.js';
 import * as groqController from '../../src/controllers/groq.js';
+import * as actionsController from '../../src/controllers/actions.js';
 
 // Mock the controllers
 vi.mock('../../src/controllers/mutate.js');
 vi.mock('../../src/controllers/groq.js');
+vi.mock('../../src/controllers/actions.js');
 
 describe('Tools', () => {
   beforeEach(() => {
@@ -19,6 +21,77 @@ describe('Tools', () => {
   // Get all tools
   const tools = getToolDefinitions();
   
+  describe('getDocument', () => {
+    // Find the getDocument tool
+    const getDocumentTool = tools.find(tool => tool.name === 'getDocument');
+    
+    it('should exist', () => {
+      expect(getDocumentTool).toBeDefined();
+    });
+    
+    it('should fetch a single document by ID', async () => {
+      if (!getDocumentTool) return;
+      
+      // Mock the searchContent function
+      vi.mocked(groqController.searchContent).mockResolvedValueOnce({
+        results: { _id: 'doc1', title: 'Document 1' }
+      });
+      
+      const result = await getDocumentTool.handler({
+        documentId: 'doc1',
+        projectId: 'project123',
+        dataset: 'dataset123'
+      });
+      
+      // Verify that searchContent was called with the correct parameters
+      expect(groqController.searchContent).toHaveBeenCalledWith(
+        'project123',
+        'dataset123',
+        '*[_id == $documentId][0]',
+        { documentId: 'doc1' }
+      );
+      
+      // Verify the results
+      expect(result).toEqual({
+        results: { _id: 'doc1', title: 'Document 1' }
+      });
+    });
+    
+    it('should fetch multiple documents when given an array of IDs', async () => {
+      if (!getDocumentTool) return;
+      
+      // Mock the searchContent function
+      vi.mocked(groqController.searchContent).mockResolvedValueOnce({
+        results: [
+          { _id: 'doc1', title: 'Document 1' },
+          { _id: 'doc2', title: 'Document 2' }
+        ]
+      });
+      
+      const result = await getDocumentTool.handler({
+        documentId: ['doc1', 'doc2'],
+        projectId: 'project123',
+        dataset: 'dataset123'
+      });
+      
+      // Verify that searchContent was called with the correct parameters
+      expect(groqController.searchContent).toHaveBeenCalledWith(
+        'project123',
+        'dataset123',
+        '*[_id in $documentIds]',
+        { documentIds: ['doc1', 'doc2'] }
+      );
+      
+      // Verify the results
+      expect(result).toEqual({
+        results: [
+          { _id: 'doc1', title: 'Document 1' },
+          { _id: 'doc2', title: 'Document 2' }
+        ]
+      });
+    });
+  });
+
   describe('getDocuments', () => {
     // Find the getDocuments tool
     const getDocumentsTool = tools.find(tool => tool.name === 'getDocuments');
@@ -266,6 +339,100 @@ describe('Tools', () => {
       })).rejects.toThrow('Mutation failed');
 
       expect(mutateController.modifyDocuments).toHaveBeenCalled();
+    });
+  });
+
+  describe('editDocument', () => {
+    // Find the editDocument tool
+    const editDocumentTool = tools.find(tool => tool.name === 'editDocument');
+    
+    it('should exist', () => {
+      expect(editDocumentTool).toBeDefined();
+    });
+    
+    it('should edit a single document', async () => {
+      if (!editDocumentTool) return;
+      
+      // Mock the editDocument function
+      vi.mocked(actionsController.editDocument).mockResolvedValueOnce({
+        success: true,
+        message: 'Document edited successfully',
+        documentId: 'doc1',
+        result: { _id: 'doc1', title: 'Updated Document 1' }
+      });
+      
+      const result = await editDocumentTool.handler({
+        documentId: 'doc1',
+        patch: { set: { title: 'Updated Document 1' } },
+        projectId: 'project123',
+        dataset: 'dataset123'
+      });
+      
+      // Verify that editDocument was called with the correct parameters
+      expect(actionsController.editDocument).toHaveBeenCalledWith(
+        'project123',
+        'dataset123',
+        'doc1',
+        { set: { title: 'Updated Document 1' } }
+      );
+      
+      // Verify the results
+      expect(result).toEqual({
+        success: true,
+        message: 'Document edited successfully',
+        documentId: 'doc1',
+        result: { _id: 'doc1', title: 'Updated Document 1' }
+      });
+    });
+    
+    it('should edit multiple documents when given an array of IDs', async () => {
+      if (!editDocumentTool) return;
+      
+      // Mock the editDocument function for both document IDs
+      vi.mocked(actionsController.editDocument)
+        .mockResolvedValueOnce({
+          success: true,
+          message: 'Document edited successfully',
+          documentId: 'doc1',
+          result: { _id: 'doc1', title: 'Updated Document 1' }
+        })
+        .mockResolvedValueOnce({
+          success: true,
+          message: 'Document edited successfully',
+          documentId: 'doc2',
+          result: { _id: 'doc2', title: 'Updated Document 2' }
+        });
+      
+      const result = await editDocumentTool.handler({
+        documentId: ['doc1', 'doc2'],
+        patch: { set: { status: 'updated' } },
+        projectId: 'project123',
+        dataset: 'dataset123'
+      });
+      
+      // Verify that editDocument was called with the correct parameters for both documents
+      expect(actionsController.editDocument).toHaveBeenCalledTimes(2);
+      expect(actionsController.editDocument).toHaveBeenCalledWith(
+        'project123',
+        'dataset123',
+        'doc1',
+        { set: { status: 'updated' } }
+      );
+      expect(actionsController.editDocument).toHaveBeenCalledWith(
+        'project123',
+        'dataset123',
+        'doc2',
+        { set: { status: 'updated' } }
+      );
+      
+      // Verify the results structure
+      expect(result).toHaveProperty('success', true);
+      expect(result).toHaveProperty('message', 'Edited 2 documents successfully');
+      expect(result).toHaveProperty('documentIds', ['doc1', 'doc2']);
+      expect(result).toHaveProperty('results');
+      expect(result.results).toHaveLength(2);
+      expect(result.results[0]).toHaveProperty('documentId', 'doc1');
+      expect(result.results[1]).toHaveProperty('documentId', 'doc2');
     });
   });
 });
