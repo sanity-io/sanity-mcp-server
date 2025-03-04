@@ -193,7 +193,7 @@ export async function addDocumentToRelease(
           publishedId: baseDocId,
           attributes: {
             ...attributes,
-            _id: versionId
+            _id: `versions.${releaseId}.${baseDocId}` // Fix: Correctly format the _id
           }
         });
       } catch (documentError: any) {
