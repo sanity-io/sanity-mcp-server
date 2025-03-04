@@ -7,15 +7,21 @@ import config from '../config/config.js';
  * 
  * @param projectId - Sanity project ID
  * @param dataset - Dataset name (default: 'production')
+ * @param options - Additional options to pass to the Sanity client
  * @returns Configured Sanity client instance
  */
-export function createSanityClient(projectId: string, dataset: string = 'production'): SanityClient {
+export function createSanityClient(
+  projectId: string, 
+  dataset: string = 'production', 
+  options: Record<string, any> = {}
+): SanityClient {
   return createClient({
     projectId,
     dataset,
     apiVersion: config.apiVersion,
     token: config.sanityToken,
-    useCdn: false // Using the API directly ensures we get fresh content
+    useCdn: false, // Using the API directly ensures we get fresh content
+    ...options
   });
 }
 

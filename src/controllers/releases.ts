@@ -243,11 +243,14 @@ export async function listReleaseDocuments(
     // Check API version first
     validateApiVersion();
     
-    const client = createSanityClient(projectId, dataset);
+    // Create client with perspective: 'raw' as required for sanity::partOfRelease
+    const client = createSanityClient(projectId, dataset, { perspective: 'raw' });
     
-    // Query for all documents in the release
-    const query = `*[_id match "versions.${releaseId}.*"]{ _id, _type, title }`;
-    const documents = await client.fetch(query);
+    // Use the sanity::partOfRelease function to get all documents in the release
+    const query = `*[sanity::partOfRelease($releaseId)]{ _id, _type, title }`;
+    const params = { releaseId: releaseId };
+    
+    const documents = await client.fetch(query, params);
     
     // Map version documents to their base documents
     const mappedDocuments: ReleaseDocument[] = documents.map((doc: any) => {
