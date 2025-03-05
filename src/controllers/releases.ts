@@ -124,24 +124,37 @@ export async function addDocumentToRelease(
     validateApiVersion();
     
     // WORKAROUND: Handle the case where documentIds might be a JSON string representation of an array
-    // Due to an issue in the JSON-RPC layer, arrays of strings sometimes arrive as serialized JSON strings
+    // Due to an issue in the MCP SDK's transport layer, arrays of strings sometimes arrive as serialized JSON strings
     // rather than being properly deserialized into actual arrays.
-    // This workaround detects and parses such strings to ensure consistent handling.
-    // TODO: This should ideally be fixed in the MCP SDK's transport layer.
     let parsedDocIds: string[];
     
-    if (typeof documentIds === 'string' && documentIds.startsWith('[') && documentIds.endsWith(']')) {
-      try {
-        // Attempt to parse as JSON
-        const parsed = JSON.parse(documentIds);
-        parsedDocIds = Array.isArray(parsed) ? parsed : [documentIds];
-      } catch (e) {
-        // If parsing fails, treat as a single string
+    if (Array.isArray(documentIds)) {
+      // Already an array - use as is
+      parsedDocIds = documentIds;
+    } else if (typeof documentIds === 'string') {
+      // Check if this is a JSON string array
+      if (documentIds.startsWith('[') && documentIds.endsWith(']')) {
+        try {
+          // Attempt to parse as JSON
+          const parsed = JSON.parse(documentIds);
+          if (Array.isArray(parsed)) {
+            // Successfully parsed as array
+            parsedDocIds = parsed;
+          } else {
+            // Parsed as something else (object, number, etc.) - treat as single ID
+            parsedDocIds = [documentIds];
+          }
+        } catch (e) {
+          // If parsing fails, treat as a single string
+          parsedDocIds = [documentIds];
+        }
+      } else {
+        // Regular string - treat as single ID
         parsedDocIds = [documentIds];
       }
     } else {
-      // Regular handling for string or array
-      parsedDocIds = Array.isArray(documentIds) ? documentIds : [documentIds];
+      // Unexpected type - convert to string and use as single ID
+      parsedDocIds = [String(documentIds)];
     }
     
     if (parsedDocIds.length === 0) {
@@ -238,7 +251,7 @@ export async function addDocumentToRelease(
  * @param projectId - Sanity project ID
  * @param dataset - Dataset name
  * @param releaseId - ID of the release
- * @param documentId - ID or array of IDs of the document(s) to remove from the release
+ * @param documentIds - ID or array of IDs of the document(s) to remove from the release
  * @returns Result of removing the document(s) from the release
  */
 export async function removeDocumentFromRelease(
@@ -258,24 +271,37 @@ export async function removeDocumentFromRelease(
     validateApiVersion();
     
     // WORKAROUND: Handle the case where documentIds might be a JSON string representation of an array
-    // Due to an issue in the JSON-RPC layer, arrays of strings sometimes arrive as serialized JSON strings
+    // Due to an issue in the MCP SDK's transport layer, arrays of strings sometimes arrive as serialized JSON strings
     // rather than being properly deserialized into actual arrays.
-    // This workaround detects and parses such strings to ensure consistent handling.
-    // TODO: This should ideally be fixed in the MCP SDK's transport layer.
     let parsedDocIds: string[];
     
-    if (typeof documentIds === 'string' && documentIds.startsWith('[') && documentIds.endsWith(']')) {
-      try {
-        // Attempt to parse as JSON
-        const parsed = JSON.parse(documentIds);
-        parsedDocIds = Array.isArray(parsed) ? parsed : [documentIds];
-      } catch (e) {
-        // If parsing fails, treat as a single string
+    if (Array.isArray(documentIds)) {
+      // Already an array - use as is
+      parsedDocIds = documentIds;
+    } else if (typeof documentIds === 'string') {
+      // Check if this is a JSON string array
+      if (documentIds.startsWith('[') && documentIds.endsWith(']')) {
+        try {
+          // Attempt to parse as JSON
+          const parsed = JSON.parse(documentIds);
+          if (Array.isArray(parsed)) {
+            // Successfully parsed as array
+            parsedDocIds = parsed;
+          } else {
+            // Parsed as something else (object, number, etc.) - treat as single ID
+            parsedDocIds = [documentIds];
+          }
+        } catch (e) {
+          // If parsing fails, treat as a single string
+          parsedDocIds = [documentIds];
+        }
+      } else {
+        // Regular string - treat as single ID
         parsedDocIds = [documentIds];
       }
     } else {
-      // Regular handling for string or array
-      parsedDocIds = Array.isArray(documentIds) ? documentIds : [documentIds];
+      // Unexpected type - convert to string and use as single ID
+      parsedDocIds = [String(documentIds)];
     }
     
     if (parsedDocIds.length === 0) {
