@@ -1,5 +1,5 @@
 import { expect, describe, it } from 'vitest';
-import { isSufficientApiVersion } from '../../src/utils/sanityClient.js';
+import { isSufficientApiVersion } from '../../src/utils/sanityClient.ts';
 
 describe('Sanity Client Utilities', () => {
   describe('isSufficientApiVersion', () => {
