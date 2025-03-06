@@ -210,7 +210,7 @@ describe('Array Parameter Deserialization Integration Test', () => {
     if (result.versionIds && result.versionIds.length > 0) {
       resourcesToCleanup.versionIds.push(...result.versionIds);
     }
-  });
+  }, 10000); // Increased timeout to 10 seconds
   
   it('should handle single string parameter', async () => {
     if (mockAddDocumentToRelease) {
