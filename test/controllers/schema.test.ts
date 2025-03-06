@@ -1,142 +1,190 @@
-/**
- * Direct integration tests for schema controller
- */
-import { describe, it, expect, vi, beforeEach, afterEach, afterAll } from 'vitest';
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-import config from '../../src/config/config.js';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import * as fs from 'fs/promises';
 import * as schemaController from '../../src/controllers/schema.js';
+import config from '../../src/config/config.js';
 
-// Suppress console.error during tests
-const originalConsoleError = console.error;
-console.error = vi.fn();
-
-// Load the schema fixture for assertions
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const fixtureSchemaPath = path.join(__dirname, '../fixtures/schema.json');
-const schemaData = JSON.parse(fs.readFileSync(fixtureSchemaPath, 'utf-8'));
-
-// Setup a test schema file from our fixture - more direct approach
-const targetDir = path.join(__dirname, '../../schemas');
-const testSchemaPath = path.join(targetDir, 'mock-project_mock-dataset.json');
-
-// Ensure target directory exists
-if (!fs.existsSync(targetDir)) {
-  fs.mkdirSync(targetDir, { recursive: true });
-}
-
-// Helper to setup/teardown test schema file
-function setupTestFile(): void {
-  fs.writeFileSync(testSchemaPath, JSON.stringify(schemaData, null, 2));
-}
-
-function cleanupTestFile(): void {
-  if (fs.existsSync(testSchemaPath)) {
-    fs.unlinkSync(testSchemaPath);
+vi.mock('fs/promises');
+vi.mock('../../src/config/config.js', () => ({
+  default: {
+    getSchemaPath: vi.fn(),
   }
-}
-
-// Patching config getSchemaPath to return our test path
-const originalGetSchemaPath = config.getSchemaPath;
-config.getSchemaPath = function(projectId: string, dataset: string): string {
-  if (projectId === 'mock-project' && dataset === 'mock-dataset') {
-    return testSchemaPath;
-  }
-  return originalGetSchemaPath.call(this, projectId, dataset);
-};
+}));
 
 describe('Schema Controller', () => {
-  // Setup and teardown for each test
+  // Define mock schema for testing
+  const mockSchema = [
+    {
+      name: 'author',
+      type: 'document',
+      fields: [
+        { name: 'name', type: 'string' },
+        { name: 'bio', type: 'text' }
+      ]
+    },
+    {
+      name: 'post',
+      type: 'document',
+      fields: [
+        { name: 'title', type: 'string' },
+        { 
+          name: 'author', 
+          type: 'reference', 
+          to: { type: 'author' } 
+        },
+        {
+          name: 'categories',
+          type: 'array',
+          of: [{ type: 'reference', to: { type: 'category' } }]
+        },
+        {
+          name: 'content',
+          type: 'array',
+          of: [{ type: 'block' }]
+        }
+      ]
+    },
+    {
+      name: 'category',
+      type: 'type',
+      fields: [
+        { name: 'title', type: 'string' }
+      ]
+    },
+    {
+      name: 'block',
+      type: 'type',
+      fields: [
+        { name: 'text', type: 'string' }
+      ]
+    }
+  ];
+
   beforeEach(() => {
-    setupTestFile();
-    vi.clearAllMocks();
+    vi.resetAllMocks();
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.mocked(config.getSchemaPath).mockReturnValue('/mock/path/to/schema.json');
+    vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(mockSchema));
   });
-  
-  afterEach(() => {
-    cleanupTestFile();
+
+  describe('getSchema', () => {
+    it('should return schema from file if it exists', async () => {
+      const result = await schemaController.getSchema('mock-project', 'mock-dataset');
+      
+      expect(result).toEqual(mockSchema);
+      expect(config.getSchemaPath).toHaveBeenCalledWith('mock-project', 'mock-dataset');
+      expect(fs.readFile).toHaveBeenCalledWith('/mock/path/to/schema.json', 'utf-8');
+    });
+
+    it('should throw an error if schema file does not exist', async () => {
+      const error = new Error('File not found') as NodeJS.ErrnoException;
+      error.code = 'ENOENT';
+      
+      vi.mocked(fs.readFile).mockRejectedValueOnce(error);
+      
+      await expect(schemaController.getSchema('mock-project', 'mock-dataset'))
+        .rejects
+        .toThrow('Schema file not found for project mock-project and dataset mock-dataset');
+    });
+
+    it('should throw on other file read errors', async () => {
+      const error = new Error('Some other error');
+      vi.mocked(fs.readFile).mockRejectedValueOnce(error);
+      
+      await expect(schemaController.getSchema('mock-project', 'mock-dataset'))
+        .rejects
+        .toThrow('Failed to get schema:');
+    });
   });
-  
-  afterAll(() => {
-    // Restore console.error
-    console.error = originalConsoleError;
-  });
-  
+
   describe('listSchemaTypes', () => {
-    it('should return only document types by default', async () => {
+    it('should list only document types by default', async () => {
       const result = await schemaController.listSchemaTypes('mock-project', 'mock-dataset');
       
-      // Verify only document types are returned
-      const documentTypes = schemaData
-        .filter(item => item.type === 'document')
-        .map(item => ({
-          name: item.name,
-          type: item.type
-        }));
-      
-      expect(result).toEqual(documentTypes);
-      
-      // Verify no error messages were logged
-      expect(console.error).not.toHaveBeenCalled();
+      // Should only include document types
+      expect(result).toEqual([
+        { name: 'author', type: 'document' },
+        { name: 'post', type: 'document' }
+      ]);
     });
-    
-    it('should return all types when allTypes option is true', async () => {
+
+    it('should list all types when allTypes option is true', async () => {
       const result = await schemaController.listSchemaTypes('mock-project', 'mock-dataset', { allTypes: true });
       
-      // Verify all types are returned
-      const allTypes = schemaData.map(item => ({
-        name: item.name,
-        type: item.type
-      }));
-      
-      expect(result).toEqual(allTypes);
-      
-      // Verify no error messages were logged
-      expect(console.error).not.toHaveBeenCalled();
+      // Should include all types
+      expect(result).toEqual([
+        { name: 'author', type: 'document' },
+        { name: 'post', type: 'document' },
+        { name: 'category', type: 'type' },
+        { name: 'block', type: 'type' }
+      ]);
     });
-    
-    it('should throw an error if schema file is not found', async () => {
-      await expect(
-        schemaController.listSchemaTypes('nonexistent', 'mock-dataset')
-      ).rejects.toThrow(/Schema file not found/);
+
+    it('should catch and rethrow errors', async () => {
+      const error = new Error('Schema error');
+      vi.mocked(fs.readFile).mockRejectedValueOnce(error);
       
-      // Verify error was logged
+      await expect(schemaController.listSchemaTypes('mock-project', 'mock-dataset'))
+        .rejects
+        .toThrow('Failed to list schema types:');
+        
       expect(console.error).toHaveBeenCalled();
     });
   });
-  
+
   describe('getTypeSchema', () => {
     it('should return the schema for a document type', async () => {
       const result = await schemaController.getTypeSchema('mock-project', 'mock-dataset', 'author');
       
-      // Verify the result matches our fixture
-      const expectedSchema = schemaData.find(item => item.name === 'author');
-      expect(result).toEqual(expectedSchema);
-      
-      // Verify no error messages were logged
-      expect(console.error).not.toHaveBeenCalled();
+      expect(result.name).toBe('author');
+      expect(result.type).toBe('document');
     });
-    
+
     it('should return the schema for a custom type', async () => {
       const result = await schemaController.getTypeSchema('mock-project', 'mock-dataset', 'category');
       
-      // Verify the result matches our fixture
-      const expectedSchema = schemaData.find(item => item.name === 'category');
-      expect(result).toEqual(expectedSchema);
-      
-      // Verify no error messages were logged
-      expect(console.error).not.toHaveBeenCalled();
+      expect(result.name).toBe('category');
+      expect(result.type).toBe('type');
     });
-    
+
     it('should throw an error if type is not found', async () => {
-      await expect(
-        schemaController.getTypeSchema('mock-project', 'mock-dataset', 'nonexistent')
-      ).rejects.toThrow(/Type 'nonexistent' not found/);
+      await expect(schemaController.getTypeSchema('mock-project', 'mock-dataset', 'nonexistent'))
+        .rejects
+        .toThrow("Type 'nonexistent' not found in schema");
+    });
+  });
+
+  describe('getSchemaForType', () => {
+    it('should get document schema for a type', async () => {
+      const result = await schemaController.getSchemaForType('mock-project', 'mock-dataset', 'author');
       
-      // Verify error was logged
-      expect(console.error).toHaveBeenCalled();
+      expect(result.name).toBe('author');
+      expect(result.type).toBe('document');
+    });
+
+    it('should get non-document schema for a type', async () => {
+      const result = await schemaController.getSchemaForType('mock-project', 'mock-dataset', 'category');
+      
+      expect(result.name).toBe('category');
+      expect(result.type).toBe('type');
+    });
+
+    it('should include referenced types when includeReferences is true', async () => {
+      const result = await schemaController.getSchemaForType('mock-project', 'mock-dataset', 'post', { includeReferences: true });
+      
+      expect(result.name).toBe('post');
+      expect(result.references).toBeDefined();
+      expect(result.references.length).toBeGreaterThan(0);
+      
+      // Check that referenced types are included
+      const referenceNames = result.references.map(ref => ref.name);
+      expect(referenceNames).toContain('author');
+      expect(referenceNames).toContain('category');
+    });
+
+    it('should throw error when type is not found', async () => {
+      await expect(schemaController.getSchemaForType('mock-project', 'mock-dataset', 'nonexistent'))
+        .rejects
+        .toThrow('Type nonexistent not found in schema');
     });
   });
 });

@@ -127,10 +127,11 @@ export function getToolDefinitions(): ToolDefinition[] {
       parameters: z.object({
         typeName: z.string().describe('The name of the type to get the schema for'),
         projectId: z.string().describe('The Sanity project ID'),
-        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)'),
+        includeReferences: z.boolean().optional().default(false).describe('If true, includes referenced types in the response')
       }),
-      handler: async ({ typeName, projectId, dataset }: { typeName: string, projectId: string, dataset: string }) => {
-        return await schemaController.getTypeSchema(typeName, projectId, dataset);
+      handler: async ({ typeName, projectId, dataset, includeReferences }: { typeName: string, projectId: string, dataset: string, includeReferences?: boolean }) => {
+        return await schemaController.getSchemaForType(projectId, dataset, typeName, { includeReferences });
       }
     },
     
