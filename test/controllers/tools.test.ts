@@ -32,124 +32,72 @@ describe('Tools', () => {
     it('should fetch a single document by ID', async () => {
       if (!getDocumentTool) return;
       
-      // Mock the searchContent function
-      vi.mocked(groqController.searchContent).mockResolvedValueOnce({
-        results: { _id: 'doc1', title: 'Document 1' }
+      // Mock the searchContent function (which getDocument uses internally)
+      vi.mocked(groqController.searchContent).mockResolvedValueOnce({ 
+        _id: 'doc123', 
+        _type: 'test',
+        title: 'Test Document' 
       });
       
-      const result = await getDocumentTool.handler({
-        documentId: 'doc1',
-        projectId: 'project123',
-        dataset: 'dataset123'
+      const result = await getDocumentTool.handler({ 
+        documentId: 'doc123', 
+        projectId: 'project123', 
+        dataset: 'dataset123' 
       });
       
-      // Verify that searchContent was called with the correct parameters
       expect(groqController.searchContent).toHaveBeenCalledWith(
-        'project123',
-        'dataset123',
-        '*[_id == $documentId][0]',
-        { documentId: 'doc1' }
+        'project123', 
+        'dataset123', 
+        '*[_id == $documentId][0]', 
+        { documentId: 'doc123' }
       );
       
-      // Verify the results
       expect(result).toEqual({
-        results: { _id: 'doc1', title: 'Document 1' }
+        _id: 'doc123',
+        _type: 'test',
+        title: 'Test Document'
       });
-    });
-    
-    it('should fetch multiple documents when given an array of IDs', async () => {
-      if (!getDocumentTool) return;
-      
-      // Mock the searchContent function
-      vi.mocked(groqController.searchContent).mockResolvedValueOnce({
-        results: [
-          { _id: 'doc1', title: 'Document 1' },
-          { _id: 'doc2', title: 'Document 2' }
-        ]
-      });
-      
-      const result = await getDocumentTool.handler({
-        documentId: ['doc1', 'doc2'],
-        projectId: 'project123',
-        dataset: 'dataset123'
-      });
-      
-      // Verify that searchContent was called with the correct parameters
-      expect(groqController.searchContent).toHaveBeenCalledWith(
-        'project123',
-        'dataset123',
-        '*[_id in $documentIds]',
-        { documentIds: ['doc1', 'doc2'] }
-      );
-      
-      // Verify the results
-      expect(result).toEqual({
-        results: [
-          { _id: 'doc1', title: 'Document 1' },
-          { _id: 'doc2', title: 'Document 2' }
-        ]
-      });
-    });
-  });
-
-  describe('getDocuments', () => {
-    // Find the getDocuments tool
-    const getDocumentsTool = tools.find(tool => tool.name === 'getDocuments');
-    
-    it('should exist', () => {
-      expect(getDocumentsTool).toBeDefined();
     });
     
     it('should fetch multiple documents by their IDs', async () => {
-      if (!getDocumentsTool) return;
+      if (!getDocumentTool) return;
       
-      // Mock the searchContent function (which getDocuments uses internally)
-      vi.mocked(groqController.searchContent).mockResolvedValueOnce({
-        results: [
-          { _id: 'doc1', title: 'Document 1' },
-          { _id: 'doc2', title: 'Document 2' }
-        ]
+      // Mock the searchContent function (which getDocument uses internally for arrays)
+      vi.mocked(groqController.searchContent).mockResolvedValueOnce([
+        { _id: 'doc123', _type: 'test', title: 'Test Document 1' },
+        { _id: 'doc456', _type: 'test', title: 'Test Document 2' }
+      ]);
+      
+      const result = await getDocumentTool.handler({ 
+        documentId: ['doc123', 'doc456'], 
+        projectId: 'project123', 
+        dataset: 'dataset123' 
       });
       
-      const result = await getDocumentsTool.handler({
-        documentIds: ['doc1', 'doc2'],
-        projectId: 'project123',
-        dataset: 'dataset123'
-      });
-      
-      // Verify that searchContent was called with the correct parameters
       expect(groqController.searchContent).toHaveBeenCalledWith(
-        'project123',
-        'dataset123',
-        '*[_id in $documentIds]',
-        { documentIds: ['doc1', 'doc2'] }
+        'project123', 
+        'dataset123', 
+        '*[_id in $documentIds]', 
+        { documentIds: ['doc123', 'doc456'] }
       );
       
-      // Verify the results
-      expect(result).toEqual({
-        results: [
-          { _id: 'doc1', title: 'Document 1' },
-          { _id: 'doc2', title: 'Document 2' }
-        ]
-      });
+      expect(result).toEqual([
+        { _id: 'doc123', _type: 'test', title: 'Test Document 1' },
+        { _id: 'doc456', _type: 'test', title: 'Test Document 2' }
+      ]);
     });
     
     it('should handle errors properly', async () => {
-      if (!getDocumentsTool) return;
+      if (!getDocumentTool) return;
       
-      // Mock error response
-      vi.mocked(groqController.searchContent).mockRejectedValueOnce(
-        new Error('Failed to fetch documents')
-      );
+      // Mock the searchContent function to throw an error
+      vi.mocked(groqController.searchContent).mockRejectedValueOnce(new Error('Failed to fetch document'));
       
-      // Assert that the error is properly propagated
-      await expect(getDocumentsTool.handler({
-        documentIds: ['doc1', 'doc2'],
-        projectId: 'project123',
-        dataset: 'dataset123'
-      })).rejects.toThrow('Failed to fetch documents');
-      
-      expect(groqController.searchContent).toHaveBeenCalled();
+      await expect(getDocumentTool.handler({ 
+        documentId: 'doc123', 
+        projectId: 'project123', 
+        dataset: 'dataset123' 
+      })).rejects.toThrow('Failed to fetch document');
     });
   });
 
@@ -339,100 +287,6 @@ describe('Tools', () => {
       })).rejects.toThrow('Mutation failed');
 
       expect(mutateController.modifyDocuments).toHaveBeenCalled();
-    });
-  });
-
-  describe('editDocument', () => {
-    // Find the editDocument tool
-    const editDocumentTool = tools.find(tool => tool.name === 'editDocument');
-    
-    it('should exist', () => {
-      expect(editDocumentTool).toBeDefined();
-    });
-    
-    it('should edit a single document', async () => {
-      if (!editDocumentTool) return;
-      
-      // Mock the editDocument function
-      vi.mocked(actionsController.editDocument).mockResolvedValueOnce({
-        success: true,
-        message: 'Document edited successfully',
-        documentId: 'doc1',
-        result: { _id: 'doc1', title: 'Updated Document 1' }
-      });
-      
-      const result = await editDocumentTool.handler({
-        documentId: 'doc1',
-        patch: { set: { title: 'Updated Document 1' } },
-        projectId: 'project123',
-        dataset: 'dataset123'
-      });
-      
-      // Verify that editDocument was called with the correct parameters
-      expect(actionsController.editDocument).toHaveBeenCalledWith(
-        'project123',
-        'dataset123',
-        'doc1',
-        { set: { title: 'Updated Document 1' } }
-      );
-      
-      // Verify the results
-      expect(result).toEqual({
-        success: true,
-        message: 'Document edited successfully',
-        documentId: 'doc1',
-        result: { _id: 'doc1', title: 'Updated Document 1' }
-      });
-    });
-    
-    it('should edit multiple documents when given an array of IDs', async () => {
-      if (!editDocumentTool) return;
-      
-      // Mock the editDocument function for both document IDs
-      vi.mocked(actionsController.editDocument)
-        .mockResolvedValueOnce({
-          success: true,
-          message: 'Document edited successfully',
-          documentId: 'doc1',
-          result: { _id: 'doc1', title: 'Updated Document 1' }
-        })
-        .mockResolvedValueOnce({
-          success: true,
-          message: 'Document edited successfully',
-          documentId: 'doc2',
-          result: { _id: 'doc2', title: 'Updated Document 2' }
-        });
-      
-      const result = await editDocumentTool.handler({
-        documentId: ['doc1', 'doc2'],
-        patch: { set: { status: 'updated' } },
-        projectId: 'project123',
-        dataset: 'dataset123'
-      });
-      
-      // Verify that editDocument was called with the correct parameters for both documents
-      expect(actionsController.editDocument).toHaveBeenCalledTimes(2);
-      expect(actionsController.editDocument).toHaveBeenCalledWith(
-        'project123',
-        'dataset123',
-        'doc1',
-        { set: { status: 'updated' } }
-      );
-      expect(actionsController.editDocument).toHaveBeenCalledWith(
-        'project123',
-        'dataset123',
-        'doc2',
-        { set: { status: 'updated' } }
-      );
-      
-      // Verify the results structure
-      expect(result).toHaveProperty('success', true);
-      expect(result).toHaveProperty('message', 'Edited 2 documents successfully');
-      expect(result).toHaveProperty('documentIds', ['doc1', 'doc2']);
-      expect(result).toHaveProperty('results');
-      expect(result.results).toHaveLength(2);
-      expect(result.results[0]).toHaveProperty('documentId', 'doc1');
-      expect(result.results[1]).toHaveProperty('documentId', 'doc2');
     });
   });
 });

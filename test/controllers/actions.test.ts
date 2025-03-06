@@ -100,8 +100,7 @@ describe('Actions Controller', () => {
       expect(sanityApi.performActions).toHaveBeenCalledWith('project123', 'dataset123', [
         expect.objectContaining({
           actionType: 'sanity.action.document.unpublish',
-          draftId: 'drafts.doc123',
-          publishedId: 'doc123'
+          documentId: 'doc123'
         })
       ]);
       
@@ -117,8 +116,7 @@ describe('Actions Controller', () => {
       expect(sanityApi.performActions).toHaveBeenCalledWith('project123', 'dataset123', [
         expect.objectContaining({
           actionType: 'sanity.action.document.unpublish',
-          draftId: 'drafts.doc123',
-          publishedId: 'doc123'
+          documentId: 'doc123'
         })
       ]);
       

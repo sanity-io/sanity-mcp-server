@@ -17,4 +17,3 @@
 - ✅ Add integration test for array parameter deserialization
 - ✅ Check that we don't have errors serializing arrays over the protocol
 - ✅ Fix TypeScript errors in test files
-

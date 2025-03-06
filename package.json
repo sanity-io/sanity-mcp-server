@@ -45,6 +45,7 @@
     "@types/node": "^20.11.20",
     "@types/uuid": "^10.0.0",
     "@types/ws": "^8.5.14",
+    "axios": "^1.8.1",
     "husky": "^9.1.7",
     "typescript": "^5.3.3",
     "uuid": "^11.1.0",
