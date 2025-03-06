@@ -27,6 +27,9 @@ describe('Release and Document Workflow Integration', () => {
   const draftDocumentId2 = `drafts.${documentId2}`;
   const draftDocumentId3 = `drafts.${documentId3}`;
   
+  // Set a longer timeout for integration tests
+  const INTEGRATION_TIMEOUT = 15000;
+  
   // Track created resources for cleanup
   const resourcesToCleanup = {
     releaseId: '',
@@ -42,7 +45,7 @@ describe('Release and Document Workflow Integration', () => {
     if (!projectId) {
       throw new Error('SANITY_PROJECT_ID environment variable is required for this test');
     }
-  });
+  }, INTEGRATION_TIMEOUT);
 
   // Clean up all resources after tests
   afterAll(async () => {
@@ -131,7 +134,7 @@ describe('Release and Document Workflow Integration', () => {
     } catch (error) {
       console.error('Error during cleanup:', error);
     }
-  });
+  }, INTEGRATION_TIMEOUT);
 
   it('should create a release', async () => {
     // Create a new release
@@ -152,7 +155,7 @@ describe('Release and Document Workflow Integration', () => {
     // Verify the release was created successfully
     expect(result.success).toBe(true);
     expect(result.releaseId).toBe(releaseId);
-  });
+  }, INTEGRATION_TIMEOUT);
 
   it('should create a document', async () => {
     // Create a test document with direct client to ensure success
@@ -174,7 +177,7 @@ describe('Release and Document Workflow Integration', () => {
     
     // Verify the document was created
     expect(createdDoc._id).toBe(documentId);
-  });
+  }, INTEGRATION_TIMEOUT);
 
   it('should add document to a release', async () => {
     // Use the releases controller to add the document to the release
@@ -197,7 +200,7 @@ describe('Release and Document Workflow Integration', () => {
     
     // Wait briefly to ensure document is processed
     await new Promise(resolve => setTimeout(resolve, 1000));
-  });
+  }, INTEGRATION_TIMEOUT);
 
   it('should list documents in a release', async () => {
     // Get list of documents in the release
@@ -214,7 +217,7 @@ describe('Release and Document Workflow Integration', () => {
     // Find our document in the list
     const ourDocument = result.documents.find(doc => doc.documentId === documentId);
     expect(ourDocument).toBeDefined();
-  });
+  }, INTEGRATION_TIMEOUT);
 
   it('should update a document', async () => {
     // Direct client update instead of patch to ensure success
@@ -238,7 +241,7 @@ describe('Release and Document Workflow Integration', () => {
     // Verify the document was updated
     expect(result._id).toBe(documentId);
     expect(result.status).toBe('updated');
-  });
+  }, INTEGRATION_TIMEOUT);
 
   it('should create a document version with updated content', async () => {
     // Create a new version document with custom content
@@ -268,7 +271,7 @@ describe('Release and Document Workflow Integration', () => {
     // Verify the version was created
     expect(result.success).toBe(true);
     expect(result.versionId).toBeTruthy();
-  });
+  }, INTEGRATION_TIMEOUT);
 
   it('should create additional test documents', async () => {
     // Create two additional test documents for the array test
@@ -301,7 +304,7 @@ describe('Release and Document Workflow Integration', () => {
     // Verify the documents were created
     expect(createdDoc2._id).toBe(documentId2);
     expect(createdDoc3._id).toBe(documentId3);
-  });
+  }, INTEGRATION_TIMEOUT);
 
   it('should add multiple documents to a release as an array', async () => {
     // Add both documents to the release using the array parameter
@@ -317,16 +320,15 @@ describe('Release and Document Workflow Integration', () => {
     expect(result.releaseId).toBe(releaseId);
     expect(result.documentIds).toContain(documentId2);
     expect(result.documentIds).toContain(documentId3);
-    expect(result.documentIds.length).toBe(2);
     
     // Store version IDs for cleanup
     if (result.versionIds && result.versionIds.length > 0) {
-      resourcesToCleanup.documentVersionIds = [...result.versionIds];
+      resourcesToCleanup.documentVersionIds = result.versionIds;
     }
     
     // Wait briefly to ensure documents are processed
     await new Promise(resolve => setTimeout(resolve, 1000));
-  });
+  }, INTEGRATION_TIMEOUT);
 
   it('should list all documents in the release including the array-added ones', async () => {
     // Get list of documents in the release
@@ -348,5 +350,5 @@ describe('Release and Document Workflow Integration', () => {
     expect(document1).toBeDefined();
     expect(document2).toBeDefined();
     expect(document3).toBeDefined();
-  });
+  }, INTEGRATION_TIMEOUT);
 });

@@ -165,15 +165,19 @@ export function getToolDefinitions(): ToolDefinition[] {
     },
     
     {
-      name: 'getDocuments',
-      description: 'Gets multiple documents by their IDs',
+      name: 'getDocument',
+      description: 'Gets one or more documents by ID',
       parameters: z.object({
-        documentIds: z.array(z.string()).describe('Array of document IDs to retrieve'),
+        documentId: z.union([z.string(), z.array(z.string())]).describe('ID or array of IDs of the document(s) to retrieve'),
         projectId: z.string().describe('The Sanity project ID'),
         dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
-      handler: async ({ documentIds, projectId, dataset }: { documentIds: string[], projectId: string, dataset: string }) => {
-        return await groqController.searchContent(projectId, dataset, '*[_id in $documentIds]', { documentIds });
+      handler: async ({ documentId, projectId, dataset }: { documentId: string | string[], projectId: string, dataset: string }) => {
+        if (Array.isArray(documentId)) {
+          return await groqController.searchContent(projectId, dataset, '*[_id in $documentIds]', { documentIds: documentId });
+        } else {
+          return await groqController.searchContent(projectId, dataset, '*[_id == $documentId][0]', { documentId });
+        }
       }
     },
     
@@ -190,84 +194,26 @@ export function getToolDefinitions(): ToolDefinition[] {
       }
     },
     
-    // Document tools
-    {
-      name: 'getDocument',
-      description: 'Gets a specific document by ID or multiple documents by their IDs',
-      parameters: z.object({
-        documentId: z.union([z.string(), z.array(z.string())]).describe('The ID or IDs of the document(s) to retrieve'),
-        projectId: z.string().describe('The Sanity project ID'),
-        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
-      }),
-      handler: async ({ documentId, projectId, dataset }: { documentId: string | string[], projectId: string, dataset: string }) => {
-        if (Array.isArray(documentId)) {
-          // If array of IDs is provided, use getDocuments tool functionality
-          return await groqController.searchContent(projectId, dataset, '*[_id in $documentIds]', { documentIds: documentId });
-        } else {
-          // For single ID, use original behavior
-          return await groqController.searchContent(projectId, dataset, '*[_id == $documentId][0]', { documentId });
-        }
-      }
-    },
-    
     // Document operations
     {
       name: 'createDocument',
-      description: 'Creates a new document',
+      description: 'Creates one or more new documents',
       parameters: z.object({
-        document: z.record(z.any()).describe('The document to create'),
+        document: z.union([
+          z.record(z.any()),
+          z.array(z.record(z.any()))
+        ]).describe('Document or array of documents to create'),
         projectId: z.string().describe('The Sanity project ID'),
         dataset: z.string().default('production').describe('The dataset name (defaults to production)'),
-        ifExists: z.enum(['fail', 'ignore']).optional().describe('How to handle existing documents with same ID')
+        ifExists: z.enum(['fail', 'ignore']).optional().describe('What to do if a document with the same ID already exists')
       }),
       handler: async ({ document, projectId, dataset, ifExists }: { 
-        document: Record<string, any>, 
+        document: Record<string, any> | Record<string, any>[], 
         projectId: string, 
-        dataset: string, 
-        ifExists?: 'fail' | 'ignore' 
+        dataset: string,
+        ifExists?: 'fail' | 'ignore'
       }) => {
         return await actionsController.createDocument(projectId, dataset, document, { ifExists });
-      }
-    },
-    
-    {
-      name: 'editDocument',
-      description: 'Applies a patch to one or more existing documents',
-      parameters: z.object({
-        documentId: z.union([z.string(), z.array(z.string())]).describe('ID or array of IDs of the document(s) to edit'),
-        patch: z.object({
-          set: z.record(z.any()).optional().describe('Fields to set'),
-          setIfMissing: z.record(z.any()).optional().describe('Fields to set only if missing'),
-          unset: z.array(z.string()).optional().describe('Fields to unset'),
-          inc: z.record(z.number()).optional().describe('Fields to increment'),
-          dec: z.record(z.number()).optional().describe('Fields to decrement'),
-          insert: z.record(z.any()).optional().describe('Fields to insert at position')
-        }).describe('The patch operations to apply'),
-        projectId: z.string().describe('The Sanity project ID'),
-        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
-      }),
-      handler: async ({ documentId, patch, projectId, dataset }: { 
-        documentId: string | string[], 
-        patch: Record<string, any>, 
-        projectId: string, 
-        dataset: string
-      }) => {
-        if (Array.isArray(documentId)) {
-          // Handle array of document IDs
-          const promises = documentId.map(id => 
-            actionsController.editDocument(projectId, dataset, id, patch)
-          );
-          const results = await Promise.all(promises);
-          return {
-            success: true,
-            message: `Edited ${results.length} documents successfully`,
-            documentIds: documentId,
-            results
-          };
-        } else {
-          // Handle single document ID
-          return await actionsController.editDocument(projectId, dataset, documentId, patch);
-        }
       }
     },
     
@@ -275,27 +221,12 @@ export function getToolDefinitions(): ToolDefinition[] {
       name: 'publishDocument',
       description: 'Publishes one or more draft documents',
       parameters: z.object({
-        documentId: z.union([z.string(), z.array(z.string())]).describe('The ID or array of IDs of the draft document(s) to publish'),
+        documentId: z.union([z.string(), z.array(z.string())]).describe('ID or array of IDs of the draft document(s) to publish'),
         projectId: z.string().describe('The Sanity project ID'),
         dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
       handler: async ({ documentId, projectId, dataset }: { documentId: string | string[], projectId: string, dataset: string }) => {
-        if (Array.isArray(documentId)) {
-          // Handle array of document IDs
-          const promises = documentId.map(id => 
-            actionsController.publishDocument(projectId, dataset, id)
-          );
-          const results = await Promise.all(promises);
-          return {
-            success: true,
-            message: `Published ${results.length} documents successfully`,
-            documentIds: documentId,
-            results
-          };
-        } else {
-          // Handle single document ID
-          return await actionsController.publishDocument(projectId, dataset, documentId);
-        }
+        return await actionsController.publishDocument(projectId, dataset, documentId);
       }
     },
     
@@ -303,27 +234,26 @@ export function getToolDefinitions(): ToolDefinition[] {
       name: 'unpublishDocument',
       description: 'Unpublishes one or more published documents',
       parameters: z.object({
-        documentId: z.union([z.string(), z.array(z.string())]).describe('The ID or array of IDs of the published document(s) to unpublish'),
+        documentId: z.union([z.string(), z.array(z.string())]).describe('ID or array of IDs of the published document(s) to unpublish'),
         projectId: z.string().describe('The Sanity project ID'),
         dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
       handler: async ({ documentId, projectId, dataset }: { documentId: string | string[], projectId: string, dataset: string }) => {
-        if (Array.isArray(documentId)) {
-          // Handle array of document IDs
-          const promises = documentId.map(id => 
-            actionsController.unpublishDocument(projectId, dataset, id)
-          );
-          const results = await Promise.all(promises);
-          return {
-            success: true,
-            message: `Unpublished ${results.length} documents successfully`,
-            documentIds: documentId,
-            results
-          };
-        } else {
-          // Handle single document ID
-          return await actionsController.unpublishDocument(projectId, dataset, documentId);
-        }
+        return await actionsController.unpublishDocument(projectId, dataset, documentId);
+      }
+    },
+    
+    {
+      name: 'unpublishDocumentWithRelease',
+      description: 'Marks one or more documents for unpublishing when a release is published',
+      parameters: z.object({
+        releaseId: z.string().describe('ID of the release to remove the documents from'),
+        documentId: z.union([z.string(), z.array(z.string())]).describe('ID or array of IDs of the published document(s) to unpublish'),
+        projectId: z.string().describe('The Sanity project ID'),
+        dataset: z.string().default('production').describe('The dataset name (defaults to production)')
+      }),
+      handler: async ({ releaseId, documentId, projectId, dataset }: { releaseId: string, documentId: string | string[], projectId: string, dataset: string }) => {
+        return await actionsController.unpublishDocumentWithRelease(projectId, dataset, releaseId, documentId);
       }
     },
     
@@ -344,35 +274,23 @@ export function getToolDefinitions(): ToolDefinition[] {
         includeDrafts?: string[],
         purge?: boolean
       }) => {
-        if (Array.isArray(documentId)) {
-          // Handle array of document IDs
-          const promises = documentId.map(id => 
-            actionsController.deleteDocument(projectId, dataset, id, { includeDrafts, purge })
-          );
-          const results = await Promise.all(promises);
-          return {
-            success: true,
-            message: `Deleted ${results.length} documents successfully`,
-            documentIds: documentId,
-            results
-          };
-        } else {
-          // Handle single document ID
-          return await actionsController.deleteDocument(projectId, dataset, documentId, { includeDrafts, purge });
-        }
+        return await actionsController.deleteDocument(projectId, dataset, documentId, { includeDrafts, purge });
       }
     },
     
     {
       name: 'replaceDraftDocument',
-      description: 'Replaces an existing draft document',
+      description: 'Replaces one or more existing draft documents',
       parameters: z.object({
-        document: z.record(z.any()).describe('The replacement document'),
+        document: z.union([
+          z.record(z.any()),
+          z.array(z.record(z.any()))
+        ]).describe('The replacement document or array of documents'),
         projectId: z.string().describe('The Sanity project ID'),
         dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
       handler: async ({ document, projectId, dataset }: { 
-        document: Record<string, any>, 
+        document: Record<string, any> | Record<string, any>[], 
         projectId: string, 
         dataset: string
       }) => {
@@ -382,92 +300,41 @@ export function getToolDefinitions(): ToolDefinition[] {
     
     {
       name: 'createDocumentVersion',
-      description: 'Creates a version of one or more documents in a specific release',
+      description: 'Creates a version of one or more documents in a content release',
       parameters: z.object({
-        releaseId: z.string().describe('ID of the release to add the document version to'),
-        documentId: z.union([z.string(), z.array(z.string())]).describe('ID or array of IDs of the document(s) to create a version of'),
+        releaseId: z.string().describe('ID of the release'),
+        documentId: z.union([z.string(), z.array(z.string())]).describe('ID or array of IDs of the document(s) to create versions for'),
         content: z.record(z.any()).optional().describe('Optional content to use for the version'),
         projectId: z.string().describe('The Sanity project ID'),
         dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
       handler: async ({ releaseId, documentId, content, projectId, dataset }: { 
         releaseId: string, 
-        documentId: string | string[],
+        documentId: string | string[], 
         content?: Record<string, any>,
         projectId: string, 
-        dataset: string
+        dataset: string 
       }) => {
-        if (Array.isArray(documentId)) {
-          // Handle array of document IDs
-          const promises = documentId.map(id => 
-            actionsController.createDocumentVersion(projectId, dataset, releaseId, id, content)
-          );
-          const results = await Promise.all(promises);
-          return {
-            success: true,
-            message: `Created versions for ${results.length} documents in release ${releaseId}`,
-            releaseId,
-            documentIds: documentId,
-            results
-          };
-        } else {
-          // Handle single document ID
-          return await actionsController.createDocumentVersion(projectId, dataset, releaseId, documentId, content);
-        }
+        return await actionsController.createDocumentVersion(projectId, dataset, releaseId, documentId, content);
       }
     },
     
     {
       name: 'discardDocumentVersion',
-      description: 'Discards a specific version of a document',
+      description: 'Discards one or more document versions from a release',
       parameters: z.object({
-        versionId: z.string().describe('ID of the version to discard'),
-        projectId: z.string().describe('The Sanity project ID'),
-        dataset: z.string().default('production').describe('The dataset name (defaults to production)'),
-        purge: z.boolean().optional().describe('Permanently remove from history')
-      }),
-      handler: async ({ versionId, projectId, dataset, purge }: { 
-        versionId: string, 
-        projectId: string, 
-        dataset: string,
-        purge?: boolean
-      }) => {
-        return await actionsController.discardDocumentVersion(projectId, dataset, versionId, { purge });
-      }
-    },
-    
-    {
-      name: 'unpublishDocumentWithRelease',
-      description: 'Marks one or more documents for unpublishing when a release is published',
-      parameters: z.object({
-        releaseId: z.string().describe('ID of the release'),
-        documentId: z.union([z.string(), z.array(z.string())]).describe('ID or array of IDs of the document(s) to unpublish'),
+        versionId: z.union([z.string(), z.array(z.string())]).describe('ID or array of IDs of the version(s) to discard'),
+        purge: z.boolean().optional().describe('Permanently remove from history'),
         projectId: z.string().describe('The Sanity project ID'),
         dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
-      handler: async ({ releaseId, documentId, projectId, dataset }: { 
-        releaseId: string, 
-        documentId: string | string[], 
+      handler: async ({ versionId, purge, projectId, dataset }: { 
+        versionId: string | string[], 
+        purge?: boolean,
         projectId: string, 
         dataset: string 
       }) => {
-        if (Array.isArray(documentId)) {
-          // Handle array of document IDs
-          const promises = documentId.map(id => 
-            actionsController.unpublishDocumentWithRelease(projectId, dataset, releaseId, id)
-          );
-          const results = await Promise.all(promises);
-          return {
-            success: true,
-            message: `Marked ${results.length} documents for unpublishing with release ${releaseId}`,
-            releaseId,
-            documentIds: documentId,
-            results
-          };
-        } else {
-          // Handle single document ID
-          return await actionsController.unpublishDocumentWithRelease(projectId, dataset, releaseId, documentId);
-        }
+        return await actionsController.discardDocumentVersion(projectId, dataset, versionId, { purge });
       }
     },
     
@@ -533,39 +400,39 @@ export function getToolDefinitions(): ToolDefinition[] {
     
     {
       name: 'addDocumentToRelease',
-      description: 'Adds a document or multiple documents to a release',
+      description: 'Adds one or more documents to a release',
       parameters: z.object({
         releaseId: z.string().describe('ID of the release'),
-        documentIds: z.union([z.string(), z.array(z.string())]).describe('ID or array of IDs of the document(s) to add to the release'),
+        documentId: z.union([z.string(), z.array(z.string())]).describe('ID or array of IDs of the document(s) to add to the release'),
         projectId: z.string().describe('The Sanity project ID'),
         dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
-      handler: async ({ releaseId, documentIds, projectId, dataset }: { 
+      handler: async ({ releaseId, documentId, projectId, dataset }: { 
         releaseId: string, 
-        documentIds: string | string[], 
+        documentId: string | string[], 
         projectId: string, 
         dataset: string 
       }) => {
-        return await releasesController.addDocumentToRelease(projectId, dataset, releaseId, documentIds);
+        return await releasesController.addDocumentToRelease(projectId, dataset, releaseId, documentId);
       }
     },
     
     {
       name: 'removeDocumentFromRelease',
-      description: 'Removes a document or multiple documents from a release',
+      description: 'Removes one or more documents from a release',
       parameters: z.object({
         releaseId: z.string().describe('ID of the release'),
-        documentIds: z.union([z.string(), z.array(z.string())]).describe('ID or array of IDs of the document(s) to remove from the release'),
+        documentId: z.union([z.string(), z.array(z.string())]).describe('ID or array of IDs of the document(s) to remove from the release'),
         projectId: z.string().describe('The Sanity project ID'),
         dataset: z.string().default('production').describe('The dataset name (defaults to production)')
       }),
-      handler: async ({ releaseId, documentIds, projectId, dataset }: { 
+      handler: async ({ releaseId, documentId, projectId, dataset }: { 
         releaseId: string, 
-        documentIds: string | string[], 
+        documentId: string | string[], 
         projectId: string, 
         dataset: string 
       }) => {
-        return await releasesController.removeDocumentFromRelease(projectId, dataset, releaseId, documentIds);
+        return await releasesController.removeDocumentFromRelease(projectId, dataset, releaseId, documentId);
       }
     },
     
