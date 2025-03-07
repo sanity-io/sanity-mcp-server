@@ -25,6 +25,60 @@ function validateApiVersion(): void {
 }
 
 /**
+ * Validates release creation options and parameters
+ */
+function validateReleaseParameters(
+  releaseId: string,
+  options?: {
+    releaseType?: 'asap' | 'scheduled';
+    intendedPublishAt?: string;
+  }
+): void {
+  // Validate that scheduled releases have intendedPublishAt
+  if (options?.releaseType === 'scheduled' && !options?.intendedPublishAt) {
+    throw new Error('publishAt is required for scheduled releases');
+  }
+}
+
+/**
+ * Creates release action metadata from parameters
+ */
+function createReleaseMetadata(
+  releaseId: string,
+  title?: string,
+  options?: {
+    description?: string;
+    releaseType?: 'asap' | 'scheduled';
+    intendedPublishAt?: string;
+  }
+): Record<string, any> {
+  return {
+    title: title || `Release: ${releaseId}`,
+    ...(options?.description && { description: options.description }),
+    ...(options?.releaseType && { releaseType: options.releaseType }),
+    ...(options?.intendedPublishAt && { intendedPublishAt: options.intendedPublishAt })
+  };
+}
+
+/**
+ * Handles common release creation errors with descriptive messages
+ */
+function handleReleaseCreationError(error: any, releaseId: string): never {
+  console.error(`Error creating release ${releaseId}:`, error);
+  
+  // Check for common issues
+  if (error.message?.includes('API version')) {
+    throw new Error(`Failed to create release: Make sure you're using API version 2024-05-23 or later.`);
+  } else if (error.statusCode === 404 || error.message?.includes('not found')) {
+    throw new Error(`Failed to create release: The Content Releases feature might not be enabled for this project or the API token lacks permissions.`);
+  } else if (error.statusCode === 401 || error.statusCode === 403 || error.message?.includes('Not authorized')) {
+    throw new Error(`Failed to create release: Authentication failed. Check that your Sanity token has permission to create releases.`);
+  } else {
+    throw new Error(`Failed to create release: ${error.message}`);
+  }
+}
+
+/**
  * Creates a new content release
  * 
  * @param projectId - Sanity project ID
@@ -54,21 +108,14 @@ export async function createRelease(
     // Check API version first
     validateApiVersion();
     
-    // Validate that scheduled releases have intendedPublishAt
-    if (options?.releaseType === 'scheduled' && !options?.intendedPublishAt) {
-      throw new Error('publishAt is required for scheduled releases');
-    }
+    // Validate release parameters
+    validateReleaseParameters(releaseId, options);
     
     // Create the release action
     const action = {
       actionType: 'sanity.action.release.create',
       releaseId,
-      metadata: {
-        title: title || `Release: ${releaseId}`,
-        ...(options?.description && { description: options.description }),
-        ...(options?.releaseType && { releaseType: options.releaseType }),
-        ...(options?.intendedPublishAt && { intendedPublishAt: options.intendedPublishAt })
-      }
+      metadata: createReleaseMetadata(releaseId, title, options)
     };
     
     // Call the Actions API
@@ -81,18 +128,7 @@ export async function createRelease(
       result
     };
   } catch (error: any) {
-    console.error(`Error creating release ${releaseId}:`, error);
-    
-    // Check for common issues
-    if (error.message?.includes('API version')) {
-      throw new Error(`Failed to create release: Make sure you're using API version 2024-05-23 or later.`);
-    } else if (error.statusCode === 404 || error.message?.includes('not found')) {
-      throw new Error(`Failed to create release: The Content Releases feature might not be enabled for this project or the API token lacks permissions.`);
-    } else if (error.statusCode === 401 || error.statusCode === 403 || error.message?.includes('Not authorized')) {
-      throw new Error(`Failed to create release: Authentication failed. Check that your Sanity token has permission to create releases.`);
-    } else {
-      throw new Error(`Failed to create release: ${error.message}`);
-    }
+    handleReleaseCreationError(error, releaseId);
   }
 }
 

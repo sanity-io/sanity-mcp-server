@@ -1,28 +1,20 @@
 Most complex functions:
-1. controllers/actions.ts:169:8 - Async function 'createDocument' has a complexity of 12. Maximum allowed is 10.
-2. controllers/actions.ts:169:23 - Refactor this function to reduce its Cognitive Complexity from 17 to the 10 allowed.
-3. controllers/actions.ts:326:8 - Async function 'deleteDocument' has a complexity of 11. Maximum allowed is 10.
-4. controllers/actions.ts:326:23 - Refactor this function to reduce its Cognitive Complexity from 14 to the 10 allowed.
-5. controllers/embeddings.ts:29:8 - Async function 'listEmbeddingsIndices' has a complexity of 12. Maximum allowed is 10.
-6. controllers/embeddings.ts:85:8 - Async function 'semanticSearch' has a complexity of 18. Maximum allowed is 10.
-7. controllers/embeddings.ts:85:23 - Refactor this function to reduce its Cognitive Complexity from 16 to the 10 allowed.
-8. controllers/groq.ts:160:10 - Refactor this function to reduce its Cognitive Complexity from 11 to the 10 allowed.
-9. controllers/releases.ts:37:8 - Async function 'createRelease' has a complexity of 14. Maximum allowed is 10.
-10. controllers/releases.ts:37:23 - Refactor this function to reduce its Cognitive Complexity from 11 to the 10 allowed.
-11. controllers/schema.ts:100:3 - Function 'checkForReferences' has a complexity of 11. Maximum allowed is 10.
-12. integration/release-document-workflow.test.ts:51:12 - Async arrow function has a complexity of 13. Maximum allowed is 10.
-13. integration/release-document-workflow.test.ts:51:21 - Refactor this function to reduce its Cognitive Complexity from 24 to the 10 allowed.
-14. utils/documentHelpers.ts:31:8 - Function 'applyPatchOperations' has a complexity of 11. Maximum allowed is 10.
-15. utils/documentHelpers.ts:114:17 - Refactor this function to reduce its Cognitive Complexity from 15 to the 10 allowed.
-16. utils/portableText.ts:41:21 - Arrow function has a complexity of 15. Maximum allowed is 10.
-17. utils/portableText.ts:41:27 - Refactor this function to reduce its Cognitive Complexity from 13 to the 10 allowed.
+1. controllers/embeddings.ts:29:8 - Async function 'listEmbeddingsIndices' has a complexity of 12. Maximum allowed is 10.
+2. controllers/embeddings.ts:85:8 - Async function 'semanticSearch' has a complexity of 18. Maximum allowed is 10.
+3. controllers/embeddings.ts:85:23 - Refactor this function to reduce its Cognitive Complexity from 16 to the 10 allowed.
+4. controllers/groq.ts:160:10 - Refactor this function to reduce its Cognitive Complexity from 11 to the 10 allowed.
+5. controllers/schema.ts:100:3 - Function 'checkForReferences' has a complexity of 11. Maximum allowed is 10.
+6. integration/release-document-workflow.test.ts:51:12 - Async arrow function has a complexity of 13. Maximum allowed is 10.
+7. integration/release-document-workflow.test.ts:51:21 - Refactor this function to reduce its Cognitive Complexity from 24 to the 10 allowed.
+8. utils/documentHelpers.ts:31:8 - Function 'applyPatchOperations' has a complexity of 11. Maximum allowed is 10.
+9. utils/documentHelpers.ts:114:17 - Refactor this function to reduce its Cognitive Complexity from 15 to the 10 allowed.
+10. utils/portableText.ts:41:21 - Arrow function has a complexity of 15. Maximum allowed is 10.
+11. utils/portableText.ts:41:27 - Refactor this function to reduce its Cognitive Complexity from 13 to the 10 allowed.
 
 Files with most complexity issues:
-1. controllers/actions.ts - 4 issues
-2. controllers/embeddings.ts - 3 issues
-3. controllers/releases.ts - 2 issues
-4. integration/release-document-workflow.test.ts - 2 issues
-5. utils/documentHelpers.ts - 2 issues
-6. utils/portableText.ts - 2 issues
-7. controllers/groq.ts - 1 issues
-8. controllers/schema.ts - 1 issues
+1. controllers/embeddings.ts - 3 issues
+2. integration/release-document-workflow.test.ts - 2 issues
+3. utils/documentHelpers.ts - 2 issues
+4. utils/portableText.ts - 2 issues
+5. controllers/groq.ts - 1 issues
+6. controllers/schema.ts - 1 issues

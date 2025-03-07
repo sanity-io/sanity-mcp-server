@@ -10,13 +10,21 @@
 1. ✅ Extract smaller functions from editDocument in controllers/actions.ts
 2. ✅ Extract smaller functions from createDocumentVersion in controllers/actions.ts
 3. ✅ Extract smaller functions from modifyDocuments in controllers/mutate.ts
+4. ✅ Reduce complexity in controllers/releases.ts, focusing on addDocumentToRelease and removeDocumentFromRelease
+5. ✅ Reduce complexity in controllers/actions.ts, focusing on createDocument and deleteDocument
+6. ✅ Reduce complexity in controllers/releases.ts for createRelease function
 
-4. 🔄 Reduce complexity in controllers/releases.ts, especially in addDocumentToRelease and removeDocumentFromRelease
-5. 🔄 Reduce complexity in controllers/actions.ts, focusing on createDocument and deleteDocument
-6. 🔄 Add unit tests for utility functions in documentHelpers.ts
+7. 🔄 Add unit tests for utility functions in documentHelpers.ts
+8. 🔄 Replace `any` types with more specific types across core controller files
+9. 🔄 Reduce complexity in embeddings.ts, particularly in semanticSearch function
 
-7. 🔄 Replace `any` types with more specific types across core controller files
-8. Add constants for commonly duplicated string literals (especially in test files)
+10. Add constants for commonly duplicated string literals (especially in test files)
+11. Refactor remaining functions with high cognitive complexity, especially in:
+    - controllers/embeddings.ts (listEmbeddingsIndices, semanticSearch)
+    - controllers/groq.ts
+    - controllers/schema.ts (checkForReferences)
+    - utils/documentHelpers.ts (applyPatchOperations)
+    - utils/portableText.ts
 
 ## Tooling & Process Improvements
 

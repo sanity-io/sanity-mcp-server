@@ -158,6 +158,75 @@ export async function unpublishDocument(
 }
 
 /**
+ * Prepares a single document for creation, ensuring proper formatting and validation
+ */
+function prepareDocumentForCreation(document: Record<string, any>): Record<string, any> {
+  // Ensure document has _type
+  if (!document._type) {
+    throw new Error('Document must have a _type field');
+  }
+  
+  // If document has _id, make sure it's properly formatted
+  if (document._id && !document._id.startsWith('drafts.')) {
+    return { ...document, _id: `drafts.${document._id}` };
+  }
+  
+  return document;
+}
+
+/**
+ * Creates multiple documents in a single transaction
+ */
+async function createMultipleDocuments(
+  client: any,
+  documents: Record<string, any>[],
+  options?: { ifExists?: 'fail' | 'ignore' }
+): Promise<any> {
+  // Validate and prepare each document
+  const preparedDocs = documents.map(prepareDocumentForCreation);
+  
+  // Create documents based on options
+  const transaction = client.transaction();
+  
+  for (const doc of preparedDocs) {
+    if (options?.ifExists === 'ignore' && doc._id) {
+      transaction.createIfNotExists(doc as IdentifiedSanityDocumentStub<Record<string, any>>);
+    } else {
+      transaction.create(doc as SanityDocumentStub<{ _type: string }>);
+    }
+  }
+  
+  // Commit all document creations at once
+  const results = await transaction.commit();
+  
+  return {
+    results,
+    count: preparedDocs.length,
+    ids: results.results.map((res: any) => res.id)
+  };
+}
+
+/**
+ * Creates a single document
+ */
+async function createSingleDocument(
+  client: any,
+  document: Record<string, any>,
+  options?: { ifExists?: 'fail' | 'ignore' }
+): Promise<any> {
+  const preparedDoc = prepareDocumentForCreation(document);
+  
+  // Handle ifExists option
+  if (options?.ifExists === 'ignore' && preparedDoc._id) {
+    // Use createIfNotExists if we want to ignore existing docs
+    return await client.createIfNotExists(preparedDoc as IdentifiedSanityDocumentStub<Record<string, any>>);
+  } else {
+    // Default behavior - just create
+    return await client.create(preparedDoc as SanityDocumentStub<{ _type: string }>);
+  }
+}
+
+/**
  * Creates one or more new documents in Sanity
  * 
  * @param projectId - Sanity project ID
@@ -189,66 +258,18 @@ export async function createDocument(
         throw new Error('Empty array of documents provided');
       }
       
-      // Validate and prepare each document
-      const preparedDocs = documents.map(doc => {
-        // Ensure document has _type
-        if (!doc._type) {
-          throw new Error('Document must have a _type field');
-        }
-        
-        // If document has _id, make sure it's properly formatted
-        if (doc._id && !doc._id.startsWith('drafts.')) {
-          return { ...doc, _id: `drafts.${doc._id}` };
-        }
-        
-        return doc;
-      });
-      
-      // Create documents based on options
-      const transaction = client.transaction();
-      
-      for (const doc of preparedDocs) {
-        if (options?.ifExists === 'ignore' && doc._id) {
-          transaction.createIfNotExists(doc as IdentifiedSanityDocumentStub<Record<string, any>>);
-        } else {
-          transaction.create(doc as SanityDocumentStub<{ _type: string }>);
-        }
-      }
-      
-      // Commit all document creations at once
-      const results = await transaction.commit();
+      const result = await createMultipleDocuments(client, documents, options);
       
       return {
         success: true,
-        message: `${preparedDocs.length} documents created successfully`,
-        documentIds: results.results.map((res: any) => res.id),
-        result: results
+        message: `${result.count} documents created successfully`,
+        documentIds: result.ids,
+        result
       };
     }
     
     // Handle single document
-    const document = documents;
-    
-    // Ensure document has _type
-    if (!document._type) {
-      throw new Error('Document must have a _type field');
-    }
-    
-    // If document has _id, make sure it's properly formatted
-    if (document._id && !document._id.startsWith('drafts.')) {
-      document._id = `drafts.${document._id}`;
-    }
-    
-    let result;
-    
-    // Handle ifExists option
-    if (options?.ifExists === 'ignore' && document._id) {
-      // Use createIfNotExists if we want to ignore existing docs
-      result = await client.createIfNotExists(document as IdentifiedSanityDocumentStub<Record<string, any>>);
-    } else {
-      // Default behavior - just create
-      result = await client.create(document as SanityDocumentStub<{ _type: string }>);
-    }
+    const result = await createSingleDocument(client, documents, options);
     
     return {
       success: true,
@@ -347,36 +368,7 @@ export async function deleteDocument(
         throw new Error('Empty array of document IDs provided');
       }
       
-      // Process each document ID
-      const transaction = client.transaction();
-      const processedIds = [];
-      
-      for (const id of documentId) {
-        // Ensure document ID doesn't already have 'drafts.' prefix
-        const baseDocId = id.replace(/^drafts\./, '');
-        const draftId = `drafts.${baseDocId}`;
-        
-        // Delete the published document
-        transaction.delete(baseDocId);
-        
-        // Delete the draft document
-        transaction.delete(draftId);
-        
-        processedIds.push(baseDocId);
-      }
-      
-      // Delete any additional draft IDs specified
-      if (options?.includeDrafts && options.includeDrafts.length > 0) {
-        options.includeDrafts.forEach(id => {
-          transaction.delete(id);
-        });
-      }
-      
-      // Commit the transaction
-      const result = await transaction.commit({
-        // If purge is true, completely remove document from history
-        visibility: options?.purge ? 'async' : 'sync'
-      });
+      const { result, processedIds } = await deleteMultipleDocuments(client, documentId, options);
       
       return {
         success: true,
@@ -387,9 +379,7 @@ export async function deleteDocument(
     }
     
     // Handle single document ID
-    // Ensure document ID doesn't already have 'drafts.' prefix
-    const baseDocId = documentId.replace(/^drafts\./, '');
-    const draftId = `drafts.${baseDocId}`;
+    const { baseDocId, draftId } = prepareDocumentIdForDeletion(documentId);
     
     // Start a transaction
     const transaction = client.transaction();
@@ -423,6 +413,79 @@ export async function deleteDocument(
     console.error(`Error deleting document:`, error);
     throw new Error(`Failed to delete document: ${error.message}`);
   }
+}
+
+/**
+ * Prepares document IDs for deletion by normalizing them and creating base and draft IDs
+ */
+function prepareDocumentIdForDeletion(id: string): { baseDocId: string, draftId: string } {
+  // Ensure document ID doesn't already have 'drafts.' prefix
+  const baseDocId = id.replace(/^drafts\./, '');
+  const draftId = `drafts.${baseDocId}`;
+  
+  return { baseDocId, draftId };
+}
+
+/**
+ * Sets up a transaction for deleting multiple documents
+ */
+function setupDeleteTransaction(
+  transaction: any,
+  documentIds: string[],
+  additionalDrafts?: string[]
+): { transaction: any, processedIds: string[] } {
+  const processedIds = [];
+  
+  // Process each document ID
+  for (const id of documentIds) {
+    const { baseDocId, draftId } = prepareDocumentIdForDeletion(id);
+    
+    // Delete the published document
+    transaction.delete(baseDocId);
+    
+    // Delete the draft document
+    transaction.delete(draftId);
+    
+    processedIds.push(baseDocId);
+  }
+  
+  // Delete any additional draft IDs specified
+  if (additionalDrafts && additionalDrafts.length > 0) {
+    additionalDrafts.forEach(id => {
+      transaction.delete(id);
+    });
+  }
+  
+  return { transaction, processedIds };
+}
+
+/**
+ * Deletes multiple documents in a transaction
+ */
+async function deleteMultipleDocuments(
+  client: any,
+  documentIds: string[],
+  options?: {
+    includeDrafts?: string[];
+    purge?: boolean;
+  }
+): Promise<{ result: any, processedIds: string[] }> {
+  // Process each document ID
+  const transaction = client.transaction();
+  
+  const { transaction: updatedTransaction, processedIds } = setupDeleteTransaction(
+    transaction,
+    documentIds,
+    options?.includeDrafts
+  );
+  
+  // Commit the transaction
+  const result = await updatedTransaction.commit({
+    // If purge is true, completely remove document from history
+    visibility: options?.purge ? 'async' : 'sync'
+  });
+  
+  return { result, processedIds };
 }
 
 /**

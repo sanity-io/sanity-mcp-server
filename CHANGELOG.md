@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Utility module `documentHelpers.ts` for common document operations:
+  - `normalizeDocumentIds`: Standardizes document ID normalization across controllers
+  - `applyPatchOperations`: Applies patch operations to a Sanity patch
+  - `getDocumentContent`: Retrieves document content with draft/published fallback
+  - `createErrorResponse`: Creates standardized error responses
 - ESLint configuration for TypeScript code quality
 - Test-specific ESLint rules to prevent noise in test files
 - Code coverage reporting with Vitest
@@ -18,17 +23,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `complexity`: Check for cyclomatic and cognitive complexity
   - `quality:check`: Run all quality checks
   - `quality:report`: Generate prioritized improvement recommendations
-- New utility module `documentHelpers.ts` containing shared functions for document operations:
-  - `normalizeDraftId`: Ensures document IDs have 'drafts.' prefix
-  - `normalizeBaseDocId`: Strips 'drafts.' prefix from document IDs
-  - `applyPatchOperations`: Applies patch operations to a Sanity patch
-  - `getDocumentContent`: Retrieves document content with draft/published fallback
-  - `createErrorResponse`: Creates standardized error responses
 
 ### Changed
 - Refactored `editDocument` function to reduce cognitive complexity
+  - Extracted `editMultipleDocuments` and `editSingleDocument` helper functions
+  - Added proper error handling with descriptive messages
 - Refactored `createDocumentVersion` function to reduce cognitive complexity
-- Extracted repeated document ID normalization code into utility functions
+  - Extracted `processDocumentForVersion` and `createVersionAction` helper functions
+  - Added validation of input parameters
+- Refactored `modifyDocuments` function in `controllers/mutate.ts` to reduce cognitive complexity
+  - Extracting helper functions for each mutation type
+  - Adding proper TypeScript interfaces for Sanity Transaction and Patch objects
+  - Replacing generic 'any' types with more specific types
+- Refactored `addDocumentToRelease` and `removeDocumentFromRelease` functions in `controllers/releases.ts` to reduce cognitive complexity
+- Refactored `createDocument` and `deleteDocument` functions in `controllers/actions.ts` to reduce cognitive complexity
+  - Extracted helper functions for preparing and processing documents
+  - Improved code organization and readability
+- Refactored `createRelease` function in `controllers/releases.ts` to reduce cognitive complexity
+  - Added validation, metadata creation, and error handling helper functions
 - Improved error handling consistency
 - Refactored `editDocument` in `controllers/actions.ts` to reduce cognitive complexity by extracting helper functions
 - Refactored `createDocumentVersion` in `controllers/actions.ts` to reduce cognitive complexity
@@ -39,21 +51,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - Removed `modifyPortableTextField` functionality and related code from controllers, tools, and tests
-- Removed redundant `PortableTextOperation` interfaces from type definitions
-- `modifyPortableTextField` function and associated functionality
 - `PortableTextOperation` interface
-- Removed `mutateTextField` tool which was no longer being used
+- `mutateTextField` tool which was no longer being used
+- Removed redundant `PortableTextOperation` interfaces from type definitions
+- Removed `modifyPortableTextField` functionality and related code from controllers, tools, and tests
 
 ### Fixed
 - Converted variable declarations from 'let' to 'const' where appropriate
 
-## [0.1.1] - 2025-03-07T01:04:16+01:00 - Tools Structure Refactoring
+## [0.1.1] - 2024-10-25
+### Added
+- `find-complex-functions.js` script to identify functions with high cognitive complexity
+- Configured ESLint with SonarJS plugin to enforce cognitive complexity limits
+- Initial implementation of Content Releases API
+- Support for adding and removing documents from releases
+- Release scheduling and publishing
+- Support for release versions and history
 
 ### Changed
 - Refactored tools architecture to use specialized tool providers for each domain area
 - Created a central tools registry in the `src/tools/index.ts` file
 - Improved modularity and organization of tool definitions
 - Moved tools-related tests to a dedicated `test/tools` directory
+- Refactored tools architecture to use specialized tool providers for each domain area
 
 ### Fixed
 - Fixed tests for the new tools structure
