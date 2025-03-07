@@ -323,15 +323,9 @@ Since Anthropic (creator of Claude) is the maintainer of the MCP standard, the C
 
 This section provides links to the latest quality metrics for this project.
 
-The Sanity MCP Server project maintains quality metrics for each release, including:
-- Test coverage data
-- Code complexity analysis
-- Duplication detection
-- ESLint issues
-
 ### Latest Quality Metrics Summary - March 7, 2025
 
-**Version:** 0.1.3
+**Version:** 0.1.4 (v0.1.4)
 
 Key metrics at a glance:
 - Test Coverage: 58.41%
