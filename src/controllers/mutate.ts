@@ -1,5 +1,7 @@
 import { createSanityClient } from '../utils/sanityClient.js';
 import { SanityClient, SanityError, SanityDocument, InsertOperation, PatchOperations } from '../types/sanity.js';
+import { validateMutations, validateDocument } from '../utils/parameterValidation.js';
+import { applyMutationDefaults } from '../utils/defaultValues.js';
 
 // Define interface for Sanity transaction
 interface SanityTransaction {
@@ -356,46 +358,66 @@ interface MutateDocumentsResult {
 }
 
 /**
- * Creates or updates documents using Sanity mutations
+ * Modifies documents using transactions
  * 
- * @param projectId - Sanity project ID
+ * @param projectId - Project ID
  * @param dataset - Dataset name
- * @param mutations - Array of mutation objects following Sanity mutation format
- * @param returnDocuments - Whether to return modified documents in response
- * @returns Result of the mutations operation
+ * @param mutations - Array of mutations
+ * @param returnDocuments - Whether to return the modified documents
+ * @param options - Additional options for the mutation
+ * @returns Result object containing success status, message, and potentially documents
  */
 async function modifyDocuments(
   projectId: string, 
   dataset: string, 
   mutations: Mutation[],
-  returnDocuments: boolean = false
+  returnDocuments: boolean = false,
+  options?: {
+    visibility?: 'sync' | 'async' | 'deferred';
+  }
 ): Promise<MutateDocumentsResult> {
   try {
     const client = createSanityClient(projectId, dataset);
     
-    // Validate inputs
-    if (!mutations || !Array.isArray(mutations) || mutations.length === 0) {
-      throw new Error('At least one mutation is required');
-    }
+    // Validate mutations using the parameterValidation utility
+    validateMutations(mutations);
+    
+    // Apply default values
+    const mutationOptions = applyMutationDefaults({
+      returnDocuments,
+      ...options
+    });
     
     // Create a transaction
     const transaction = client.transaction();
     
     // Process each mutation
     mutations.forEach(mutation => {
-      // Ensure the document has a _type before creating
-      if ('create' in mutation && mutation.create && !mutation.create._type) {
-        throw new Error('_type is required for create mutations');
+      // Validate create documents using the parameterValidation utility
+      if ('create' in mutation && mutation.create) {
+        validateDocument(mutation.create);
+      }
+      
+      // Validate createOrReplace documents
+      if ('createOrReplace' in mutation && mutation.createOrReplace) {
+        validateDocument(mutation.createOrReplace);
+      }
+      
+      // Validate createIfNotExists documents
+      if ('createIfNotExists' in mutation && mutation.createIfNotExists) {
+        validateDocument(mutation.createIfNotExists);
       }
       
       // Add proper type information to the document before passing to transaction
       processMutation(client, transaction as any, mutation);
     });
     
-    // Commit the transaction
-    const result = await transaction.commit();
+    // Commit the transaction with visibility option
+    const result = await transaction.commit({
+      visibility: mutationOptions.visibility
+    });
     
-    if (returnDocuments) {
+    if (mutationOptions.returnDocuments) {
       const documents = await retrieveDocumentsForMutations(client, mutations);
       
       return {
@@ -404,16 +426,15 @@ async function modifyDocuments(
         result,
         documents: documents.filter(Boolean) as SanityDocument[]
       };
-    } else {
-      return {
-        success: true,
-        message: `Successfully applied ${mutations.length} mutations`,
-        result
-      };
     }
+    
+    return {
+      success: true,
+      message: `Successfully applied ${mutations.length} mutations`,
+      result
+    };
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(`Error modifying documents:`, error);
     throw new Error(`Failed to modify documents: ${errorMessage}`);
   }
 }

@@ -1,9 +1,20 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createSanityClient } from '../../src/utils/sanityClient.js';
-import { modifyDocuments, Mutation } from '../../src/controllers/mutate.js';
+import { 
+  modifyDocuments, 
+  Mutation, 
+  CreateMutation, 
+  CreateOrReplaceMutation,
+  CreateIfNotExistsMutation,
+  DeleteMutation
+} from '../../src/controllers/mutate.js';
+import { validateMutations, validateDocument } from '../../src/utils/parameterValidation.js';
+import { applyMutationDefaults } from '../../src/utils/defaultValues.js';
 
-// Mock the sanityClient and portableText utils
+// Mock the sanityClient and parameterValidation utils
 vi.mock('../../src/utils/sanityClient.js');
+vi.mock('../../src/utils/parameterValidation.js');
+vi.mock('../../src/utils/defaultValues.js');
 
 describe('Mutate Controller', () => {
   // Mock client and its methods
@@ -64,31 +75,97 @@ describe('Mutate Controller', () => {
   });
   
   describe('modifyDocuments', () => {
+    beforeEach(() => {
+      // Reset mocks
+      vi.mocked(validateMutations).mockClear();
+      vi.mocked(validateDocument).mockClear();
+      vi.mocked(applyMutationDefaults).mockClear();
+      
+      // Default mock implementation for applyMutationDefaults
+      vi.mocked(applyMutationDefaults).mockImplementation((options) => ({
+        returnDocuments: options?.returnDocuments ?? false,
+        visibility: 'sync'
+      }));
+    });
+    
     it('should throw an error if no mutations are provided', async () => {
-      await expect(modifyDocuments('project123', 'dataset123', [])).rejects.toThrow('At least one mutation is required');
+      // Mock validateMutations to throw an error for empty mutations
+      vi.mocked(validateMutations).mockImplementationOnce(() => {
+        throw new Error('At least one mutation is required');
+      });
+      
+      await expect(modifyDocuments('project123', 'dataset123', [])).rejects.toThrow('Failed to modify documents: At least one mutation is required');
     });
     
     it('should create a document', async () => {
-      const mutations: Mutation[] = [{
-        create: {
-          _id: 'person-123',
-          _type: 'person',
-          name: 'John Doe',
-          age: 30
-        }
-      }];
+      const createMutation: CreateMutation = { 
+        create: { _type: 'article', title: 'New Article' } 
+      };
+      const mutations: Mutation[] = [createMutation];
       
       const result = await modifyDocuments('project123', 'dataset123', mutations);
       
       expect(createSanityClient).toHaveBeenCalledWith('project123', 'dataset123');
       expect(mockClient.transaction).toHaveBeenCalled();
-      expect(mockTransaction.create).toHaveBeenCalledWith(mutations[0].create);
-      expect(mockTransaction.commit).toHaveBeenCalled();
+      expect(mockTransaction.create).toHaveBeenCalledWith(createMutation.create);
+      expect(mockTransaction.commit).toHaveBeenCalledWith({ visibility: 'sync' });
       
-      expect(result).toEqual(expect.objectContaining({
+      expect(result).toEqual({
         success: true,
-        message: 'Successfully applied 1 mutations'
-      }));
+        message: 'Successfully applied 1 mutations',
+        result: undefined
+      });
+    });
+    
+    it('should apply mutation defaults', async () => {
+      const createMutation: CreateMutation = { 
+        create: { _type: 'article', title: 'New Article' } 
+      };
+      const mutations: Mutation[] = [createMutation];
+      
+      // Mock applyMutationDefaults to return specific values
+      vi.mocked(applyMutationDefaults).mockReturnValueOnce({
+        returnDocuments: true,
+        visibility: 'async'
+      });
+      
+      await modifyDocuments('project123', 'dataset123', mutations, true, { visibility: 'async' });
+      
+      expect(applyMutationDefaults).toHaveBeenCalledWith({
+        returnDocuments: true,
+        visibility: 'async'
+      });
+      
+      expect(mockTransaction.commit).toHaveBeenCalledWith({ visibility: 'async' });
+    });
+    
+    it('should return documents when returnDocuments is true', async () => {
+      const createMutation: CreateMutation = { 
+        create: { _type: 'article', title: 'New Article' } 
+      };
+      const mutations: Mutation[] = [createMutation];
+      
+      // Mock applyMutationDefaults to return returnDocuments: true
+      vi.mocked(applyMutationDefaults).mockReturnValueOnce({
+        returnDocuments: true,
+        visibility: 'sync'
+      });
+      
+      // Mock document retrieval
+      mockClient.getDocument.mockResolvedValueOnce({
+        _id: 'doc1',
+        _type: 'article',
+        title: 'New Article'
+      });
+      
+      const result = await modifyDocuments('project123', 'dataset123', mutations, true);
+      
+      expect(result).toEqual({
+        success: true,
+        message: 'Successfully applied 1 mutations',
+        result: undefined,
+        documents: []
+      });
     });
     
     it('should createOrReplace a document', async () => {
@@ -314,6 +391,87 @@ describe('Mutate Controller', () => {
       
       await expect(modifyDocuments('project123', 'dataset123', mutations))
         .rejects.toThrow('Failed to modify documents: Transaction failed');
+    });
+  });
+
+  describe('Validation Tests', () => {
+    beforeEach(() => {
+      // Reset mock validation functions
+      vi.mocked(validateMutations).mockClear();
+      vi.mocked(validateDocument).mockClear();
+      
+      // Mock applyMutationDefaults to return default values
+      vi.mocked(applyMutationDefaults).mockReturnValue({
+        returnDocuments: false,
+        visibility: 'sync'
+      });
+    });
+
+    it('should call validateMutations with the mutations array', async () => {
+      const createMutation: CreateMutation = { 
+        create: { _type: 'article', title: 'New Article' } 
+      };
+      const mutations: Mutation[] = [createMutation];
+
+      await modifyDocuments('test-project', 'test-dataset', mutations);
+      
+      expect(validateMutations).toHaveBeenCalledWith(mutations);
+    });
+
+    it('should call validateDocument for create mutations', async () => {
+      const createDoc = { _type: 'article', title: 'New Article' };
+      const createMutation: CreateMutation = { create: createDoc };
+      const mutations: Mutation[] = [createMutation];
+
+      await modifyDocuments('test-project', 'test-dataset', mutations);
+      
+      expect(validateDocument).toHaveBeenCalledWith(createDoc);
+    });
+
+    it('should call validateDocument for createOrReplace mutations', async () => {
+      const replaceDoc = { _id: 'doc123', _type: 'article', title: 'Replaced Article' };
+      const replaceMutation: CreateOrReplaceMutation = { createOrReplace: replaceDoc };
+      const mutations: Mutation[] = [replaceMutation];
+
+      await modifyDocuments('test-project', 'test-dataset', mutations);
+      
+      expect(validateDocument).toHaveBeenCalledWith(replaceDoc);
+    });
+
+    it('should call validateDocument for createIfNotExists mutations', async () => {
+      const conditionalDoc = { _id: 'doc123', _type: 'article', title: 'Conditional Article' };
+      const conditionalMutation: CreateIfNotExistsMutation = { createIfNotExists: conditionalDoc };
+      const mutations: Mutation[] = [conditionalMutation];
+
+      await modifyDocuments('test-project', 'test-dataset', mutations);
+      
+      expect(validateDocument).toHaveBeenCalledWith(conditionalDoc);
+    });
+
+    it('should handle multiple validation calls for different mutation types', async () => {
+      const createDoc = { _type: 'article', title: 'New Article' };
+      const replaceDoc = { _id: 'doc123', _type: 'article', title: 'Replaced Article' };
+      const conditionalDoc = { _id: 'doc456', _type: 'article', title: 'Conditional Article' };
+      
+      const createMutation: CreateMutation = { create: createDoc };
+      const replaceMutation: CreateOrReplaceMutation = { createOrReplace: replaceDoc };
+      const conditionalMutation: CreateIfNotExistsMutation = { createIfNotExists: conditionalDoc };
+      const deleteMutation: DeleteMutation = { delete: { id: 'doc789' } };
+      
+      const mutations: Mutation[] = [
+        createMutation,
+        replaceMutation,
+        conditionalMutation,
+        deleteMutation
+      ];
+
+      await modifyDocuments('test-project', 'test-dataset', mutations);
+      
+      expect(validateMutations).toHaveBeenCalledWith(mutations);
+      expect(validateDocument).toHaveBeenCalledWith(createDoc);
+      expect(validateDocument).toHaveBeenCalledWith(replaceDoc);
+      expect(validateDocument).toHaveBeenCalledWith(conditionalDoc);
+      expect(validateDocument).toHaveBeenCalledTimes(3);
     });
   });
 });

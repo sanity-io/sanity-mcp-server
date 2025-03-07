@@ -58,6 +58,8 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "@sanity/eslint-config-studio": "^4.0.0",
+    "@sanity/pkg-utils": "^7.0.4",
     "@types/node": "^20.11.20",
     "@types/uuid": "^10.0.0",
     "@types/ws": "^8.5.14",

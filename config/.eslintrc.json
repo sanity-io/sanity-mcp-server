@@ -1,10 +1,7 @@
 {
   "root": true,
-  "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint", "sonarjs", "complexity"],
   "extends": [
-    "eslint:recommended",
-    "plugin:@typescript-eslint/recommended"
+    "@sanity/eslint-config-studio"
   ],
   "parserOptions": {
     "ecmaVersion": 2020,
@@ -13,16 +10,6 @@
   "env": {
     "node": true,
     "es6": true
-  },
-  "rules": {
-    "@typescript-eslint/no-explicit-any": "warn",
-    "@typescript-eslint/explicit-function-return-type": "off",
-    "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
-    "no-console": ["warn", { "allow": ["error"] }],
-    "complexity": ["warn", 15],
-    "sonarjs/cognitive-complexity": ["warn", 15],
-    "sonarjs/no-identical-functions": "warn",
-    "sonarjs/no-duplicate-string": "warn"
   },
   "overrides": [
     {

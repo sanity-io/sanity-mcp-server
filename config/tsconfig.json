@@ -1,12 +1,9 @@
 {
+  "extends": "../node_modules/@sanity/pkg-utils/tsconfig/strictest.json",
   "compilerOptions": {
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
     "outDir": "../dist",
     "declaration": true,
     "sourceMap": true,
