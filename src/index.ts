@@ -14,7 +14,7 @@ import * as toolsRegistry from './tools/index.js';
 const server = new Server(
   {
     name: "Sanity MCP Server",
-    version: "1.0.0"
+    version: "0.1.1"
   },
   {
     capabilities: {

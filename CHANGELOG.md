@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.0.1] - 2025-03-07T01:04:16+01:00 - Tools Structure Refactoring
+## [0.1.1] - 2025-03-07T01:04:16+01:00 - Tools Structure Refactoring
 
 ### Changed
 - Refactored tools architecture to use specialized tool providers for each domain area
