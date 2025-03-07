@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- ESLint configuration for TypeScript code quality
+- Test-specific ESLint rules to prevent noise in test files
+- Code coverage reporting with Vitest
+
+### Fixed
+- Converted variable declarations from 'let' to 'const' where appropriate
 
 ## [0.1.1] - 2025-03-07T01:04:16+01:00 - Tools Structure Refactoring
 

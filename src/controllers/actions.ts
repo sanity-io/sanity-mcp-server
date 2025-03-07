@@ -198,7 +198,6 @@ export async function createDocument(
       });
       
       // Create documents based on options
-      let results;
       const transaction = client.transaction();
       
       for (const doc of preparedDocs) {
@@ -210,7 +209,7 @@ export async function createDocument(
       }
       
       // Commit all document creations at once
-      results = await transaction.commit();
+      const results = await transaction.commit();
       
       return {
         success: true,
