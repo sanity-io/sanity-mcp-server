@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Central logger utility redirecting all output to stderr to avoid MCP protocol interference
+- Comprehensive integration test for the Sanity MCP server
+- New TODO list with prioritized improvements
 - Ultra-minimal core test approach focusing on essential document operations
 - New core test script to verify only the most fundamental operations
   - `test:core`: Only runs the essential document operations test (create, read, update, delete)
@@ -32,10 +35,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced document testing with better error logging and fallback mechanisms for draft and published documents
 
 ### Changed
+- Fixed schema tools to mark `projectId` and `dataset` as required parameters
+- Enhanced JSON response formatting for complex objects
+- Improved error handling for MCP tool execution
+- Replaced console.log/error calls with structured logging to stderr
 - Modified document operations tests to use client.transaction() directly for updates and patches
 - Made tests more resilient by using consistent document ID tracking between operations
 
 ### Fixed
+- Fixed MCP protocol communication by ensuring clean stdout channel
+- Fixed schema tools parameter requirements to match implementation
+- Fixed JSON response formatting for complex objects
 - Fixed issue with document updating and verification by ensuring draft documents are properly handled
 
 ## [0.1.3] - 2025-03-07
