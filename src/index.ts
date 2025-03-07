@@ -51,13 +51,15 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     return {
       result
     };
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error executing tool:", error);
     return {
-      error: error.message
+      error: error instanceof Error ? error.message : String(error)
     };
   }
 });
 
 // Start listening on stdio
-server.listen(new StdioServerTransport());
+const transport = new StdioServerTransport();
+// @ts-ignore - Type issues with the MCP SDK
+server.listen(transport);

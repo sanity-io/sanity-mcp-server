@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2025-03-07T01:04:16+01:00 - Tools Structure Refactoring
+
+### Changed
+- Refactored tools architecture to use specialized tool providers for each domain area
+- Created a central tools registry in the `src/tools/index.ts` file
+- Improved modularity and organization of tool definitions
+- Moved tools-related tests to a dedicated `test/tools` directory
+
+### Fixed
+- Fixed tests for the new tools structure
+- Ensured tool names are consistent across all provider implementations
+
 ## [0.1.0] - 2025-03-07T00:16:06+01:00 - Document API Consistency
 
 ### Added
