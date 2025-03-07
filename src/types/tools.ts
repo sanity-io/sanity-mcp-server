@@ -1,10 +1,17 @@
 import { z } from 'zod';
+import { ToolHandler } from './sharedTypes.js';
 
-export interface ToolDefinition {
+/**
+ * Generic interface for tool definitions
+ * 
+ * This interface uses parameterized types to enforce type safety between
+ * the tool parameter schema and the handler function.
+ */
+export interface ToolDefinition<TParams = any, TResult = any> {
   name: string;
   description: string;
-  parameters: z.ZodType<any, any, any>;
-  handler: (args: any) => Promise<any>;
+  parameters: z.ZodType<TParams, any, any>;
+  handler: ToolHandler<TParams, TResult>;
 }
 
 export interface InitialContext {
