@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Reorganized project structure by moving configuration files to a dedicated `config/` directory
+  - Moved `tsconfig.json` to `config/tsconfig.json`
+  - Moved `vitest.config.ts` to `config/vitest.config.ts`
+  - Updated npm scripts to reference new file locations
 
 ## [0.1.4] - 2025-03-07
 ### Added
