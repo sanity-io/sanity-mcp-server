@@ -10,6 +10,12 @@ import config from '../config/config.js';
 import * as embeddingsController from '../controllers/embeddings.js';
 import * as schemaController from '../controllers/schema.js';
 import * as releasesController from '../controllers/releases.js';
+import { 
+  EmbeddingsIndex, 
+  ListEmbeddingsIndicesParams, 
+  SimpleSchemaType, 
+  SimpleRelease 
+} from '../types/sharedTypes.js';
 
 /**
  * Context tools provider class
@@ -43,7 +49,7 @@ export class ContextToolProvider implements ToolProvider {
             const embeddingsIndices = await embeddingsController.listEmbeddingsIndices({
               projectId: config.projectId,
               dataset: config.dataset || "production"
-            });
+            } as ListEmbeddingsIndicesParams);
             
             // Get schema types - only document types
             const documentTypes = await schemaController.listSchemaTypes(
@@ -73,12 +79,12 @@ export class ContextToolProvider implements ToolProvider {
                 name: type.name,
                 title: type.title,
                 type: type.type
-              })),
+              } as SimpleSchemaType)),
               activeReleases: activeReleases.map((release: any) => ({
                 id: release.id,
                 title: release.title,
                 status: release.status
-              })),
+              } as SimpleRelease)),
               note: "The above information provides context about the Sanity project you're working with. You can use the schema types to formulate GROQ queries."
             };
           } catch (error) {

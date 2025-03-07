@@ -8,7 +8,7 @@
 import { z } from 'zod';
 import { Mutation } from '../controllers/mutate.js';
 import { SanityDocument, PatchOperations, SanityMutationResult, SanityActionResult } from './sanity.js';
-import { SchemaType, SchemaField, SearchOptions, SearchResponse } from './index.js';
+import { SchemaType, SchemaField, SearchOptions, SearchResponse, EmbeddingIndex } from './index.js';
 
 /**
  * Interface for the result of document mutations
@@ -201,4 +201,46 @@ export interface ActionResult {
   documentId?: string;
   documentIds?: string[];
   result: SanityActionResult | SanityMutationResult;
+}
+
+/**
+ * Interface for embeddings index listing parameters
+ */
+export interface ListEmbeddingsIndicesParams extends ProjectDatasetParams {}
+
+/**
+ * Interface for embeddings index in tool responses
+ * Simplifies the full EmbeddingIndex for tool usage
+ */
+export interface EmbeddingsIndex {
+  id: string;
+  name: string;
+  status: string;
+  documentCount?: number;
+  errorMessage?: string;
+}
+
+/**
+ * Interface for simplified schema type
+ */
+export interface SimpleSchemaType {
+  name: string;
+  title: string;
+  type: string;
+}
+
+/**
+ * Interface for releases listing parameters
+ */
+export interface ListReleasesParams extends ProjectDatasetParams {
+  includeArchived?: boolean;
+}
+
+/**
+ * Interface for simplified release
+ */
+export interface SimpleRelease {
+  id: string;
+  title: string;
+  status: string;
 } 

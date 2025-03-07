@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ToolHandler } from './sharedTypes.js';
+import { ToolHandler, EmbeddingsIndex, SimpleSchemaType, SimpleRelease } from './sharedTypes.js';
 
 /**
  * Generic interface for tool definitions
@@ -19,9 +19,9 @@ export interface InitialContext {
   instructions: string;
   projectId?: string;
   dataset?: string;
-  embeddingsIndices?: any[];
-  documentTypes?: any[];
-  activeReleases?: any[];
+  embeddingsIndices?: EmbeddingsIndex[];
+  documentTypes?: SimpleSchemaType[];
+  activeReleases?: SimpleRelease[];
   note: string;
   warning?: string;
   requiredVariables?: string[];
