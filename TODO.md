@@ -64,3 +64,33 @@
 - ✅ Refactor `editDocument` and `createDocumentVersion` in `controllers/actions.ts`
 - ✅ Extract repeated patterns in `actions.ts` to shared utility functions
 - ✅ Add unit tests for utility functions in documentHelpers.ts
+
+# TODO List for Sanity MCP Server
+
+## High Priority
+
+1. **Unify type definitions across controllers and tools**
+   - Current issue: Type definitions are duplicated between tools and controllers
+   - Parameters sometimes marked as optional in tool definitions but required in implementation
+   - Need to create shared interfaces and types that can be used consistently
+   - Ensure the schema accurately reflects what's actually required in function calls
+   - Consider using TypeScript's utility types to derive tool parameter schemas from controller function signatures
+
+## Medium Priority
+
+1. **Improve error handling**
+   - Add better error messages and consistent error format
+   - Add validation for all parameters
+
+2. **Update logger usage across all files**
+   - Replace all remaining console.log/error calls with the central logger
+
+3. **Improve test coverage**
+   - Add more tests for edge cases
+   - Fix integration tests for the MCP server
+
+## Nice to Have
+
+1. **Documentation improvements**
+   - Add more examples for each tool
+   - Better describe parameters and return values
