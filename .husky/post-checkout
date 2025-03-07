@@ -1,0 +1,20 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Get the previous ref and new ref
+PREV_HEAD=$1
+NEW_HEAD=$2
+CHECKOUT_TYPE=$3
+
+# If this is a file checkout (not a branch/tag), exit
+if [ $CHECKOUT_TYPE -eq 0 ]; then
+  exit 0
+fi
+
+# Check if we're checking out a tag
+IS_TAG=$(git describe --exact-match --tags $NEW_HEAD 2>/dev/null)
+if [ $? -eq 0 ]; then
+  echo "🏷️ Tag detected: $IS_TAG"
+  npm run quality:update-readme -- --tagged --tag "$IS_TAG"
+  echo "📊 Quality metrics updated in README.md for tag: $IS_TAG"
+fi 

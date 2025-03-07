@@ -31,9 +31,12 @@
     "find:duplicates": "jscpd src --reporters html --output scripts/quality/output",
     "complexity": "eslint . --ext .ts --config config/.eslintrc.json --rule 'complexity: [\"error\", 10]' --rule 'sonarjs/cognitive-complexity: [\"error\", 10]' -f json > scripts/quality/output/complexity-report.json || true",
     "quality:check": "npm run lint && npm run complexity && npm run find:duplicates && npm run test:coverage",
-    "quality:report": "npm run quality:check && node scripts/quality/prioritize-improvements.js && echo '\nQuality report generated: scripts/quality/output/improvement-recommendations.md'",
+    "quality:checkpoint": "node scripts/quality/generate-quality-checkpoint.js",
+    "quality:chart": "node scripts/quality/generate-quality-chart.js",
+    "quality:update-readme": "node scripts/quality/update-readme-metrics.js",
+    "quality:report": "npm run quality:check && node scripts/quality/prioritize-improvements.js && npm run quality:checkpoint && npm run quality:chart && npm run quality:update-readme && echo '\nQuality report generated: scripts/quality/output/improvement-recommendations.md\nQuality metrics updated in README.md\nQuality metrics chart available at: scripts/quality/output/quality-metrics-chart.html'",
     "prerelease": "npm run test:integration",
-    "release": "npm run build && npm version patch",
+    "release": "npm run build && npm version patch && npm run quality:update-readme -- --tagged --tag v$(node -p \"require('./package.json').version\") && git add README.md && git commit -m \"Update quality metrics in README\" && git push",
     "prepare": "husky install"
   },
   "dependencies": {

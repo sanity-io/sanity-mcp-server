@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sanity MCP Server - Quality Metrics</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .chart-container {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+    }
+    h2 {
+      color: #555;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 10px;
+      margin-top: 0;
+    }
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+      gap: 20px;
+    }
+    .full-width {
+      grid-column: 1 / -1;
+    }
+    .stats-container {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+    .stat-card {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      padding: 15px;
+      min-width: 200px;
+      margin: 10px;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 28px;
+      font-weight: bold;
+      color: #333;
+    }
+    .stat-label {
+      font-size: 14px;
+      color: #777;
+      margin-top: 5px;
+    }
+    .trend-positive {
+      color: #4CAF50;
+    }
+    .trend-negative {
+      color: #F44336;
+    }
+    .trend-neutral {
+      color: #FF9800;
+    }
+  </style>
+</head>
+<body>
+  <h1>Sanity MCP Server - Quality Metrics Dashboard</h1>
+  
+  <!-- Latest stats -->
+  <div class="stats-container">
+    <div class="stat-card">
+      <div class="stat-value">58.41%</div>
+      <div class="stat-label">Test Coverage</div>
+      <div class="stat-trend trend-neutral">—</div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-value">382</div>
+      <div class="stat-label">ESLint Warnings</div>
+      <div class="stat-trend trend-negative">↓</div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-value">1</div>
+      <div class="stat-label">ESLint Errors</div>
+      <div class="stat-trend trend-negative">↓</div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-value">6.02%</div>
+      <div class="stat-label">Code Duplication</div>
+      <div class="stat-trend trend-neutral">—</div>
+    </div>
+  </div>
+  
+  <div class="metrics-grid">
+    <!-- Test Coverage Chart -->
+    <div class="chart-container">
+      <h2>Test Coverage</h2>
+      <canvas id="coverageChart"></canvas>
+    </div>
+    
+    <!-- Complexity Chart -->
+    <div class="chart-container">
+      <h2>Code Complexity</h2>
+      <canvas id="complexityChart"></canvas>
+    </div>
+    
+    <!-- ESLint Issues Chart -->
+    <div class="chart-container">
+      <h2>ESLint Issues</h2>
+      <canvas id="eslintChart"></canvas>
+    </div>
+    
+    <!-- Duplication Chart -->
+    <div class="chart-container">
+      <h2>Code Duplication</h2>
+      <canvas id="duplicationChart"></canvas>
+    </div>
+    
+    <!-- Complex Functions Chart -->
+    <div class="chart-container">
+      <h2>Complex Functions by Severity</h2>
+      <canvas id="complexFunctionsChart"></canvas>
+    </div>
+    
+    <!-- Files by Coverage Chart -->
+    <div class="chart-container">
+      <h2>Files by Coverage Level</h2>
+      <canvas id="filesByCoverageChart"></canvas>
+    </div>
+    
+    <!-- Timeline Chart (all metrics) -->
+    <div class="chart-container full-width">
+      <h2>Quality Metrics Timeline</h2>
+      <canvas id="timelineChart"></canvas>
+    </div>
+  </div>
+  
+  <script>
+    // Common chart options
+    const commonOptions = {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: {
+          position: 'top',
+        },
+        tooltip: {
+          mode: 'index',
+          intersect: false,
+        }
+      },
+      scales: {
+        x: {
+          grid: {
+            display: false
+          }
+        },
+        y: {
+          beginAtZero: true
+        }
+      }
+    };
+    
+    // Default colors
+    const colors = {
+      coverage: 'rgba(54, 162, 235, 0.7)',
+      eslintErrors: 'rgba(255, 99, 132, 0.7)',
+      eslintWarnings: 'rgba(255, 159, 64, 0.7)',
+      duplication: 'rgba(75, 192, 192, 0.7)',
+      cyclomaticComplexity: 'rgba(153, 102, 255, 0.7)',
+      cognitiveComplexity: 'rgba(201, 203, 207, 0.7)',
+      high: 'rgba(255, 99, 132, 0.7)',
+      medium: 'rgba(255, 159, 64, 0.7)',
+      low: 'rgba(75, 192, 192, 0.7)'
+    };
+    
+    // Chart data
+    const labels = ["0.1.3","0.1.3"];
+    const dates = ["2025-03-07","2025-03-07"];
+    
+    // Create Coverage Chart
+    const coverageCtx = document.getElementById('coverageChart').getContext('2d');
+    new Chart(coverageCtx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Overall Coverage (%)',
+          data: [58.41,58.41],
+          backgroundColor: colors.coverage,
+          borderColor: colors.coverage,
+          borderWidth: 2,
+          tension: 0.3
+        }]
+      },
+      options: {
+        ...commonOptions,
+        scales: {
+          ...commonOptions.scales,
+          y: {
+            ...commonOptions.scales.y,
+            min: Math.max(0, Math.min(...[58.41,58.41]) - 5),
+            max: Math.min(100, Math.max(...[58.41,58.41]) + 5),
+            title: {
+              display: true,
+              text: 'Coverage %'
+            }
+          }
+        }
+      }
+    });
+    
+    // Create Complexity Chart
+    const complexityCtx = document.getElementById('complexityChart').getContext('2d');
+    new Chart(complexityCtx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Cyclomatic Complexity (Avg)',
+            data: [15.88,15.88],
+            backgroundColor: colors.cyclomaticComplexity,
+            borderColor: colors.cyclomaticComplexity,
+            borderWidth: 2,
+            tension: 0.3
+          },
+          {
+            label: 'Cognitive Complexity (Avg)',
+            data: [21.89,21.89],
+            backgroundColor: colors.cognitiveComplexity,
+            borderColor: colors.cognitiveComplexity,
+            borderWidth: 2,
+            tension: 0.3
+          }
+        ]
+      },
+      options: commonOptions
+    });
+    
+    // Create ESLint Chart
+    const eslintCtx = document.getElementById('eslintChart').getContext('2d');
+    new Chart(eslintCtx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Errors',
+            data: [0,1],
+            backgroundColor: colors.eslintErrors,
+            borderColor: colors.eslintErrors,
+            borderWidth: 1
+          },
+          {
+            label: 'Warnings',
+            data: [0,382],
+            backgroundColor: colors.eslintWarnings,
+            borderColor: colors.eslintWarnings,
+            borderWidth: 1
+          }
+        ]
+      },
+      options: {
+        ...commonOptions,
+        scales: {
+          ...commonOptions.scales,
+          y: {
+            ...commonOptions.scales.y,
+            title: {
+              display: true,
+              text: 'Issue Count'
+            }
+          }
+        }
+      }
+    });
+    
+    // Create Duplication Chart
+    const duplicationCtx = document.getElementById('duplicationChart').getContext('2d');
+    new Chart(duplicationCtx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Duplication (%)',
+          data: [6.02,6.02],
+          backgroundColor: colors.duplication,
+          borderColor: colors.duplication,
+          borderWidth: 2,
+          tension: 0.3
+        }]
+      },
+      options: {
+        ...commonOptions,
+        scales: {
+          ...commonOptions.scales,
+          y: {
+            ...commonOptions.scales.y,
+            min: 0,
+            max: Math.min(100, Math.max(...[6.02,6.02]) + 5),
+            title: {
+              display: true,
+              text: 'Duplication %'
+            }
+          }
+        }
+      }
+    });
+    
+    // Create Complex Functions Chart
+    const complexFunctionsCtx = document.getElementById('complexFunctionsChart').getContext('2d');
+    new Chart(complexFunctionsCtx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'High Complexity',
+            data: [0,0],
+            backgroundColor: colors.high,
+            borderColor: colors.high,
+            borderWidth: 1
+          },
+          {
+            label: 'Medium Complexity',
+            data: [0,0],
+            backgroundColor: colors.medium,
+            borderColor: colors.medium,
+            borderWidth: 1
+          },
+          {
+            label: 'Low Complexity',
+            data: [0,0],
+            backgroundColor: colors.low,
+            borderColor: colors.low,
+            borderWidth: 1
+          }
+        ]
+      },
+      options: {
+        ...commonOptions,
+        scales: {
+          ...commonOptions.scales,
+          y: {
+            ...commonOptions.scales.y,
+            stacked: true,
+            title: {
+              display: true,
+              text: 'Function Count'
+            }
+          },
+          x: {
+            ...commonOptions.scales.x,
+            stacked: true
+          }
+        }
+      }
+    });
+    
+    // Create Files by Coverage Chart
+    const filesByCoverageCtx = document.getElementById('filesByCoverageChart').getContext('2d');
+    new Chart(filesByCoverageCtx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Low Coverage (<30%)',
+            data: [5,5],
+            backgroundColor: colors.high,
+            borderColor: colors.high,
+            borderWidth: 1
+          },
+          {
+            label: 'Medium Coverage (30-60%)',
+            data: [0,0],
+            backgroundColor: colors.medium,
+            borderColor: colors.medium,
+            borderWidth: 1
+          },
+          {
+            label: 'High Coverage (>60%)',
+            data: [13,13],
+            backgroundColor: colors.low,
+            borderColor: colors.low,
+            borderWidth: 1
+          }
+        ]
+      },
+      options: {
+        ...commonOptions,
+        scales: {
+          ...commonOptions.scales,
+          y: {
+            ...commonOptions.scales.y,
+            stacked: true,
+            title: {
+              display: true,
+              text: 'File Count'
+            }
+          },
+          x: {
+            ...commonOptions.scales.x,
+            stacked: true
+          }
+        }
+      }
+    });
+    
+    // Create Timeline Chart
+    const timelineCtx = document.getElementById('timelineChart').getContext('2d');
+    new Chart(timelineCtx, {
+      type: 'line',
+      data: {
+        labels: dates,
+        datasets: [
+          {
+            label: 'Test Coverage (%)',
+            data: [58.41,58.41],
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 2,
+            tension: 0.3,
+            yAxisID: 'y'
+          },
+          {
+            label: 'ESLint Warnings',
+            data: [0,382],
+            backgroundColor: 'rgba(255, 159, 64, 0.2)',
+            borderColor: 'rgba(255, 159, 64, 1)',
+            borderWidth: 2,
+            tension: 0.3,
+            yAxisID: 'y1'
+          },
+          {
+            label: 'Code Duplication (%)',
+            data: [6.02,6.02],
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 2,
+            tension: 0.3,
+            yAxisID: 'y'
+          },
+          {
+            label: 'Cyclomatic Complexity (Avg)',
+            data: [15.88,15.88],
+            backgroundColor: 'rgba(153, 102, 255, 0.2)',
+            borderColor: 'rgba(153, 102, 255, 1)',
+            borderWidth: 2,
+            tension: 0.3,
+            yAxisID: 'y2'
+          }
+        ]
+      },
+      options: {
+        ...commonOptions,
+        scales: {
+          y: {
+            type: 'linear',
+            display: true,
+            position: 'left',
+            title: {
+              display: true,
+              text: 'Percentage'
+            },
+            min: 0,
+            max: 100
+          },
+          y1: {
+            type: 'linear',
+            display: true,
+            position: 'right',
+            title: {
+              display: true,
+              text: 'Count'
+            },
+            min: 0,
+            grid: {
+              drawOnChartArea: false
+            }
+          },
+          y2: {
+            type: 'linear',
+            display: true,
+            position: 'right',
+            title: {
+              display: true,
+              text: 'Complexity'
+            },
+            min: 0,
+            max: 30,
+            grid: {
+              drawOnChartArea: false
+            }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

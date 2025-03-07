@@ -228,6 +228,33 @@ npm run quality:report
 
 The `quality:report` command analyzes the output from all quality tools and generates a prioritized list of recommended improvements at `scripts/quality/output/improvement-recommendations.md`, sorted by impact/effort ratio.
 
+Additionally, it tracks key quality metrics over time by saving a checkpoint in NDJSON format at `scripts/quality/quality-tag-checkpoint.ndjson` and generates an interactive chart at `scripts/quality/output/quality-metrics-chart.html`.
+
+#### Quality Metrics Tracking
+
+The project automatically tracks quality metrics over time, generating historical data that can be used to monitor progress and improvements:
+
+```bash
+# Generate a quality metrics checkpoint without running full checks
+npm run quality:checkpoint
+
+# Generate an interactive chart from checkpoint data
+npm run quality:chart
+```
+
+Quality metrics are automatically captured when:
+- Running the full `quality:report` script
+- Creating a new release with `npm run release`
+- Checking out a tag with `git checkout v1.2.3`
+
+The metrics tracked include:
+- Test coverage percentages and distribution
+- ESLint errors and warnings
+- Cyclomatic and cognitive complexity
+- Code duplication percentages
+
+The generated chart provides a visual representation of these metrics over time, making it easy to track progress and identify areas that need improvement.
+
 ### Type Checking
 
 Run the TypeScript type checker:
@@ -290,6 +317,35 @@ mcp__minimal__echo({ message: "Hello World" })
 This difference in naming conventions can cause confusion when moving between environments. Cursor treats all MCP tools in a flat namespace without requiring the server name prefix.
 
 Since Anthropic (creator of Claude) is the maintainer of the MCP standard, the Claude Desktop pattern with server name included is the recommended approach for cross-platform compatibility.
+
+## Quality Metrics
+
+
+This section provides links to the latest quality metrics for this project.
+
+The Sanity MCP Server project maintains quality metrics for each release, including:
+- Test coverage data
+- Code complexity analysis
+- Duplication detection
+- ESLint issues
+
+### Latest Quality Metrics Summary - March 7, 2025
+
+**Version:** 0.1.3
+
+Key metrics at a glance:
+- Test Coverage: 58.41%
+- ESLint Issues: 1 errors, 382 warnings
+- Complex Functions: 8
+- Code Duplication: 6.02%
+
+#### Detailed Quality Information
+
+- [📊 Interactive Quality Metrics Dashboard](./scripts/quality/output/quality-metrics-chart.html) - Visual trends of code quality over time
+- [📝 Quality Improvement Recommendations](./scripts/quality/output/improvement-recommendations.md) - Prioritized list of suggested improvements
+- [📈 Raw Quality Data (NDJSON)](./scripts/quality/quality-tag-checkpoint.ndjson) - Historical quality metrics for all releases
+
+Quality metrics are automatically updated on each release and can be manually generated with `npm run quality:report`.
 
 ## License
 

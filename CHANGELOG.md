@@ -33,6 +33,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added parallel execution for document deletion checks
   - Reduced test execution time by ~35% (from ~9s to ~6s)
 - Enhanced document testing with better error logging and fallback mechanisms for draft and published documents
+- Quality metrics tracking system that captures code quality data on each release
+- Interactive chart visualization of quality metrics over time
+- Automatic quality checkpoint generation when creating or checking out tags
+- NDJSON format storage for quality metrics history
 
 ### Changed
 - Fixed schema tools to mark `projectId` and `dataset` as required parameters

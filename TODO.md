@@ -1,9 +1,5 @@
 # TODO
 
-- Comprehensive integration tests for mutations
-- Don't list all of release content in the initialContext - just the names
-- Get more coverage on the integration tests for other workflows
-- ✅ Optimize testing strategy with categorized integration tests
 
 ## Code Quality Improvements (Prioritized)
 
