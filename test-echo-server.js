@@ -53,16 +53,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     if (request.params.name === "echo") {
       const message = request.params.arguments.message;
       
-      // Format according to MCP spec
+      // Format according to MCP spec - notice there's no nested "result" object
       return {
-        result: {
-          content: [
-            {
-              type: "text",
-              text: `Echo: ${message}`
-            }
-          ]
-        }
+        content: [
+          {
+            type: "text",
+            text: `Echo: ${message}`
+          }
+        ]
       };
     } else {
       throw new Error(`Unknown tool: ${request.params.name}`);
