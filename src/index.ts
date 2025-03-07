@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { 
   CallToolRequestSchema, 
   ListToolsRequestSchema 
@@ -10,6 +9,7 @@ import { zodToJsonSchema } from 'zod-to-json-schema';
 import config from './config/config.js';
 import * as toolsRegistry from './tools/index.js';
 import logger from './utils/logger.js';
+import { sanityTransport } from './utils/mcpTransport.js';
 
 // Create MCP server
 const server = new Server(
@@ -27,6 +27,7 @@ const server = new Server(
 // Handle tool listing request
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   const tools = toolsRegistry.getToolDefinitions();
+  logger.info(`Responding with ${tools.length} tools`);
   
   return {
     tools: tools.map(tool => ({
@@ -44,7 +45,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       throw new Error("Arguments are required");
     }
 
-    logger.info(`Executing tool: ${request.params.name} with args: ${JSON.stringify(request.params.arguments)}`);
+    logger.info(`Executing tool: ${request.params.name}`);
     const result = await toolsRegistry.executeTool(
       request.params.name, 
       request.params.arguments
@@ -95,12 +96,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 });
 
-// Start listening on stdio
-const transport = new StdioServerTransport();
-
 logger.info("Starting Sanity MCP Server...");
-// Use the correct method to connect the server to the transport
-server.connect(transport)
+
+// Use our enhanced transport that ensures proper stdout/stderr handling
+server.connect(sanityTransport)
   .then(() => {
     logger.info("Sanity MCP Server connected successfully!");
   })
@@ -108,3 +107,19 @@ server.connect(transport)
     logger.error("Failed to connect server:", error);
     process.exit(1);
   });
+
+// Specific stdout data debugging help
+process.stdout.on('error', (err) => {
+  logger.error('Error writing to stdout:', err);
+});
+
+// Make sure SIGINT and SIGTERM are handled properly
+process.on('SIGINT', () => {
+  logger.info('Received SIGINT. Shutting down server...');
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+  logger.info('Received SIGTERM. Shutting down server...');
+  process.exit(0);
+});

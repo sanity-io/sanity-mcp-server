@@ -14,12 +14,25 @@ export interface Logger {
 
 /**
  * Logger implementation that redirects all output to stderr
+ * This ensures logs don't interfere with the MCP protocol JSON communication on stdout
  */
 export const logger: Logger = {
   info: (...args: unknown[]) => console.error('[INFO]', ...args),
   error: (...args: unknown[]) => console.error('[ERROR]', ...args),
   warn: (...args: unknown[]) => console.error('[WARN]', ...args),
   debug: (...args: unknown[]) => console.error('[DEBUG]', ...args)
+};
+
+/**
+ * Special write function for MCP protocol outputs
+ * Ensures protocol responses go to stdout while logs go to stderr
+ */
+export const mcpWrite = (data: string): void => {
+  try {
+    process.stdout.write(data + '\n');
+  } catch (err) {
+    logger.error('Error writing to stdout:', err);
+  }
 };
 
 export default logger; 
