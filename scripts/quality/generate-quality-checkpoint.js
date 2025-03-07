@@ -216,24 +216,29 @@ function getTestCoverageMetrics() {
     // Parse line and function coverage from coverage report
     // For simplicity, we'll estimate based on the data in prioritize-improvements.js
     const coverageData = [
-      { file: 'src/controllers/actions.ts', coverage: 21.99 },
+      { file: 'src/controllers/actions.ts', coverage: 32.46 },
       { file: 'src/controllers/projects.ts', coverage: 1.47 },
       { file: 'src/utils/portableText.ts', coverage: 3.22 },
-      { file: 'src/controllers/mutate.ts', coverage: 77.25 },
-      { file: 'src/controllers/releases.ts', coverage: 67.77 },
-      { file: 'src/controllers/embeddings.ts', coverage: 82.30 },
-      { file: 'src/controllers/groq.ts', coverage: 94.71 },
-      { file: 'src/controllers/schema.ts', coverage: 98.34 },
+      { file: 'src/controllers/mutate.ts', coverage: 66.19 },
+      { file: 'src/controllers/releases.ts', coverage: 72.54 },
+      { file: 'src/controllers/embeddings.ts', coverage: 84.34 },
+      { file: 'src/controllers/groq.ts', coverage: 74.66 },
+      { file: 'src/controllers/schema.ts', coverage: 98.48 },
       { file: 'src/utils/sanityClient.ts', coverage: 62.33 },
+      { file: 'src/utils/documentHelpers.ts', coverage: 84.25 },
+      { file: 'src/utils/logger.ts', coverage: 57.14 },
+      { file: 'src/utils/mcpTransport.ts', coverage: 0 },
       { file: 'src/tools/contextTools.ts', coverage: 23.61 },
       { file: 'src/tools/embeddingsTools.ts', coverage: 69.76 },
       { file: 'src/tools/groqTools.ts', coverage: 67.64 },
-      { file: 'src/tools/mutateTools.ts', coverage: 63.76 },
+      { file: 'src/tools/mutateTools.ts', coverage: 62.25 },
       { file: 'src/tools/projectsTools.ts', coverage: 84.61 },
       { file: 'src/tools/releasesTools.ts', coverage: 68.53 },
-      { file: 'src/tools/schemaTools.ts', coverage: 86.04 },
-      { file: 'src/tools/actionsTools.ts', coverage: 78.00 },
+      { file: 'src/tools/schemaTools.ts', coverage: 67.85 },
+      { file: 'src/tools/actionsTools.ts', coverage: 78.0 },
+      { file: 'src/tools/index.ts', coverage: 64.0 },
       { file: 'src/index.ts', coverage: 0 },
+      { file: 'src/config/config.ts', coverage: 75.0 },
     ];
     
     // Calculate overall metrics
@@ -242,9 +247,16 @@ function getTestCoverageMetrics() {
     const averageCoverage = totalFiles > 0 ? totalCoverage / totalFiles : 0;
     
     // Count files by coverage level
+    // Low: < 30%, Medium: 30-60%, High: > 60%
     const lowCoverageFiles = coverageData.filter(file => file.coverage < 30).length;
     const mediumCoverageFiles = coverageData.filter(file => file.coverage >= 30 && file.coverage < 60).length;
     const highCoverageFiles = coverageData.filter(file => file.coverage >= 60).length;
+    
+    // Log for debugging
+    console.log('Coverage categorization:');
+    console.log('Low coverage files:', coverageData.filter(file => file.coverage < 30).map(f => f.file));
+    console.log('Medium coverage files:', coverageData.filter(file => file.coverage >= 30 && file.coverage < 60).map(f => f.file));
+    console.log('High coverage files:', coverageData.filter(file => file.coverage >= 60).map(f => f.file));
     
     return {
       overall: Math.round(averageCoverage * 100) / 100,
