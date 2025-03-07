@@ -325,13 +325,13 @@ This section provides links to the latest quality metrics for this project.
 
 ### Latest Quality Metrics Summary - March 7, 2025
 
-**Version:** 0.1.4 (v0.1.4)
+**Version:** 0.1.4
 
 Key metrics at a glance:
 - Test Coverage: 58.41%
-- ESLint Issues: 1 errors, 382 warnings
-- Complex Functions: 8
-- Code Duplication: 6.02%
+- ESLint Issues: 1 errors, 385 warnings
+- Complex Functions: 9
+- Code Duplication: 4.47%
 
 #### Detailed Quality Information
 

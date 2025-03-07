@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2025-03-07T20:00:10.539Z",
+    "detectionDate": "2025-03-07T20:25:26.267Z",
     "formats": {
       "typescript": {
         "sources": {
@@ -28,9 +28,21 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "src/utils/mcpTransport.ts": {
+            "lines": 37,
+            "tokens": 202,
+            "sources": 1,
+            "clones": 1,
+            "duplicatedLines": 8,
+            "duplicatedTokens": 71,
+            "percentage": 21.62,
+            "percentageTokens": 35.15,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "src/utils/logger.ts": {
-            "lines": 24,
-            "tokens": 227,
+            "lines": 37,
+            "tokens": 301,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -293,41 +305,41 @@
             "newClones": 0
           },
           "src/index.ts": {
-            "lines": 109,
-            "tokens": 832,
+            "lines": 124,
+            "tokens": 931,
             "sources": 1,
-            "clones": 0,
-            "duplicatedLines": 0,
-            "duplicatedTokens": 0,
-            "percentage": 0,
-            "percentageTokens": 0,
+            "clones": 1,
+            "duplicatedLines": 8,
+            "duplicatedTokens": 71,
+            "percentage": 6.45,
+            "percentageTokens": 7.63,
             "newDuplicatedLines": 0,
             "newClones": 0
           }
         },
         "total": {
-          "lines": 4181,
-          "tokens": 30290,
-          "sources": 25,
-          "clones": 9,
-          "duplicatedLines": 87,
-          "duplicatedTokens": 980,
-          "percentage": 2.08,
-          "percentageTokens": 3.24,
+          "lines": 4246,
+          "tokens": 30665,
+          "sources": 26,
+          "clones": 10,
+          "duplicatedLines": 95,
+          "duplicatedTokens": 1051,
+          "percentage": 2.24,
+          "percentageTokens": 3.43,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 4181,
-      "tokens": 30290,
-      "sources": 25,
-      "clones": 9,
-      "duplicatedLines": 87,
-      "duplicatedTokens": 980,
-      "percentage": 2.08,
-      "percentageTokens": 3.24,
+      "lines": 4246,
+      "tokens": 30665,
+      "sources": 26,
+      "clones": 10,
+      "duplicatedLines": 95,
+      "duplicatedTokens": 1051,
+      "percentage": 2.24,
+      "percentageTokens": 3.43,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -654,6 +666,42 @@
           "line": 85,
           "column": 19,
           "position": 714
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 9,
+      "fragment": "process.on('SIGINT', () => {\n  logger.info('Received SIGINT. Shutting down server...');\n  process.exit(0);\n});\n\nprocess.on('SIGTERM', () => {\n  logger.info('Received SIGTERM. Shutting down server...');\n  process.exit(0);\n});",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/index.ts",
+        "start": 117,
+        "end": 125,
+        "startLoc": {
+          "line": 117,
+          "column": 1,
+          "position": 860
+        },
+        "endLoc": {
+          "line": 125,
+          "column": 2,
+          "position": 931
+        }
+      },
+      "secondFile": {
+        "name": "src/utils/mcpTransport.ts",
+        "start": 16,
+        "end": 24,
+        "startLoc": {
+          "line": 16,
+          "column": 3,
+          "position": 44
+        },
+        "endLoc": {
+          "line": 24,
+          "column": 2,
+          "position": 118
         }
       }
     }
