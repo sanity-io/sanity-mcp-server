@@ -16,9 +16,14 @@
 8. ✅ Replace `any` types with more specific types across core controller files
 9. ✅ Improve type safety across codebase, particularly for Sanity client operations
 10. 🔄 Reduce complexity in embeddings.ts, particularly in semanticSearch function
-
-11. Add constants for commonly duplicated string literals (especially in test files)
-12. Refactor remaining functions with high cognitive complexity, especially in:
+11. 🆕 Take a more aggressive approach to type safety improvements (no backward compatibility needed):
+    - Completely eliminate remaining `any` types in non-test code
+    - Redesign function signatures for improved semantics and type safety
+    - Refactor parameter orders to be more intuitive without concern for existing consumers
+    - Remove conditional handling of test vs. production environments
+    - Consider using stricter TypeScript compiler options
+12. Add constants for commonly duplicated string literals (especially in test files)
+13. Refactor remaining functions with high cognitive complexity, especially in:
     - controllers/embeddings.ts (listEmbeddingsIndices, semanticSearch)
     - controllers/groq.ts
     - controllers/schema.ts (checkForReferences)
