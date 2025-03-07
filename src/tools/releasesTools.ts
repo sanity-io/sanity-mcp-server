@@ -7,6 +7,16 @@ import { z } from 'zod';
 import { ToolDefinition } from '../types/tools.js';
 import { ToolProvider } from '../types/toolProvider.js';
 import * as releasesController from '../controllers/releases.js';
+import { 
+  CreateReleaseParams, 
+  UpdateReleaseParams, 
+  ReleaseIdParam, 
+  AddDocumentToReleaseParams,
+  RemoveDocumentFromReleaseParams,
+  PublishReleaseParams,
+  ListReleasesParams
+} from '../types/sharedTypes.js';
+import config from '../config/config.js';
 
 /**
  * Releases tools provider class
@@ -28,10 +38,17 @@ export class ReleasesToolProvider implements ToolProvider {
           title: z.string().describe('Title for the release'),
           description: z.string().optional().describe('Optional description for the release')
         }),
-        handler: async (args: any) => {
+        handler: async (args: CreateReleaseParams) => {
+          const projectId = args.projectId || config.projectId;
+          const dataset = args.dataset || config.dataset || 'production';
+          
+          if (!projectId) {
+            throw new Error('Project ID is required. Please provide it as a parameter or set it in the environment.');
+          }
+          
           return await releasesController.createRelease(
-            args.projectId, 
-            args.dataset,
+            projectId, 
+            dataset,
             args.title,
             args.description
           );
@@ -44,8 +61,15 @@ export class ReleasesToolProvider implements ToolProvider {
           projectId: z.string().optional().describe('Project ID, if not provided will use the project ID from the environment'),
           dataset: z.string().optional().describe('Dataset name, if not provided will use the dataset from the environment')
         }),
-        handler: async (args: any) => {
-          return await releasesController.listReleases(args.projectId, args.dataset);
+        handler: async (args: ListReleasesParams) => {
+          const projectId = args.projectId || config.projectId;
+          const dataset = args.dataset || config.dataset || 'production';
+          
+          if (!projectId) {
+            throw new Error('Project ID is required. Please provide it as a parameter or set it in the environment.');
+          }
+          
+          return await releasesController.listReleases(projectId, dataset);
         }
       },
       {
@@ -58,10 +82,17 @@ export class ReleasesToolProvider implements ToolProvider {
           title: z.string().optional().describe('New title for the release'),
           description: z.string().optional().describe('New description for the release')
         }),
-        handler: async (args: any) => {
+        handler: async (args: UpdateReleaseParams) => {
+          const projectId = args.projectId || config.projectId;
+          const dataset = args.dataset || config.dataset || 'production';
+          
+          if (!projectId) {
+            throw new Error('Project ID is required. Please provide it as a parameter or set it in the environment.');
+          }
+          
           return await releasesController.updateRelease(
-            args.projectId,
-            args.dataset,
+            projectId,
+            dataset,
             args.releaseId,
             {
               title: args.title,
@@ -78,8 +109,15 @@ export class ReleasesToolProvider implements ToolProvider {
           dataset: z.string().optional().describe('Dataset name, if not provided will use the dataset from the environment'),
           releaseId: z.string().describe('ID of the release to archive')
         }),
-        handler: async (args: any) => {
-          return await releasesController.archiveRelease(args.projectId, args.dataset, args.releaseId);
+        handler: async (args: ReleaseIdParam) => {
+          const projectId = args.projectId || config.projectId;
+          const dataset = args.dataset || config.dataset || 'production';
+          
+          if (!projectId) {
+            throw new Error('Project ID is required. Please provide it as a parameter or set it in the environment.');
+          }
+          
+          return await releasesController.archiveRelease(projectId, dataset, args.releaseId);
         }
       },
       {
@@ -91,10 +129,17 @@ export class ReleasesToolProvider implements ToolProvider {
           releaseId: z.string().describe('ID of the release to add the document to'),
           documentId: z.string().describe('ID of the document to add to the release')
         }),
-        handler: async (args: any) => {
+        handler: async (args: AddDocumentToReleaseParams) => {
+          const projectId = args.projectId || config.projectId;
+          const dataset = args.dataset || config.dataset || 'production';
+          
+          if (!projectId) {
+            throw new Error('Project ID is required. Please provide it as a parameter or set it in the environment.');
+          }
+          
           return await releasesController.addDocumentToRelease(
-            args.projectId,
-            args.dataset,
+            projectId,
+            dataset,
             args.releaseId,
             args.documentId
           );

@@ -243,4 +243,83 @@ export interface SimpleRelease {
   id: string;
   title: string;
   status: string;
+}
+
+/**
+ * Projects-related shared interfaces
+ */
+
+export interface Project {
+  id: string;
+  displayName: string;
+  studioHost?: string;
+  externalStudioHost?: string;
+  organizationId?: string;
+}
+
+export interface Organization {
+  organizationId: string;
+  organizationName: string;
+  projects: {
+    id: string;
+    displayName: string;
+    studioHost?: string;
+    externalStudioHost?: string;
+  }[];
+}
+
+export interface Studio {
+  type: 'sanity-hosted' | 'external';
+  url: string;
+}
+
+export interface StudiosResult {
+  studios: Studio[];
+  message?: string;
+}
+
+export interface ListStudiosParams {
+  projectId: string;
+}
+
+/**
+ * Releases-related shared interfaces
+ */
+
+export interface CreateReleaseParams extends ProjectDatasetParams {
+  title: string;
+  description?: string;
+}
+
+export interface UpdateReleaseParams extends ProjectDatasetParams {
+  releaseId: string;
+  title?: string;
+  description?: string;
+}
+
+export interface ReleaseIdParam extends ProjectDatasetParams {
+  releaseId: string;
+}
+
+export interface AddDocumentToReleaseParams extends ReleaseIdParam {
+  documentId: string;
+}
+
+export interface RemoveDocumentFromReleaseParams extends ReleaseIdParam {
+  documentId: string;
+}
+
+export interface PublishReleaseParams extends ReleaseIdParam {
+  scheduledAt?: string;
+}
+
+/**
+ * Embeddings-related shared interfaces
+ */
+
+export interface SemanticSearchParams extends ProjectDatasetParams {
+  query: string;
+  indexName: string;
+  maxResults?: number;
+  types?: string | string[];
 } 

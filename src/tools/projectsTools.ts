@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { ToolDefinition } from '../types/tools.js';
 import { ToolProvider } from '../types/toolProvider.js';
 import * as projectsController from '../controllers/projects.js';
+import { Organization, ListStudiosParams, StudiosResult } from '../types/sharedTypes.js';
 
 /**
  * Projects tools provider class
@@ -23,7 +24,7 @@ export class ProjectsToolProvider implements ToolProvider {
         name: 'listOrganizationsAndProjects',
         description: 'List all organizations and their projects that the user has access to',
         parameters: z.object({}),
-        handler: async (_args: any) => {
+        handler: async (_args: {}) => {
           return await projectsController.listOrganizationsAndProjects();
         }
       },
@@ -33,7 +34,7 @@ export class ProjectsToolProvider implements ToolProvider {
         parameters: z.object({
           projectId: z.string().describe('ID of the project to list studios for')
         }),
-        handler: async (args: any) => {
+        handler: async (args: ListStudiosParams) => {
           return await projectsController.listStudios(args.projectId);
         }
       }
