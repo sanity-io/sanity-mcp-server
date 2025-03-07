@@ -7,13 +7,37 @@ export default defineConfig({
     globals: true,
     setupFiles: ['test/setup.ts'],
     testTimeout: 10000, // 10 seconds timeout for tests
-    // Define integration test categories with tags
-    tags: {
-      // Categories for integration tests
-      integration: 'Integration tests',
-      critical: 'Critical integration tests - always run pre-commit',
-      standard: 'Standard integration tests - run pre-merge',
-      extended: 'Extended integration tests - run nightly',
+    
+    // Use threads for better performance on multi-core machines
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        minThreads: 1,
+        maxThreads: 16, // Adjust based on your CPU cores
+      }
     },
+    
+    // Set up workspaces to optimize different test types
+    workspace: [
+      {
+        // Unit tests run without isolation for speed
+        extends: true, // Inherit from root config
+        test: {
+          name: 'unit-tests',
+          include: ['test/unit/**/*.test.ts'],
+          isolate: false, // Run without isolation for speed
+        }
+      },
+      {
+        // Integration tests need isolation
+        extends: true, 
+        test: {
+          name: 'integration-tests',
+          include: ['test/integration/**/*.test.ts'],
+          pool: 'forks', // Use forks for integration tests that need process isolation
+          isolate: true,
+        }
+      }
+    ]
   },
 });
