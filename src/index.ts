@@ -8,7 +8,7 @@ import {
 import { zodToJsonSchema } from 'zod-to-json-schema';
 
 import config from './config/config.js';
-import * as toolsController from './controllers/tools.js';
+import * as toolsRegistry from './tools/index.js';
 
 // Create MCP server
 const server = new Server(
@@ -25,7 +25,7 @@ const server = new Server(
 
 // Handle tool listing request
 server.setRequestHandler(ListToolsRequestSchema, async () => {
-  const tools = toolsController.getToolDefinitions();
+  const tools = toolsRegistry.getToolDefinitions();
   
   return {
     tools: tools.map(tool => ({
@@ -43,28 +43,21 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       throw new Error("Arguments are required");
     }
 
-    const result = await toolsController.executeTool(
+    const result = await toolsRegistry.executeTool(
       request.params.name, 
       request.params.arguments
     );
 
     return {
-      content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+      result
     };
   } catch (error) {
-    console.error(`Error executing tool ${request.params.name}:`, error);
-    throw error;
+    console.error("Error executing tool:", error);
+    return {
+      error: error.message
+    };
   }
 });
 
-// Run the server
-async function runServer(): Promise<void> {
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-  console.error("Sanity MCP Server running on stdio");
-}
-
-runServer().catch((error: Error) => {
-  console.error("Fatal error in main():", error);
-  process.exit(1);
-});
+// Start listening on stdio
+server.listen(new StdioServerTransport());

@@ -2,18 +2,19 @@
  * Integration test for semantic search tools
  */
 import { describe, it, expect } from 'vitest';
-import { getToolDefinitions } from '../../src/controllers/tools.js';
+import { EmbeddingsToolProvider } from '../../src/tools/embeddingsTools.js';
 
 describe('Search Tools Integration', () => {
   it('should have semanticSearch tool registered with correct parameters', () => {
-    const tools = getToolDefinitions();
-    const searchTool = tools.find(tool => tool.name === 'semanticSearch');
+    // Get tools from the embeddings tool provider
+    const embeddingsTools = new EmbeddingsToolProvider().getToolDefinitions();
+    const searchTool = embeddingsTools.find(tool => tool.name === 'semanticSearch');
     
     expect(searchTool).toBeDefined();
     expect(searchTool.description).toContain('semantic search');
     
     // Check parameter schema
-    const paramsSchema = searchTool.parameters._def.shape();
+    const paramsSchema = searchTool.parameters.shape;
     expect(paramsSchema.query).toBeDefined();
     expect(paramsSchema.indexName).toBeDefined(); // Verify new required parameter
     expect(paramsSchema.maxResults).toBeDefined();
@@ -23,14 +24,15 @@ describe('Search Tools Integration', () => {
   });
   
   it('should have listEmbeddingsIndices tool registered with correct parameters', () => {
-    const tools = getToolDefinitions();
-    const indicesListTool = tools.find(tool => tool.name === 'listEmbeddingsIndices');
+    // Get tools from the embeddings tool provider
+    const embeddingsTools = new EmbeddingsToolProvider().getToolDefinitions();
+    const indicesListTool = embeddingsTools.find(tool => tool.name === 'listEmbeddingsIndices');
     
     expect(indicesListTool).toBeDefined();
     expect(indicesListTool.description).toContain('embeddings indices');
     
     // Check parameter schema
-    const paramsSchema = indicesListTool.parameters._def.shape();
+    const paramsSchema = indicesListTool.parameters.shape;
     expect(paramsSchema.projectId).toBeDefined();
     expect(paramsSchema.dataset).toBeDefined();
   });
