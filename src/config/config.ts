@@ -11,6 +11,26 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// Parse command line arguments
+function parseCommandLineArgs() {
+  const args: Record<string, string> = {};
+  
+  for (const arg of process.argv) {
+    if (arg.startsWith('--')) {
+      const [key, value] = arg.substring(2).split('=');
+      if (key && value) {
+        // Convert kebab-case to env var format
+        const envKey = key.toUpperCase().replace(/-/g, '_');
+        args[envKey] = value;
+      }
+    }
+  }
+  
+  return args;
+}
+
+const cmdArgs = parseCommandLineArgs();
+
 // Ensure schemas directory exists
 const schemasDir = process.env.SCHEMAS_DIR || path.resolve(__dirname, '../../schemas');
 if (!fs.existsSync(schemasDir)) {
@@ -29,21 +49,21 @@ interface Config {
 }
 
 const config: Config = {
-  // Sanity token from environment variable
-  sanityToken: process.env.SANITY_TOKEN,
+  // Sanity token from environment variable or command line
+  sanityToken: cmdArgs.SANITY_TOKEN || process.env.SANITY_TOKEN,
   
-  // Sanity project ID and dataset from environment variables
-  projectId: process.env.SANITY_PROJECT_ID,
-  dataset: process.env.SANITY_DATASET,
+  // Sanity project ID and dataset from environment variables or command line
+  projectId: cmdArgs.SANITY_PROJECT_ID || process.env.SANITY_PROJECT_ID,
+  dataset: cmdArgs.SANITY_DATASET || process.env.SANITY_DATASET,
   
   // Sanity API version
-  apiVersion: process.env.SANITY_API_VERSION || '2024-05-23',
+  apiVersion: cmdArgs.SANITY_API_VERSION || process.env.SANITY_API_VERSION || '2024-05-23',
   
   // OpenAI API key for optional LLM verification
-  openAiApiKey: process.env.OPENAI_API_KEY,
+  openAiApiKey: cmdArgs.OPENAI_API_KEY || process.env.OPENAI_API_KEY,
   
   // Server port
-  port: parseInt(process.env.PORT || '3000', 10),
+  port: parseInt(cmdArgs.PORT || process.env.PORT || '3000', 10),
   
   // Path to schema files
   schemasDir,

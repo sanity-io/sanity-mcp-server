@@ -61,5 +61,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 // Start listening on stdio
 const transport = new StdioServerTransport();
-// @ts-expect-error - The MCP SDK types don't properly recognize the transport parameter implementation
-server.listen(transport);
+// Use the correct method to connect the server to the transport
+server.connect(transport).catch(error => {
+  console.error("Failed to connect server:", error);
+  process.exit(1);
+});
