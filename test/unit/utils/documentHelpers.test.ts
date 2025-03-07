@@ -75,10 +75,11 @@ describe('Document Helpers', () => {
     });
 
     it('should apply insert operation', () => {
+      const patchObj = { insert: vi.fn() };
       const patch = { 
         insert: { 
           items: ['item1', 'item2'], 
-          position: 'after', 
+          position: 'after' as 'before' | 'after' | 'replace', 
           at: 'tags[-1]' 
         } 
       };
@@ -152,7 +153,7 @@ describe('Document Helpers', () => {
     });
 
     it('should return fallback content if document does not exist', async () => {
-      const fallbackContent = { _id: 'doc123', title: 'Fallback Title' };
+      const fallbackContent = { _id: 'doc123', _type: 'document', title: 'Fallback Title' };
       mockClient.getDocument.mockResolvedValue(null);
       
       const result = await getDocumentContent(mockClient, 'doc123', fallbackContent);
@@ -184,7 +185,18 @@ describe('Document Helpers', () => {
       
       createErrorResponse('Document retrieval error', originalError);
       
-      expect(consoleSpy).toHaveBeenCalledWith('Document retrieval error:', originalError);
+      expect(consoleSpy).toHaveBeenCalledWith(
+        '[ERROR]',
+        'Error occurred:',
+        expect.objectContaining({
+          message: 'Document retrieval error',
+          code: 'UNKNOWN_ERROR',
+          source: 'document',
+          originalError: expect.objectContaining({
+            message: 'Not found'
+          })
+        })
+      );
       consoleSpy.mockRestore();
     });
   });

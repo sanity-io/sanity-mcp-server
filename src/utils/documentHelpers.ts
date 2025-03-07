@@ -2,6 +2,8 @@
  * Document helper utility functions for Sanity operations
  */
 import { SanityClient, SanityPatch, SanityDocument, SanityError, PatchOperations, InsertOperation } from '../types/sanity.js';
+import { handleError } from './errorHandler.js';
+import { logger } from './logger.js';
 
 /**
  * Normalizes document ID to ensure it has a 'drafts.' prefix
@@ -31,9 +33,8 @@ export function normalizeBaseDocId(documentId: string): string {
  * @returns The updated patch object
  */
 export function applyPatchOperations(patch: PatchOperations, patchObj: any): any {
-  // Check if patchObj is valid
-  if (!patchObj) {
-    console.error('Invalid patch object provided');
+  if (!patch) {
+    logger.error('Invalid patch object provided');
     return patchObj;
   }
 
@@ -140,20 +141,17 @@ export async function getDocumentContent(
 }
 
 /**
- * Creates a standardized error response for controller functions
- * 
+ * Creates a standardized error response
+ * @deprecated Use handleError from errorHandler.ts instead
  * @param message - The error message
  * @param error - The original error object (optional)
  * @returns Standardized error message
  */
 export function createErrorResponse(message: string, error?: Error | SanityError): Error {
-  if (error) {
-    console.error(`${message}:`, error);
-    return new Error(`${message}: ${error.message}`);
-  } else {
-    console.error(message);
-    return new Error(message);
-  }
+  return handleError(message, { 
+    originalError: error,
+    source: 'document' 
+  });
 }
 
 /**

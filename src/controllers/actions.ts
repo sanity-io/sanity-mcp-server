@@ -15,6 +15,12 @@ import {
   PatchOperations,
   SanityError
 } from '../types/sanity.js';
+import { createDomainErrorHandler, ErrorCodes } from '../utils/errorHandler.js';
+import { logger } from '../utils/logger.js';
+import type { SanityDocument as SanityClientDocument } from '@sanity/client';
+
+// Create a domain-specific error handler for actions
+const handleActionsError = createDomainErrorHandler('actions');
 
 // Define types for Sanity documents
 interface SanityDocumentStub<T extends { _type: string }> {
@@ -92,9 +98,13 @@ export async function publishDocument(
       documentId: baseDocId,
       result
     };
-  } catch (error: any) {
-    console.error(`Error publishing document:`, error);
-    throw new Error(`Failed to publish document: ${error.message}`);
+  } catch (error) {
+    // Replace the console.error with handleActionsError
+    throw handleActionsError(`Error publishing document`, {
+      originalError: error, 
+      code: ErrorCodes.SANITY_API_ERROR,
+      context: { projectId, dataset, documentId }
+    });
   }
 }
 
@@ -160,9 +170,13 @@ export async function unpublishDocument(
       draftId: `drafts.${baseDocId}`,
       result
     };
-  } catch (error: any) {
-    console.error(`Error unpublishing document:`, error);
-    throw new Error(`Failed to unpublish document: ${error.message}`);
+  } catch (error) {
+    // Replace the console.error with handleActionsError
+    throw handleActionsError(`Error unpublishing document`, {
+      originalError: error, 
+      code: ErrorCodes.SANITY_API_ERROR,
+      context: { projectId, dataset, documentId }
+    });
   }
 }
 
@@ -293,9 +307,18 @@ export async function createDocument(
       documentId: result.id,
       result: result.result
     };
-  } catch (error: any) {
-    console.error(`Error creating document:`, error);
-    throw new Error(`Failed to create document: ${error.message}`);
+  } catch (error) {
+    // Replace the console.error with handleActionsError
+    throw handleActionsError(`Error creating document`, {
+      originalError: error, 
+      code: ErrorCodes.SANITY_MUTATION_ERROR,
+      context: { 
+        projectId, 
+        dataset, 
+        documentCount: Array.isArray(documents) ? documents.length : 1,
+        options
+      }
+    });
   }
 }
 
@@ -426,9 +449,12 @@ export async function deleteDocument(
       documentId: baseDocId,
       result
     };
-  } catch (error: any) {
-    console.error(`Error deleting document:`, error);
-    throw new Error(`Failed to delete document: ${error.message}`);
+  } catch (error) {
+    throw handleActionsError(`Error deleting document`, {
+      originalError: error, 
+      code: ErrorCodes.SANITY_MUTATION_ERROR,
+      context: { projectId, dataset, documentId, options }
+    });
   }
 }
 
@@ -595,9 +621,16 @@ export async function replaceDraftDocument(
       documentId: document._id,
       result
     };
-  } catch (error: any) {
-    console.error(`Error replacing draft document:`, error);
-    throw new Error(`Failed to replace draft document: ${error.message}`);
+  } catch (error) {
+    throw handleActionsError(`Error replacing draft document`, {
+      originalError: error, 
+      code: ErrorCodes.SANITY_MUTATION_ERROR,
+      context: { 
+        projectId, 
+        dataset, 
+        documentCount: Array.isArray(documents) ? documents.length : 1
+      }
+    });
   }
 }
 
@@ -719,22 +752,36 @@ async function createSingleDocumentVersion(
   documentId: string,
   content?: Record<string, any>
 ): Promise<SanityDocument> {
-  const baseDocId = normalizeBaseDocId(documentId);
-  
-  // Get document content
-  const documentContent = await getDocumentContent(client, documentId, content);
-  
-  // Create version document
-  const versionDoc = {
-    _type: 'release.version',
-    _id: `release.version.${releaseId}.${baseDocId}`,
-    releaseId,
-    documentId: baseDocId,
-    content: content || documentContent
-  };
-  
-  // Create the version
-  return await client.create(versionDoc);
+  try {
+    const baseDocId = normalizeBaseDocId(documentId);
+    
+    // Get document content
+    const documentContent = await getDocumentContent(client, documentId, content);
+    
+    // Create version document
+    const versionDoc = {
+      _type: 'release.version',
+      _id: `release.version.${releaseId}.${baseDocId}`,
+      releaseId,
+      documentId: baseDocId,
+      content: content || documentContent
+    };
+    
+    // Create the version
+    return await client.create(versionDoc);
+  } catch (error) {
+    // Create a properly typed context object
+    const errorContext: Record<string, unknown> = {
+      releaseId,
+      documentId
+    };
+    
+    throw handleActionsError(`Error creating single document version`, {
+      originalError: error,
+      code: ErrorCodes.SANITY_MUTATION_ERROR,
+      context: errorContext
+    });
+  }
 }
 
 /**
@@ -774,9 +821,17 @@ export async function createDocumentVersion(
       
       // Process each document ID
       for (const id of documentId) {
-        const result = await createSingleDocumentVersion(client, releaseId, id, content);
-        versionIds.push(result._id);
-        results.push(result);
+        try {
+          const result = await createSingleDocumentVersion(client, releaseId, id, content);
+          versionIds.push(result._id);
+          results.push(result);
+        } catch (innerError) {
+          throw handleActionsError(`Error creating version for document ${id}`, {
+            originalError: innerError,
+            code: ErrorCodes.SANITY_MUTATION_ERROR,
+            context: { releaseId, documentId: id } as Record<string, unknown>
+          });
+        }
       }
       
       return {
@@ -796,9 +851,26 @@ export async function createDocumentVersion(
       versionId: result._id,
       result
     };
-  } catch (error: any) {
-    console.error(`Error creating document version:`, error);
-    throw new Error(`Failed to create document version: ${error.message}`);
+  } catch (error) {
+    // Create a properly typed context object
+    const errorContext: Record<string, unknown> = {
+      projectId,
+      dataset,
+      releaseId
+    };
+    
+    // Handle different types of documentId safely
+    if (Array.isArray(documentId)) {
+      errorContext.documentIds = documentId;
+    } else {
+      errorContext.documentId = documentId;
+    }
+    
+    throw handleActionsError(`Error creating document version`, {
+      originalError: error,
+      code: ErrorCodes.SANITY_MUTATION_ERROR,
+      context: errorContext
+    });
   }
 }
 
@@ -866,9 +938,12 @@ export async function discardDocumentVersion(
       versionId,
       result
     };
-  } catch (error: any) {
-    console.error(`Error discarding document version:`, error);
-    throw new Error(`Failed to discard document version: ${error.message}`);
+  } catch (error) {
+    throw handleActionsError(`Error discarding document version`, {
+      originalError: error, 
+      code: ErrorCodes.SANITY_MUTATION_ERROR,
+      context: { projectId, dataset, versionId, options }
+    });
   }
 }
 
@@ -953,9 +1028,26 @@ export async function unpublishDocumentWithRelease(
       documentId: baseDocId,
       result
     };
-  } catch (error: any) {
-    console.error(`Error marking document for unpublishing:`, error);
-    throw new Error(`Failed to mark document for unpublishing: ${error.message}`);
+  } catch (error) {
+    // Create a properly typed context object
+    const errorContext: Record<string, unknown> = {
+      projectId,
+      dataset,
+      releaseId
+    };
+    
+    // Handle different types of documentId safely
+    if (Array.isArray(documentId)) {
+      errorContext.documentIds = documentId;
+    } else {
+      errorContext.documentId = documentId;
+    }
+    
+    throw handleActionsError(`Error unpublishing document with release`, {
+      originalError: error,
+      code: ErrorCodes.SANITY_MUTATION_ERROR,
+      context: errorContext
+    });
   }
 }
 
