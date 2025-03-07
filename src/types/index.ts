@@ -85,14 +85,6 @@ export interface DocumentMutation {
   };
 }
 
-// Portable text operation
-export interface PortableTextOperation {
-  type: 'insert' | 'replace' | 'remove';
-  position: 'beginning' | 'end' | 'at';
-  atIndex?: number;
-  value?: any;
-}
-
 // Actions related types
 export interface Release {
   id: string;

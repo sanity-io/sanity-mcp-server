@@ -1,11 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createSanityClient } from '../../src/utils/sanityClient.js';
-import { modifyDocuments, modifyPortableTextField, Mutation, PortableTextOperation } from '../../src/controllers/mutate.js';
-import { markdownToPortableText } from '../../src/utils/portableText.js';
+import { modifyDocuments, Mutation } from '../../src/controllers/mutate.js';
 
 // Mock the sanityClient and portableText utils
 vi.mock('../../src/utils/sanityClient.js');
-vi.mock('../../src/utils/portableText.js');
 
 describe('Mutate Controller', () => {
   // Mock client and its methods
@@ -55,16 +53,6 @@ describe('Mutate Controller', () => {
         });
       }
       return Promise.reject(new Error(`Document ${id} not found`));
-    });
-    
-    // Mock portable text conversion
-    (markdownToPortableText as any).mockImplementation((markdown: string) => {
-      return [
-        { 
-          _type: 'block', 
-          children: [{ _type: 'span', text: `Converted from markdown: ${markdown}` }] 
-        }
-      ];
     });
     
     // Clear mock call history
@@ -326,183 +314,6 @@ describe('Mutate Controller', () => {
       
       await expect(modifyDocuments('project123', 'dataset123', mutations))
         .rejects.toThrow('Failed to modify documents: Transaction failed');
-    });
-  });
-  
-  describe('modifyPortableTextField', () => {
-    it('should replace portable text field with new content', async () => {
-      const operations: PortableTextOperation[] = [
-        {
-          type: 'replace',
-          value: 'New markdown content'
-        }
-      ];
-      
-      const result = await modifyPortableTextField('project123', 'dataset123', 'article123', 'body', operations);
-      
-      expect(createSanityClient).toHaveBeenCalledWith('project123', 'dataset123');
-      expect(mockClient.patch).toHaveBeenCalledWith('article123');
-      expect(markdownToPortableText).toHaveBeenCalledWith('New markdown content');
-      expect(mockPatch.set).toHaveBeenCalledWith({
-        body: [{ _type: 'block', children: [{ _type: 'span', text: 'Converted from markdown: New markdown content' }] }]
-      });
-      
-      expect(result).toEqual(expect.objectContaining({
-        success: true,
-        documentId: 'article123',
-        operations: 1
-      }));
-    });
-    
-    it('should insert content at the beginning of field', async () => {
-      const operations: PortableTextOperation[] = [
-        {
-          type: 'insert',
-          position: 'beginning',
-          value: 'New heading'
-        }
-      ];
-      
-      const result = await modifyPortableTextField('project123', 'dataset123', 'article123', 'body', operations);
-      
-      expect(mockClient.getDocument).toHaveBeenCalledWith('article123');
-      expect(markdownToPortableText).toHaveBeenCalledWith('New heading');
-      expect(mockPatch.set).toHaveBeenCalledWith({
-        body: [
-          { _type: 'block', children: [{ _type: 'span', text: 'Converted from markdown: New heading' }] },
-          { _type: 'block', children: [{ _type: 'span', text: 'Existing text' }] }
-        ]
-      });
-      
-      expect(result).toEqual(expect.objectContaining({
-        success: true
-      }));
-    });
-    
-    it('should insert content at the end of field', async () => {
-      const operations: PortableTextOperation[] = [
-        {
-          type: 'insert',
-          position: 'end',
-          value: 'New conclusion'
-        }
-      ];
-      
-      const result = await modifyPortableTextField('project123', 'dataset123', 'article123', 'body', operations);
-      
-      expect(mockClient.getDocument).toHaveBeenCalledWith('article123');
-      expect(markdownToPortableText).toHaveBeenCalledWith('New conclusion');
-      expect(mockPatch.set).toHaveBeenCalledWith({
-        body: [
-          { _type: 'block', children: [{ _type: 'span', text: 'Existing text' }] },
-          { _type: 'block', children: [{ _type: 'span', text: 'Converted from markdown: New conclusion' }] }
-        ]
-      });
-      
-      expect(result).toEqual(expect.objectContaining({
-        success: true
-      }));
-    });
-    
-    it('should insert content at a specific position', async () => {
-      const operations: PortableTextOperation[] = [
-        {
-          type: 'insert',
-          position: 'at',
-          atIndex: 0,
-          value: 'New content'
-        }
-      ];
-      
-      const result = await modifyPortableTextField('project123', 'dataset123', 'article123', 'body', operations);
-      
-      expect(mockClient.getDocument).toHaveBeenCalledWith('article123');
-      expect(markdownToPortableText).toHaveBeenCalledWith('New content');
-      expect(mockPatch.set).toHaveBeenCalled();
-      
-      expect(result).toEqual(expect.objectContaining({
-        success: true
-      }));
-    });
-    
-    it('should replace content at a specific position', async () => {
-      const operations: PortableTextOperation[] = [
-        {
-          type: 'replace',
-          position: 'at',
-          atIndex: 0,
-          value: 'Replacement content'
-        }
-      ];
-      
-      const result = await modifyPortableTextField('project123', 'dataset123', 'article123', 'body', operations);
-      
-      expect(mockClient.getDocument).toHaveBeenCalledWith('article123');
-      expect(markdownToPortableText).toHaveBeenCalledWith('Replacement content');
-      expect(mockPatch.set).toHaveBeenCalled();
-      
-      expect(result).toEqual(expect.objectContaining({
-        success: true
-      }));
-    });
-    
-    it('should remove content at a specific position', async () => {
-      const operations: PortableTextOperation[] = [
-        {
-          type: 'remove',
-          position: 'at',
-          atIndex: 0
-        }
-      ];
-      
-      const result = await modifyPortableTextField('project123', 'dataset123', 'article123', 'body', operations);
-      
-      expect(mockClient.getDocument).toHaveBeenCalledWith('article123');
-      expect(mockPatch.set).toHaveBeenCalledWith({
-        body: []
-      });
-      
-      expect(result).toEqual(expect.objectContaining({
-        success: true
-      }));
-    });
-    
-    it('should handle multiple operations in sequence', async () => {
-      const operations: PortableTextOperation[] = [
-        {
-          type: 'replace',
-          value: 'Initial content'
-        },
-        {
-          type: 'insert',
-          position: 'end',
-          value: 'Additional content'
-        }
-      ];
-      
-      const result = await modifyPortableTextField('project123', 'dataset123', 'article123', 'body', operations);
-      
-      expect(markdownToPortableText).toHaveBeenCalledTimes(2);
-      expect(mockPatch.set).toHaveBeenCalledTimes(2);
-      
-      expect(result).toEqual(expect.objectContaining({
-        success: true,
-        operations: 2
-      }));
-    });
-    
-    it('should throw an error when the patch fails', async () => {
-      mockPatch.commit.mockRejectedValueOnce(new Error('Patch failed'));
-      
-      const operations: PortableTextOperation[] = [
-        {
-          type: 'replace',
-          value: 'New content'
-        }
-      ];
-      
-      await expect(modifyPortableTextField('project123', 'dataset123', 'article123', 'body', operations))
-        .rejects.toThrow('Failed to modify Portable Text field: Patch failed');
     });
   });
 });

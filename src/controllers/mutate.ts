@@ -1,5 +1,4 @@
 import { createSanityClient } from '../utils/sanityClient.js';
-import { markdownToPortableText } from '../utils/portableText.js';
 
 // Define types for mutations
 interface SanityDocumentStub<T extends { _type: string }> {
@@ -80,13 +79,6 @@ export type Mutation =
   | DeleteByQueryMutation 
   | PatchByIdMutation 
   | PatchByQueryMutation;
-
-export interface PortableTextOperation {
-  type: 'insert' | 'replace' | 'remove';
-  position?: 'beginning' | 'end' | 'at';
-  atIndex?: number;
-  value?: string | any[] | any;
-}
 
 /**
  * Creates or updates documents using Sanity mutations
@@ -246,162 +238,6 @@ export async function modifyDocuments(
   } catch (error: any) {
     console.error(`Error modifying documents:`, error);
     throw new Error(`Failed to modify documents: ${error.message}`);
-  }
-}
-
-/**
- * Modifies a Portable Text field using Markdown
- * 
- * @param projectId - Sanity project ID
- * @param dataset - Dataset name
- * @param documentId - Document ID to modify
- * @param fieldPath - Path to the Portable Text field (e.g., "body")
- * @param operations - Array of operations to perform on the field
- * @param returnDocument - Whether to return the modified document
- * @returns Result of the modification operation
- */
-export async function modifyPortableTextField(
-  projectId: string, 
-  dataset: string, 
-  documentId: string, 
-  fieldPath: string, 
-  operations: PortableTextOperation[],
-  returnDocument: boolean = false
-): Promise<{
-  success: boolean;
-  message: string;
-  documentId: string;
-  operations: number;
-  result: any;
-  document?: any;
-}> {
-  try {
-    const client = createSanityClient(projectId, dataset);
-    
-    // Create a patch for the document
-    const patch = client.patch(documentId);
-    
-    // Process each operation
-    for (const op of operations) {
-      switch (op.type) {
-        case 'insert':
-          if (!op.value) continue;
-          
-          // Convert value if it's markdown
-          const content = typeof op.value === 'string' 
-            ? markdownToPortableText(op.value) 
-            : op.value;
-          
-          // Handle insertion at different positions
-          if (op.position === 'beginning') {
-            // Get current field value first
-            const doc = await client.getDocument(documentId);
-            const currentField = doc && doc[fieldPath] ? doc[fieldPath] : [];
-            
-            // Set the field with new content at beginning
-            patch.set({
-              [fieldPath]: [...(Array.isArray(content) ? content : [content]), ...currentField]
-            });
-          } else if (op.position === 'end') {
-            // Get current field value first
-            const doc = await client.getDocument(documentId);
-            const currentField = doc && doc[fieldPath] ? doc[fieldPath] : [];
-            
-            // Set the field with new content at end
-            patch.set({
-              [fieldPath]: [...currentField, ...(Array.isArray(content) ? content : [content])]
-            });
-          } else if (op.position === 'at' && op.atIndex !== undefined) {
-            // Get current field value first
-            const doc = await client.getDocument(documentId);
-            const currentField = doc && doc[fieldPath] ? doc[fieldPath] : [];
-            
-            // Insert at specific position
-            const newContent = [...currentField];
-            newContent.splice(op.atIndex, 0, ...(Array.isArray(content) ? content : [content]));
-            
-            patch.set({
-              [fieldPath]: newContent
-            });
-          }
-          break;
-          
-        case 'replace':
-          if (!op.value) continue;
-          
-          // Convert value if it's markdown
-          const replacementContent = typeof op.value === 'string' 
-            ? markdownToPortableText(op.value) 
-            : op.value;
-          
-          if (op.position === 'at' && op.atIndex !== undefined) {
-            // Get current field value first
-            const doc = await client.getDocument(documentId);
-            const currentField = doc && doc[fieldPath] ? doc[fieldPath] : [];
-            
-            // Replace at specific position
-            const newContent = [...currentField];
-            newContent.splice(op.atIndex, 1, ...(Array.isArray(replacementContent) ? replacementContent : [replacementContent]));
-            
-            patch.set({
-              [fieldPath]: newContent
-            });
-          } else {
-            // Full replacement
-            patch.set({
-              [fieldPath]: replacementContent
-            });
-          }
-          break;
-          
-        case 'remove':
-          if (op.position === 'at' && op.atIndex !== undefined) {
-            // Get current field value first
-            const doc = await client.getDocument(documentId);
-            const currentField = doc && doc[fieldPath] ? doc[fieldPath] : [];
-            
-            // Remove at specific position
-            const newContent = [...currentField];
-            newContent.splice(op.atIndex, 1);
-            
-            patch.set({
-              [fieldPath]: newContent
-            });
-          }
-          break;
-          
-        default:
-          // Unknown operation
-          console.warn(`Unknown operation type: ${op.type}`);
-      }
-    }
-    
-    // Commit the patches
-    const result = await patch.commit();
-    
-    if (returnDocument) {
-      const document = await client.getDocument(documentId);
-      
-      return {
-        success: true,
-        message: `Modified Portable Text field '${fieldPath}' in document ${documentId}`,
-        documentId,
-        operations: operations.length,
-        result,
-        document
-      };
-    } else {
-      return {
-        success: true,
-        message: `Modified Portable Text field '${fieldPath}' in document ${documentId}`,
-        documentId,
-        operations: operations.length,
-        result
-      };
-    }
-  } catch (error: any) {
-    console.error(`Error modifying Portable Text field:`, error);
-    throw new Error(`Failed to modify Portable Text field: ${error.message}`);
   }
 }
 

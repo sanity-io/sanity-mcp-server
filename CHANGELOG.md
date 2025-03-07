@@ -10,6 +10,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ESLint configuration for TypeScript code quality
 - Test-specific ESLint rules to prevent noise in test files
 - Code coverage reporting with Vitest
+- SonarJS and complexity plugins for ESLint
+- Code duplication detection with jscpd
+- Automated quality reporting with impact/effort prioritization
+- New npm scripts:
+  - `find:duplicates`: Find duplicate code blocks
+  - `complexity`: Check for cyclomatic and cognitive complexity
+  - `quality:check`: Run all quality checks
+  - `quality:report`: Generate prioritized improvement recommendations
+- New utility module `documentHelpers.ts` for common Sanity document operations
+
+### Changed
+- Refactored `editDocument` function to reduce cognitive complexity
+- Refactored `createDocumentVersion` function to reduce cognitive complexity
+- Extracted repeated document ID normalization code into utility functions
+- Improved error handling consistency
+
+### Removed
+- Removed `modifyPortableTextField` functionality and related code from controllers, tools, and tests
+- Removed redundant `PortableTextOperation` interfaces from type definitions
+- `modifyPortableTextField` function and associated functionality
+- `PortableTextOperation` interface
 
 ### Fixed
 - Converted variable declarations from 'let' to 'const' where appropriate

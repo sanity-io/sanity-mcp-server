@@ -1,0 +1,890 @@
+{
+  "statistics": {
+    "detectionDate": "2025-03-07T00:33:12.250Z",
+    "formats": {
+      "typescript": {
+        "sources": {
+          "src/utils/sanityClient.ts": {
+            "lines": 177,
+            "tokens": 1221,
+            "sources": 1,
+            "clones": 1,
+            "duplicatedLines": 16,
+            "duplicatedTokens": 160,
+            "percentage": 9.04,
+            "percentageTokens": 13.1,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/utils/portableText.ts": {
+            "lines": 218,
+            "tokens": 1678,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/types/tools.ts": {
+            "lines": 20,
+            "tokens": 169,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/types/toolProvider.ts": {
+            "lines": 15,
+            "tokens": 38,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/types/index.ts": {
+            "lines": 110,
+            "tokens": 726,
+            "sources": 1,
+            "clones": 1,
+            "duplicatedLines": 16,
+            "duplicatedTokens": 160,
+            "percentage": 14.55,
+            "percentageTokens": 22.04,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/tools/schemaTools.ts": {
+            "lines": 58,
+            "tokens": 493,
+            "sources": 1,
+            "clones": 2,
+            "duplicatedLines": 12,
+            "duplicatedTokens": 156,
+            "percentage": 20.69,
+            "percentageTokens": 31.64,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/tools/releasesTools.ts": {
+            "lines": 104,
+            "tokens": 885,
+            "sources": 1,
+            "clones": 1,
+            "duplicatedLines": 6,
+            "duplicatedTokens": 78,
+            "percentage": 5.77,
+            "percentageTokens": 8.81,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/tools/projectsTools.ts": {
+            "lines": 41,
+            "tokens": 247,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/tools/mutateTools.ts": {
+            "lines": 226,
+            "tokens": 2342,
+            "sources": 1,
+            "clones": 6,
+            "duplicatedLines": 46,
+            "duplicatedTokens": 744,
+            "percentage": 20.35,
+            "percentageTokens": 31.77,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/tools/index.ts": {
+            "lines": 91,
+            "tokens": 587,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/tools/groqTools.ts": {
+            "lines": 85,
+            "tokens": 739,
+            "sources": 1,
+            "clones": 2,
+            "duplicatedLines": 36,
+            "duplicatedTokens": 354,
+            "percentage": 42.35,
+            "percentageTokens": 47.9,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/tools/embeddingsTools.ts": {
+            "lines": 57,
+            "tokens": 461,
+            "sources": 1,
+            "clones": 1,
+            "duplicatedLines": 6,
+            "duplicatedTokens": 78,
+            "percentage": 10.53,
+            "percentageTokens": 16.92,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/tools/contextTools.ts": {
+            "lines": 97,
+            "tokens": 675,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/tools/actionsTools.ts": {
+            "lines": 65,
+            "tokens": 534,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/controllers/schema.ts": {
+            "lines": 203,
+            "tokens": 1500,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/controllers/releases.ts": {
+            "lines": 846,
+            "tokens": 5461,
+            "sources": 1,
+            "clones": 2,
+            "duplicatedLines": 90,
+            "duplicatedTokens": 616,
+            "percentage": 10.64,
+            "percentageTokens": 11.28,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/controllers/projects.ts": {
+            "lines": 134,
+            "tokens": 915,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/controllers/mutate.ts": {
+            "lines": 453,
+            "tokens": 3537,
+            "sources": 1,
+            "clones": 3,
+            "duplicatedLines": 46,
+            "duplicatedTokens": 370,
+            "percentage": 10.15,
+            "percentageTokens": 10.46,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/controllers/groq.ts": {
+            "lines": 334,
+            "tokens": 2471,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/controllers/embeddings.ts": {
+            "lines": 168,
+            "tokens": 1287,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/controllers/actions.ts": {
+            "lines": 837,
+            "tokens": 5862,
+            "sources": 1,
+            "clones": 13,
+            "duplicatedLines": 238,
+            "duplicatedTokens": 1770,
+            "percentage": 28.43,
+            "percentageTokens": 30.19,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/config/config.ts": {
+            "lines": 70,
+            "tokens": 503,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/index.ts": {
+            "lines": 64,
+            "tokens": 443,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          }
+        },
+        "total": {
+          "lines": 4473,
+          "tokens": 32774,
+          "sources": 23,
+          "clones": 16,
+          "duplicatedLines": 256,
+          "duplicatedTokens": 2243,
+          "percentage": 5.72,
+          "percentageTokens": 6.84,
+          "newDuplicatedLines": 0,
+          "newClones": 0
+        }
+      }
+    },
+    "total": {
+      "lines": 4473,
+      "tokens": 32774,
+      "sources": 23,
+      "clones": 16,
+      "duplicatedLines": 256,
+      "duplicatedTokens": 2243,
+      "percentage": 5.72,
+      "percentageTokens": 6.84,
+      "newDuplicatedLines": 0,
+      "newClones": 0
+    }
+  },
+  "duplicates": [
+    {
+      "format": "typescript",
+      "lines": 17,
+      "fragment": "{\n  create?: Record<string, any>;\n  createOrReplace?: Record<string, any>;\n  createIfNotExists?: Record<string, any>;\n  patch?: {\n    id: string;\n    set?: Record<string, any>;\n    setIfMissing?: Record<string, any>;\n    unset?: string[];\n    insert?: Record<string, any>;\n    inc?: Record<string, any>;\n    dec?: Record<string, any>;\n  };\n  delete?: {\n    id: string;\n  };\n}",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/types/index.ts",
+        "start": 70,
+        "end": 86,
+        "startLoc": {
+          "line": 70,
+          "column": 2,
+          "position": 415
+        },
+        "endLoc": {
+          "line": 86,
+          "column": 2,
+          "position": 575
+        }
+      },
+      "secondFile": {
+        "name": "src/utils/sanityClient.ts",
+        "start": 41,
+        "end": 57,
+        "startLoc": {
+          "line": 41,
+          "column": 2,
+          "position": 225
+        },
+        "endLoc": {
+          "line": 57,
+          "column": 25,
+          "position": 386
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 7,
+      "fragment": ",\n        parameters: z.object({\n          projectId: z.string().optional().describe('Project ID, if not provided will use the project ID from the environment'),\n          dataset: z.string().optional().describe('Dataset name, if not provided will use the dataset from the environment')\n        }),\n        handler: async (args: any) => {\n          return await releasesController",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/tools/releasesTools.ts",
+        "start": 42,
+        "end": 48,
+        "startLoc": {
+          "line": 42,
+          "column": 29,
+          "position": 273
+        },
+        "endLoc": {
+          "line": 48,
+          "column": 19,
+          "position": 351
+        }
+      },
+      "secondFile": {
+        "name": "src/tools/schemaTools.ts",
+        "start": 24,
+        "end": 30,
+        "startLoc": {
+          "line": 24,
+          "column": 52,
+          "position": 104
+        },
+        "endLoc": {
+          "line": 30,
+          "column": 17,
+          "position": 182
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 6,
+      "fragment": ",\n        parameters: z.object({\n          projectId: z.string().optional().describe('Project ID, if not provided will use the project ID from the environment'),\n          dataset: z.string().optional().describe('Dataset name, if not provided will use the dataset from the environment'),\n          documentId: z.string().describe('ID of the document to update'),\n          document",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/tools/mutateTools.ts",
+        "start": 91,
+        "end": 96,
+        "startLoc": {
+          "line": 91,
+          "column": 30,
+          "position": 869
+        },
+        "endLoc": {
+          "line": 96,
+          "column": 9,
+          "position": 938
+        }
+      },
+      "secondFile": {
+        "name": "src/tools/mutateTools.ts",
+        "start": 64,
+        "end": 69,
+        "startLoc": {
+          "line": 64,
+          "column": 46,
+          "position": 537
+        },
+        "endLoc": {
+          "line": 69,
+          "column": 10,
+          "position": 606
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 6,
+      "fragment": ",\n        parameters: z.object({\n          projectId: z.string().optional().describe('Project ID, if not provided will use the project ID from the environment'),\n          dataset: z.string().optional().describe('Dataset name, if not provided will use the dataset from the environment'),\n          mutations: z.array(z.record(z.any())).describe('Array of mutation objects'),\n          options",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/tools/mutateTools.ts",
+        "start": 177,
+        "end": 182,
+        "startLoc": {
+          "line": 177,
+          "column": 31,
+          "position": 1756
+        },
+        "endLoc": {
+          "line": 182,
+          "column": 8,
+          "position": 1835
+        }
+      },
+      "secondFile": {
+        "name": "src/tools/mutateTools.ts",
+        "start": 46,
+        "end": 51,
+        "startLoc": {
+          "line": 46,
+          "column": 31,
+          "position": 355
+        },
+        "endLoc": {
+          "line": 51,
+          "column": 16,
+          "position": 434
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 14,
+      "fragment": ",\n        description: 'Update a Portable Text field using markdown',\n        parameters: z.object({\n          projectId: z.string().optional().describe('Project ID, if not provided will use the project ID from the environment'),\n          dataset: z.string().optional().describe('Dataset name, if not provided will use the dataset from the environment'),\n          documentId: z.string().describe('ID of the document to update'),\n          fieldPath: z.string().describe('Path to the Portable Text field (e.g., \"body\")'),\n          operations: z.array(z.object({\n            type: z.enum(['insert', 'replace', 'remove']).describe('Type of operation'),\n            position: z.enum(['beginning', 'end', 'at']).optional().describe('Position to insert/replace at'),\n            atIndex: z.number().optional().describe('Index to insert/replace/remove at'),\n            value: z.union([z.string(), z.any()]).optional().describe('Value to insert/replace (markdown string or PT blocks)')\n          })).describe('Array of operations to perform'),\n          options",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/tools/mutateTools.ts",
+        "start": 197,
+        "end": 210,
+        "startLoc": {
+          "line": 197,
+          "column": 21,
+          "position": 1986
+        },
+        "endLoc": {
+          "line": 210,
+          "column": 8,
+          "position": 2210
+        }
+      },
+      "secondFile": {
+        "name": "src/tools/mutateTools.ts",
+        "start": 63,
+        "end": 76,
+        "startLoc": {
+          "line": 63,
+          "column": 18,
+          "position": 530
+        },
+        "endLoc": {
+          "line": 76,
+          "column": 15,
+          "position": 754
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 19,
+      "fragment": ",\n        description: 'Run a GROQ query against the dataset',\n        parameters: z.object({\n          projectId: z.string().optional().describe('Project ID, if not provided will use the project ID from the environment'),\n          dataset: z.string().optional().describe('Dataset name, if not provided will use the dataset from the environment'),\n          query: z.string().describe('GROQ query to run'),\n          params: z.record(z.any()).optional().describe('Optional parameters for the GROQ query')\n        }),\n        handler: async (args: any) => {\n          return await groqController.searchContent(\n            args.projectId,\n            args.dataset,\n            args.query,\n            args.params || {}\n          );\n        }\n      },\n      {\n        name: 'getDocument'",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/tools/groqTools.ts",
+        "start": 49,
+        "end": 67,
+        "startLoc": {
+          "line": 49,
+          "column": 8,
+          "position": 337
+        },
+        "endLoc": {
+          "line": 67,
+          "column": 14,
+          "position": 514
+        }
+      },
+      "secondFile": {
+        "name": "src/tools/groqTools.ts",
+        "start": 31,
+        "end": 49,
+        "startLoc": {
+          "line": 31,
+          "column": 14,
+          "position": 159
+        },
+        "endLoc": {
+          "line": 49,
+          "column": 8,
+          "position": 336
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 7,
+      "fragment": ",\n        parameters: z.object({\n          projectId: z.string().optional().describe('Project ID, if not provided will use the project ID from the environment'),\n          dataset: z.string().optional().describe('Dataset name, if not provided will use the dataset from the environment')\n        }),\n        handler: async (args: any) => {\n          return await embeddingsController",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/tools/embeddingsTools.ts",
+        "start": 23,
+        "end": 29,
+        "startLoc": {
+          "line": 23,
+          "column": 68,
+          "position": 86
+        },
+        "endLoc": {
+          "line": 29,
+          "column": 21,
+          "position": 164
+        }
+      },
+      "secondFile": {
+        "name": "src/tools/schemaTools.ts",
+        "start": 24,
+        "end": 30,
+        "startLoc": {
+          "line": 24,
+          "column": 52,
+          "position": 104
+        },
+        "endLoc": {
+          "line": 30,
+          "column": 17,
+          "position": 182
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 46,
+      "fragment": ": string[];\n  result: any;\n}> {\n  try {\n    // Check API version first\n    validateApiVersion();\n    \n    // WORKAROUND: Handle the case where documentIds might be a JSON string representation of an array\n    // Due to an issue in the MCP SDK's transport layer, arrays of strings sometimes arrive as serialized JSON strings\n    // rather than being properly deserialized into actual arrays.\n    let parsedDocIds: string[];\n    \n    if (Array.isArray(documentIds)) {\n      // Already an array - use as is\n      parsedDocIds = documentIds;\n    } else if (typeof documentIds === 'string') {\n      // Check if this is a JSON string array\n      if (documentIds.startsWith('[') && documentIds.endsWith(']')) {\n        try {\n          // Attempt to parse as JSON\n          const parsed = JSON.parse(documentIds);\n          if (Array.isArray(parsed)) {\n            // Successfully parsed as array\n            parsedDocIds = parsed;\n          } else {\n            // Parsed as something else (object, number, etc.) - treat as single ID\n            parsedDocIds = [documentIds];\n          }\n        } catch (e) {\n          // If parsing fails, treat as a single string\n          parsedDocIds = [documentIds];\n        }\n      } else {\n        // Regular string - treat as single ID\n        parsedDocIds = [documentIds];\n      }\n    } else {\n      // Unexpected type - convert to string and use as single ID\n      parsedDocIds = [String(documentIds)];\n    }\n    \n    if (parsedDocIds.length === 0) {\n      throw new Error(\"No document IDs provided\");\n    }\n    \n    const",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/controllers/releases.ts",
+        "start": 266,
+        "end": 311,
+        "startLoc": {
+          "line": 266,
+          "column": 12,
+          "position": 1843
+        },
+        "endLoc": {
+          "line": 311,
+          "column": 6,
+          "position": 2151
+        }
+      },
+      "secondFile": {
+        "name": "src/controllers/releases.ts",
+        "start": 119,
+        "end": 164,
+        "startLoc": {
+          "line": 119,
+          "column": 11,
+          "position": 798
+        },
+        "endLoc": {
+          "line": 164,
+          "column": 25,
+          "position": 1106
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 16,
+      "fragment": ";\n    set?: Record<string, any>;\n    setIfMissing?: Record<string, any>;\n    unset?: string | string[];\n    inc?: Record<string, number>;\n    dec?: Record<string, number>;\n    insert?: {\n      items: any[] | any;\n      position: 'before' | 'after' | 'replace';\n      at: string;\n    };\n    diffMatchPatch?: Record<string, string>;\n  };\n}\n\nexport type",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/controllers/mutate.ts",
+        "start": 60,
+        "end": 75,
+        "startLoc": {
+          "line": 60,
+          "column": 2,
+          "position": 466
+        },
+        "endLoc": {
+          "line": 75,
+          "column": 5,
+          "position": 607
+        }
+      },
+      "secondFile": {
+        "name": "src/controllers/mutate.ts",
+        "start": 42,
+        "end": 57,
+        "startLoc": {
+          "line": 42,
+          "column": 7,
+          "position": 294
+        },
+        "endLoc": {
+          "line": 57,
+          "column": 10,
+          "position": 435
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 17,
+      "fragment": "interface SanityDocumentStub<T extends { _type: string }> {\n  _type: string;\n  [key: string]: any;\n}\n\ninterface IdentifiedSanityDocumentStub<T extends Record<string, any>> extends SanityDocumentStub<T & { _type: string }> {\n  _id: string;\n}\n\n/**\n * Publishes a document or multiple documents (makes draft the published version)\n * \n * @param projectId - Sanity project ID\n * @param dataset - Dataset name\n * @param documentId - The document ID or array of IDs to publish\n * @returns Result of the publish operation\n */",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/controllers/actions.ts",
+        "start": 4,
+        "end": 20,
+        "startLoc": {
+          "line": 4,
+          "column": 1,
+          "position": 19
+        },
+        "endLoc": {
+          "line": 20,
+          "column": 4,
+          "position": 107
+        }
+      },
+      "secondFile": {
+        "name": "src/controllers/mutate.ts",
+        "start": 5,
+        "end": 14,
+        "startLoc": {
+          "line": 5,
+          "column": 1,
+          "position": 29
+        },
+        "endLoc": {
+          "line": 14,
+          "column": 7,
+          "position": 117
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 19,
+      "fragment": "): Promise<{\n  success: boolean;\n  message: string;\n  documentId?: string;\n  documentIds?: string[];\n  result: any;\n}> {\n  try {\n    const client = createSanityClient(projectId, dataset);\n    \n    // Handle array of document IDs\n    if (Array.isArray(documentId)) {\n      if (documentId.length === 0) {\n        throw new Error('Empty array of document IDs provided');\n      }\n      \n      // Process each document ID\n      const transaction = client.transaction();\n      const",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/controllers/actions.ts",
+        "start": 366,
+        "end": 384,
+        "startLoc": {
+          "line": 366,
+          "column": 1,
+          "position": 2641
+        },
+        "endLoc": {
+          "line": 384,
+          "column": 6,
+          "position": 2781
+        }
+      },
+      "secondFile": {
+        "name": "src/controllers/actions.ts",
+        "start": 272,
+        "end": 291,
+        "startLoc": {
+          "line": 272,
+          "column": 1,
+          "position": 1895
+        },
+        "endLoc": {
+          "line": 291,
+          "column": 4,
+          "position": 2037
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 16,
+      "fragment": "// Delete any additional draft IDs specified\n    if (options?.includeDrafts && options.includeDrafts.length > 0) {\n      options.includeDrafts.forEach(id => {\n        transaction.delete(id);\n      });\n    }\n    \n    // Commit the transaction\n    const result = await transaction.commit({\n      // If purge is true, completely remove document from history\n      visibility: options?.purge ? 'async' : 'sync'\n    });\n    \n    return {\n      success: true,\n      message: `Document ",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/controllers/actions.ts",
+        "start": 435,
+        "end": 450,
+        "startLoc": {
+          "line": 435,
+          "column": 5,
+          "position": 3123
+        },
+        "endLoc": {
+          "line": 450,
+          "column": 11,
+          "position": 3242
+        }
+      },
+      "secondFile": {
+        "name": "src/controllers/actions.ts",
+        "start": 400,
+        "end": 415,
+        "startLoc": {
+          "line": 400,
+          "column": 7,
+          "position": 2888
+        },
+        "endLoc": {
+          "line": 415,
+          "column": 2,
+          "position": 3007
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 19,
+      "fragment": "): Promise<{\n  success: boolean;\n  message: string;\n  documentId?: string;\n  documentIds?: string[];\n  result: any;\n}> {\n  try {\n    const client = createSanityClient(projectId, dataset);\n    \n    // Handle array of documents\n    if (Array.isArray(documents)) {\n      if (documents.length === 0) {\n        throw new Error('Empty array of documents provided');\n      }\n      \n      // Validate and prepare each document\n      const preparedDocs = documents.map(doc => {\n        // Ensure document has _type and _id",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/controllers/actions.ts",
+        "start": 472,
+        "end": 490,
+        "startLoc": {
+          "line": 472,
+          "column": 1,
+          "position": 3363
+        },
+        "endLoc": {
+          "line": 490,
+          "column": 37,
+          "position": 3506
+        }
+      },
+      "secondFile": {
+        "name": "src/controllers/actions.ts",
+        "start": 169,
+        "end": 187,
+        "startLoc": {
+          "line": 169,
+          "column": 1,
+          "position": 1111
+        },
+        "endLoc": {
+          "line": 187,
+          "column": 29,
+          "position": 1254
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 13,
+      "fragment": "?: string[];\n  result: any;\n}> {\n  try {\n    const client = createSanityClient(projectId, dataset);\n    \n    // Handle array of document IDs\n    if (Array.isArray(documentId)) {\n      if (documentId.length === 0) {\n        throw new Error('Empty array of document IDs provided');\n      }\n      \n      const",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/controllers/actions.ts",
+        "start": 576,
+        "end": 588,
+        "startLoc": {
+          "line": 576,
+          "column": 11,
+          "position": 4092
+        },
+        "endLoc": {
+          "line": 588,
+          "column": 6,
+          "position": 4184
+        }
+      },
+      "secondFile": {
+        "name": "src/controllers/actions.ts",
+        "start": 276,
+        "end": 288,
+        "startLoc": {
+          "line": 276,
+          "column": 12,
+          "position": 1926
+        },
+        "endLoc": {
+          "line": 288,
+          "column": 28,
+          "position": 2018
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 33,
+      "fragment": ".replace(/^drafts\\./, '');\n    const draftId = `drafts.${baseDocId}`;\n    \n    // Try to get document content\n    let documentContent;\n    try {\n      // First try to get the draft version\n      documentContent = await client.getDocument(draftId);\n      \n      // If draft not found, try the published version\n      if (!documentContent) {\n        documentContent = await client.getDocument(baseDocId);\n      }\n    } catch (e) {\n      // If content parameter is provided, we'll use that instead\n      if (!content) {\n        throw new Error(`Document ${baseDocId} not found`);\n      }\n    }\n    \n    // Create version document\n    const versionDoc = {\n      _type: 'release.version',\n      _id: `release.version.${releaseId}.${baseDocId}`,\n      releaseId,\n      documentId: baseDocId,\n      content: content || documentContent\n    };\n    \n    // Create the version\n    const result = await client.create(versionDoc);\n    \n    return",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/controllers/actions.ts",
+        "start": 639,
+        "end": 671,
+        "startLoc": {
+          "line": 639,
+          "column": 11,
+          "position": 4542
+        },
+        "endLoc": {
+          "line": 671,
+          "column": 7,
+          "position": 4764
+        }
+      },
+      "secondFile": {
+        "name": "src/controllers/actions.ts",
+        "start": 594,
+        "end": 625,
+        "startLoc": {
+          "line": 594,
+          "column": 3,
+          "position": 4236
+        },
+        "endLoc": {
+          "line": 625,
+          "column": 11,
+          "position": 4456
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 17,
+      "fragment": "): Promise<{\n  success: boolean;\n  message: string;\n  documentId?: string;\n  documentIds?: string[];\n  result: any;\n}> {\n  try {\n    const client = createSanityClient(projectId, dataset);\n    \n    // Handle array of document IDs\n    if (Array.isArray(documentId)) {\n      if (documentId.length === 0) {\n        throw new Error('Empty array of document IDs provided');\n      }\n      \n      const unpublishDocs",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/controllers/actions.ts",
+        "start": 767,
+        "end": 783,
+        "startLoc": {
+          "line": 767,
+          "column": 1,
+          "position": 5346
+        },
+        "endLoc": {
+          "line": 783,
+          "column": 14,
+          "position": 5471
+        }
+      },
+      "secondFile": {
+        "name": "src/controllers/actions.ts",
+        "start": 272,
+        "end": 588,
+        "startLoc": {
+          "line": 272,
+          "column": 1,
+          "position": 1895
+        },
+        "endLoc": {
+          "line": 588,
+          "column": 11,
+          "position": 4186
+        }
+      }
+    }
+  ],
+  "filename": "/Users/even/projects/sanity/ai/mcp/sanity-mcp-server/node_modules/@jscpd/html-reporter/dist/templates/main.pug"
+}

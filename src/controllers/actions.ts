@@ -1,4 +1,11 @@
 import { createSanityClient, sanityApi } from '../utils/sanityClient.js';
+import { 
+  normalizeDraftId, 
+  normalizeBaseDocId, 
+  applyPatchOperations, 
+  getDocumentContent,
+  createErrorResponse
+} from '../utils/documentHelpers.js';
 
 // Define types for Sanity documents
 interface SanityDocumentStub<T extends { _type: string }> {
@@ -281,58 +288,19 @@ export async function editDocument(
     
     // Handle array of document IDs
     if (Array.isArray(documentId)) {
-      if (documentId.length === 0) {
-        throw new Error('Empty array of document IDs provided');
-      }
-      
-      // Process each document ID
-      const transaction = client.transaction();
-      
-      for (const id of documentId) {
-        // Ensure ID points to a draft document
-        const draftId = id.startsWith('drafts.') ? id : `drafts.${id}`;
-        
-        // Create a patch for each document
-        const patchOps = client.patch(draftId);
-        
-        // Apply all patch operations
-        if (patch.set) patchOps.set(patch.set);
-        if (patch.setIfMissing) patchOps.setIfMissing(patch.setIfMissing);
-        if (patch.unset) patchOps.unset(patch.unset);
-        if (patch.inc) patchOps.inc(patch.inc);
-        if (patch.dec) patchOps.dec(patch.dec);
-        
-        // Add the patch to the transaction
-        transaction.patch(patchOps);
-      }
-      
-      // Commit all patches at once
-      const result = await transaction.commit();
+      const result = await editMultipleDocuments(client, documentId, patch);
       
       return {
         success: true,
         message: `Edited ${documentId.length} documents successfully`,
-        documentIds: documentId.map(id => id.startsWith('drafts.') ? id : `drafts.${id}`),
+        documentIds: documentId.map(id => normalizeDraftId(id)),
         result
       };
     }
     
     // Handle single document ID
-    // Ensure ID points to a draft document
-    const draftId = documentId.startsWith('drafts.') ? documentId : `drafts.${documentId}`;
-    
-    // Create a patch
-    const transaction = client.patch(draftId);
-    
-    // Apply all patch operations
-    if (patch.set) transaction.set(patch.set);
-    if (patch.setIfMissing) transaction.setIfMissing(patch.setIfMissing);
-    if (patch.unset) transaction.unset(patch.unset);
-    if (patch.inc) transaction.inc(patch.inc);
-    if (patch.dec) transaction.dec(patch.dec);
-    
-    // Commit the patch
-    const result = await transaction.commit();
+    const draftId = normalizeDraftId(documentId);
+    const result = await editSingleDocument(client, documentId, patch);
     
     return {
       success: true,
@@ -441,7 +409,7 @@ export async function deleteDocument(
     
     // Commit the transaction
     const result = await transaction.commit({
-      // If purge is true, completely remove document from history
+      // If purge is true, completely remove from history
       visibility: options?.purge ? 'async' : 'sync'
     });
     
@@ -554,6 +522,102 @@ export async function replaceDraftDocument(
 }
 
 /**
+ * Edits a single document with the given patch
+ * 
+ * @param client - Sanity client
+ * @param documentId - The document ID to edit
+ * @param patch - The patch operations to apply
+ * @returns Result of the edit operation
+ */
+async function editSingleDocument(
+  client: any, 
+  documentId: string, 
+  patch: Record<string, any>
+): Promise<any> {
+  const draftId = normalizeDraftId(documentId);
+  
+  // Create a patch
+  const transaction = client.patch(draftId);
+  
+  // Apply all patch operations
+  applyPatchOperations(patch, transaction);
+  
+  // Commit the patch
+  return await transaction.commit();
+}
+
+/**
+ * Edits multiple documents with the given patch
+ * 
+ * @param client - Sanity client
+ * @param documentIds - Array of document IDs to edit
+ * @param patch - The patch operations to apply to each document
+ * @returns Result of the edit operation
+ */
+async function editMultipleDocuments(
+  client: any, 
+  documentIds: string[], 
+  patch: Record<string, any>
+): Promise<any> {
+  if (documentIds.length === 0) {
+    throw new Error('Empty array of document IDs provided');
+  }
+  
+  // Process each document ID
+  const transaction = client.transaction();
+  
+  for (const id of documentIds) {
+    // Ensure ID points to a draft document
+    const draftId = normalizeDraftId(id);
+    
+    // Create a patch for each document
+    const patchOps = client.patch(draftId);
+    
+    // Apply all patch operations
+    applyPatchOperations(patch, patchOps);
+    
+    // Add the patch to the transaction
+    transaction.patch(patchOps);
+  }
+  
+  // Commit all patches at once
+  return await transaction.commit();
+}
+
+/**
+ * Creates a version document for a single document
+ * 
+ * @param client - Sanity client
+ * @param releaseId - ID of the release
+ * @param documentId - ID of the document
+ * @param content - Optional content to use instead of the document's content
+ * @returns The created version document
+ */
+async function createSingleDocumentVersion(
+  client: any,
+  releaseId: string,
+  documentId: string,
+  content?: Record<string, any>
+): Promise<any> {
+  const baseDocId = normalizeBaseDocId(documentId);
+  
+  // Get document content
+  const documentContent = await getDocumentContent(client, documentId, content);
+  
+  // Create version document
+  const versionDoc = {
+    _type: 'release.version',
+    _id: `release.version.${releaseId}.${baseDocId}`,
+    releaseId,
+    documentId: baseDocId,
+    content: content || documentContent
+  };
+  
+  // Create the version
+  return await client.create(versionDoc);
+}
+
+/**
  * Creates document versions in a specific release
  * 
  * @param projectId - Sanity project ID
@@ -590,38 +654,7 @@ export async function createDocumentVersion(
       
       // Process each document ID
       for (const id of documentId) {
-        // Ensure document ID doesn't already have 'drafts.' prefix
-        const baseDocId = id.replace(/^drafts\./, '');
-        const draftId = `drafts.${baseDocId}`;
-        
-        // Try to get document content
-        let documentContent;
-        try {
-          // First try to get the draft version
-          documentContent = await client.getDocument(draftId);
-          
-          // If draft not found, try the published version
-          if (!documentContent) {
-            documentContent = await client.getDocument(baseDocId);
-          }
-        } catch (e) {
-          // If content parameter is provided, we'll use that instead
-          if (!content) {
-            throw new Error(`Document ${baseDocId} not found`);
-          }
-        }
-        
-        // Create version document
-        const versionDoc = {
-          _type: 'release.version',
-          _id: `release.version.${releaseId}.${baseDocId}`,
-          releaseId,
-          documentId: baseDocId,
-          content: content || documentContent
-        };
-        
-        // Create the version
-        const result = await client.create(versionDoc);
+        const result = await createSingleDocumentVersion(client, releaseId, id, content);
         versionIds.push(result._id);
         results.push(result);
       }
@@ -635,42 +668,11 @@ export async function createDocumentVersion(
     }
     
     // Handle single document ID
-    // Ensure document ID doesn't already have 'drafts.' prefix
-    const baseDocId = documentId.replace(/^drafts\./, '');
-    const draftId = `drafts.${baseDocId}`;
-    
-    // Try to get document content
-    let documentContent;
-    try {
-      // First try to get the draft version
-      documentContent = await client.getDocument(draftId);
-      
-      // If draft not found, try the published version
-      if (!documentContent) {
-        documentContent = await client.getDocument(baseDocId);
-      }
-    } catch (e) {
-      // If content parameter is provided, we'll use that instead
-      if (!content) {
-        throw new Error(`Document ${baseDocId} not found`);
-      }
-    }
-    
-    // Create version document
-    const versionDoc = {
-      _type: 'release.version',
-      _id: `release.version.${releaseId}.${baseDocId}`,
-      releaseId,
-      documentId: baseDocId,
-      content: content || documentContent
-    };
-    
-    // Create the version
-    const result = await client.create(versionDoc);
+    const result = await createSingleDocumentVersion(client, releaseId, documentId, content);
     
     return {
       success: true,
-      message: `Document version created for ${baseDocId} in release ${releaseId}`,
+      message: `Document version created for ${normalizeBaseDocId(documentId)} in release ${releaseId}`,
       versionId: result._id,
       result
     };

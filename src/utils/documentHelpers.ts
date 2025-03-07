@@ -1,0 +1,104 @@
+/**
+ * Document helper utility functions for Sanity operations
+ */
+
+/**
+ * Normalizes document ID to ensure it has a 'drafts.' prefix
+ * 
+ * @param documentId - The document ID to normalize
+ * @returns The normalized document ID with 'drafts.' prefix
+ */
+export function normalizeDraftId(documentId: string): string {
+  return documentId.startsWith('drafts.') ? documentId : `drafts.${documentId}`;
+}
+
+/**
+ * Normalizes a document ID by removing any 'drafts.' prefix
+ * 
+ * @param documentId - The document ID to normalize
+ * @returns The normalized document ID without 'drafts.' prefix
+ */
+export function normalizeBaseDocId(documentId: string): string {
+  return documentId.replace(/^drafts\./, '');
+}
+
+/**
+ * Applies patch operations to a Sanity patch object
+ * 
+ * @param patch - The patch operations to apply
+ * @param patchObj - The Sanity patch object to modify
+ */
+export function applyPatchOperations(patch: Record<string, any>, patchObj: any): void {
+  if (patch.set) patchObj.set(patch.set);
+  if (patch.setIfMissing) patchObj.setIfMissing(patch.setIfMissing);
+  if (patch.unset) patchObj.unset(patch.unset);
+  if (patch.inc) patchObj.inc(patch.inc);
+  if (patch.dec) patchObj.dec(patch.dec);
+  
+  // Handle insert operations for arrays
+  if (patch.insert) {
+    const { items, position, at } = patch.insert;
+    if (items && position && at) {
+      patchObj.insert(position, at, items);
+    }
+  }
+  
+  // Handle diffMatchPatch operations for string patching
+  if (patch.diffMatchPatch) {
+    patchObj.diffMatchPatch(patch.diffMatchPatch);
+  }
+}
+
+/**
+ * Retrieves document content, trying draft first then published version
+ * 
+ * @param client - Sanity client
+ * @param documentId - The document ID to retrieve
+ * @param fallbackContent - Optional fallback content
+ * @returns The document content or fallback content
+ * @throws Error if document not found and no fallback content provided
+ */
+export async function getDocumentContent(
+  client: any, 
+  documentId: string, 
+  fallbackContent?: Record<string, any>
+): Promise<Record<string, any>> {
+  const baseDocId = normalizeBaseDocId(documentId);
+  const draftId = `drafts.${baseDocId}`;
+  
+  try {
+    // First try to get the draft version
+    let documentContent = await client.getDocument(draftId);
+    
+    // If draft not found, try the published version
+    if (!documentContent) {
+      documentContent = await client.getDocument(baseDocId);
+    }
+    
+    // If content was found, return it
+    if (documentContent) {
+      return documentContent;
+    }
+  } catch (e) {
+    // Intentionally empty, will fall through to check fallback content
+  }
+  
+  // If content parameter is provided, use that instead
+  if (fallbackContent) {
+    return fallbackContent;
+  }
+  
+  throw new Error(`Document ${baseDocId} not found`);
+}
+
+/**
+ * Creates a standardized error response for controller functions
+ * 
+ * @param message - The error message
+ * @param error - The original error object
+ * @returns Standardized error object
+ */
+export function createErrorResponse(message: string, error: any): Error {
+  console.error(`${message}:`, error);
+  return new Error(`${message}: ${error.message}`);
+}

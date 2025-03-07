@@ -60,33 +60,6 @@ export class MutateToolProvider implements ToolProvider {
         }
       },
       {
-        name: 'mutateTextField',
-        description: 'Update a Portable Text field using markdown',
-        parameters: z.object({
-          projectId: z.string().optional().describe('Project ID, if not provided will use the project ID from the environment'),
-          dataset: z.string().optional().describe('Dataset name, if not provided will use the dataset from the environment'),
-          documentId: z.string().describe('ID of the document to update'),
-          fieldPath: z.string().describe('Path to the Portable Text field (e.g., "body")'),
-          operations: z.array(z.object({
-            type: z.enum(['insert', 'replace', 'remove']).describe('Type of operation'),
-            position: z.enum(['beginning', 'end', 'at']).optional().describe('Position to insert/replace at'),
-            atIndex: z.number().optional().describe('Index to insert/replace/remove at'),
-            value: z.union([z.string(), z.any()]).optional().describe('Value to insert/replace (markdown string or PT blocks)')
-          })).describe('Array of operations to perform'),
-          returnDocument: z.boolean().optional().describe('Whether to return the updated document')
-        }),
-        handler: async (args: any) => {
-          return await mutateController.modifyPortableTextField(
-            args.projectId,
-            args.dataset,
-            args.documentId,
-            args.fieldPath,
-            args.operations,
-            args.returnDocument || false
-          );
-        }
-      },
-      {
         name: 'updateDocument',
         description: 'Update an existing document',
         parameters: z.object({
@@ -190,35 +163,6 @@ export class MutateToolProvider implements ToolProvider {
             args.dataset,
             args.mutations,
             args.options?.returnDocuments || false
-          );
-        }
-      },
-      {
-        name: 'updatePortableText',
-        description: 'Update a Portable Text field using markdown',
-        parameters: z.object({
-          projectId: z.string().optional().describe('Project ID, if not provided will use the project ID from the environment'),
-          dataset: z.string().optional().describe('Dataset name, if not provided will use the dataset from the environment'),
-          documentId: z.string().describe('ID of the document to update'),
-          fieldPath: z.string().describe('Path to the Portable Text field (e.g., "body")'),
-          operations: z.array(z.object({
-            type: z.enum(['insert', 'replace', 'remove']).describe('Type of operation'),
-            position: z.enum(['beginning', 'end', 'at']).optional().describe('Position to insert/replace at'),
-            atIndex: z.number().optional().describe('Index to insert/replace/remove at'),
-            value: z.union([z.string(), z.any()]).optional().describe('Value to insert/replace (markdown string or PT blocks)')
-          })).describe('Array of operations to perform'),
-          options: z.object({
-            returnDocument: z.boolean().optional().describe('Whether to return the updated document')
-          }).optional().describe('Options for the update operation')
-        }),
-        handler: async (args: any) => {
-          return await mutateController.modifyPortableTextField(
-            args.projectId,
-            args.dataset,
-            args.documentId,
-            args.fieldPath,
-            args.operations,
-            args.options?.returnDocument || false
           );
         }
       }

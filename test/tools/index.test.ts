@@ -18,7 +18,6 @@ describe('Tools', () => {
   let groqTools;
   let getTypeSchemaTool;
   let mutateDocumentTool;
-  let mutateTextFieldTool;
   let executeGroqTool;
   let semanticSearchTool;
 
@@ -35,7 +34,6 @@ describe('Tools', () => {
     // Find specific tools
     getTypeSchemaTool = schemaTools.find(tool => tool.name === 'getTypeSchema');
     mutateDocumentTool = mutateTools.find(tool => tool.name === 'mutateDocument');
-    mutateTextFieldTool = mutateTools.find(tool => tool.name === 'mutateTextField');
     executeGroqTool = groqTools.find(tool => tool.name === 'executeGroq');
     semanticSearchTool = embeddingsTools.find(tool => tool.name === 'semanticSearch');
   });
@@ -47,25 +45,25 @@ describe('Tools', () => {
     });
 
     it('should include schema tools', () => {
+      // Check if schema tools are included in the main tool registry
       const hasSchemaTools = allTools.some(tool => 
-        tool.name === 'getSchema' || 
-        tool.name === 'getTypeSchema' || 
-        tool.name === 'listSchemaTypes'
+        tool.name === 'getTypeSchema'
       );
       expect(hasSchemaTools).toBe(true);
+      
+      // Additionally validate that the schema tool provider returns this tool
+      expect(getTypeSchemaTool).toBeDefined();
     });
 
     it('should include mutate tools', () => {
       // Check if mutate tools are included in the main tool registry
       const hasMutateTools = allTools.some(tool => 
-        tool.name === 'mutateDocument' || 
-        tool.name === 'mutateTextField'
+        tool.name === 'mutateDocument'
       );
       expect(hasMutateTools).toBe(true);
       
-      // Additionally validate that the mutate tool provider returns these tools
+      // Additionally validate that the mutate tool provider returns this tool
       expect(mutateDocumentTool).toBeDefined();
-      expect(mutateTextFieldTool).toBeDefined();
     });
 
     it('should include GROQ tools', () => {
@@ -79,12 +77,12 @@ describe('Tools', () => {
       expect(executeGroqTool).toBeDefined();
     });
 
-    it('should include semantic search tool', () => {
-      // Check if semantic search tools are included in the main tool registry
-      const hasSemanticSearch = allTools.some(tool => 
+    it('should include embeddings tools', () => {
+      // Check if embeddings tools are included in the main tool registry
+      const hasEmbeddingsTools = allTools.some(tool => 
         tool.name === 'semanticSearch'
       );
-      expect(hasSemanticSearch).toBe(true);
+      expect(hasEmbeddingsTools).toBe(true);
       
       // Additionally validate that the embeddings tool provider returns this tool
       expect(semanticSearchTool).toBeDefined();
