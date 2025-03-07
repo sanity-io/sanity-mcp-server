@@ -2,29 +2,39 @@
 
 - Run a code smell test on the repo and see what we should refactor. The huge tools.js file is a good candidate for refactoring. If we do that the new files should be paired 1:1 with the controllers that they describe.
 
-- Don't list all of release content in the initialContext
+- Don't list all of release content in the initialContext - just the names
 - Get more coverage on the integration tests for other workflows
 
 ## Code Quality Improvements (Prioritized)
 
-### High Impact, Low Effort
-- Break down complex functions into smaller helper functions:
-  - Extract smaller functions from `modifyDocuments` in `controllers/mutate.ts`
-  - ✅ Refactor `editDocument` in `controllers/actions.ts` (cognitive complexity: 30)
-  - ✅ Simplify `createDocumentVersion` in `controllers/actions.ts` (cognitive complexity: 20)
-- ✅ Extract repeated patterns in `actions.ts` to shared utility functions
-- Add constants for commonly duplicated string literals in test files
+1. ✅ Extract smaller functions from editDocument in controllers/actions.ts
+2. ✅ Extract smaller functions from createDocumentVersion in controllers/actions.ts
+3. ✅ Extract smaller functions from modifyDocuments in controllers/mutate.ts
 
-### Medium Impact, Low Effort
-- Replace `any` types with more specific types in core controller files
-  - Focus on files with highest usage in: `controllers/actions.ts` and `controllers/mutate.ts`
-- Add unit tests for the simplest untested functions in `projects.ts`
-- Use the new `documentHelpers.ts` utility functions in other controller files
+4. 🔄 Reduce complexity in controllers/releases.ts, especially in addDocumentToRelease and removeDocumentFromRelease
+5. 🔄 Reduce complexity in controllers/actions.ts, focusing on createDocument and deleteDocument
+6. 🔄 Add unit tests for utility functions in documentHelpers.ts
 
-### Next Steps
-- Add unit tests for the new helper functions in `documentHelpers.ts`
-- Improve error handling with the new `createErrorResponse` helper
-- Consider adding more specific TypeScript interfaces for Sanity document types
+7. 🔄 Replace `any` types with more specific types across core controller files
+8. Add constants for commonly duplicated string literals (especially in test files)
+
+## Tooling & Process Improvements
+
+- Set up ESLint + Prettier with TypeScript (including complexity analysis rules)
+- Add GitHub Action for linting
+- Improve CI pipeline
+- Add code coverage reporting
+
+## Error Handling
+
+- Extract error handling to a reusable createErrorResponse function (for consistency)
+- Apply this across controllers
+
+## Technical Debt
+
+- Move from TS-Node to a bundled dist
+- Refactor tests to be more maintaneous and use common setup functions
+- Evaluate moving to OpenAPI spec for route definition
 
 ## Done
 - ✅ Integration test for release document workflow

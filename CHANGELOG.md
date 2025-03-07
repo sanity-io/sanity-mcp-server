@@ -18,19 +18,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `complexity`: Check for cyclomatic and cognitive complexity
   - `quality:check`: Run all quality checks
   - `quality:report`: Generate prioritized improvement recommendations
-- New utility module `documentHelpers.ts` for common Sanity document operations
+- New utility module `documentHelpers.ts` containing shared functions for document operations:
+  - `normalizeDraftId`: Ensures document IDs have 'drafts.' prefix
+  - `normalizeBaseDocId`: Strips 'drafts.' prefix from document IDs
+  - `applyPatchOperations`: Applies patch operations to a Sanity patch
+  - `getDocumentContent`: Retrieves document content with draft/published fallback
+  - `createErrorResponse`: Creates standardized error responses
 
 ### Changed
 - Refactored `editDocument` function to reduce cognitive complexity
 - Refactored `createDocumentVersion` function to reduce cognitive complexity
 - Extracted repeated document ID normalization code into utility functions
 - Improved error handling consistency
+- Refactored `editDocument` in `controllers/actions.ts` to reduce cognitive complexity by extracting helper functions
+- Refactored `createDocumentVersion` in `controllers/actions.ts` to reduce cognitive complexity
+- Refactored `modifyDocuments` in `controllers/mutate.ts` to reduce cognitive complexity by:
+  - Extracting helper functions for each mutation type
+  - Adding proper TypeScript interfaces for Sanity Transaction and Patch objects
+  - Replacing generic 'any' types with more specific types
 
 ### Removed
 - Removed `modifyPortableTextField` functionality and related code from controllers, tools, and tests
 - Removed redundant `PortableTextOperation` interfaces from type definitions
 - `modifyPortableTextField` function and associated functionality
 - `PortableTextOperation` interface
+- Removed `mutateTextField` tool which was no longer being used
 
 ### Fixed
 - Converted variable declarations from 'let' to 'const' where appropriate
