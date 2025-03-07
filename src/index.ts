@@ -43,13 +43,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       throw new Error("Arguments are required");
     }
 
+    console.log(`Executing tool: ${request.params.name} with args: ${JSON.stringify(request.params.arguments)}`);
     const result = await toolsRegistry.executeTool(
       request.params.name, 
       request.params.arguments
     );
 
-    // Format the result according to MCP specification - no nested result object
-    return {
+    // Format result according to MCP specification - no result nesting
+    const response = {
       content: [
         {
           type: "text",
@@ -59,6 +60,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         }
       ]
     };
+    
+    console.log(`Tool response: ${JSON.stringify(response)}`);
+    return response;
   } catch (error: unknown) {
     console.error("Error executing tool:", error);
     return {
