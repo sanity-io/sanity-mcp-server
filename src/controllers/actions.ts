@@ -4,8 +4,18 @@ import {
   normalizeBaseDocId, 
   applyPatchOperations, 
   getDocumentContent,
-  createErrorResponse
+  createErrorResponse,
+  normalizeDocumentIds
 } from '../utils/documentHelpers.js';
+import { 
+  SanityClient, 
+  SanityDocument, 
+  SanityTransaction, 
+  SanityActionResult,
+  SanityMutationResult,
+  PatchOperations,
+  SanityError
+} from '../types/sanity.js';
 
 // Define types for Sanity documents
 interface SanityDocumentStub<T extends { _type: string }> {
@@ -34,7 +44,7 @@ export async function publishDocument(
   message: string;
   documentId?: string;
   documentIds?: string[];
-  result: any;
+  result: SanityActionResult;
 }> {
   try {
     // Handle array of document IDs
@@ -106,7 +116,7 @@ export async function unpublishDocument(
   message: string;
   draftId?: string;
   draftIds?: string[];
-  result: any;
+  result: SanityActionResult;
 }> {
   try {
     // Handle array of document IDs
@@ -178,10 +188,10 @@ function prepareDocumentForCreation(document: Record<string, any>): Record<strin
  * Creates multiple documents in a single transaction
  */
 async function createMultipleDocuments(
-  client: any,
+  client: SanityClient,
   documents: Record<string, any>[],
   options?: { ifExists?: 'fail' | 'ignore' }
-): Promise<any> {
+): Promise<{ result: SanityMutationResult, count: number, ids: string[] }> {
   // Validate and prepare each document
   const preparedDocs = documents.map(prepareDocumentForCreation);
   
@@ -200,7 +210,7 @@ async function createMultipleDocuments(
   const results = await transaction.commit();
   
   return {
-    results,
+    result: results,
     count: preparedDocs.length,
     ids: results.results.map((res: any) => res.id)
   };
@@ -210,10 +220,10 @@ async function createMultipleDocuments(
  * Creates a single document
  */
 async function createSingleDocument(
-  client: any,
+  client: SanityClient,
   document: Record<string, any>,
   options?: { ifExists?: 'fail' | 'ignore' }
-): Promise<any> {
+): Promise<{ result: SanityMutationResult, id: string }> {
   const preparedDoc = prepareDocumentForCreation(document);
   
   // Handle ifExists option
@@ -247,7 +257,7 @@ export async function createDocument(
   message: string;
   documentId?: string;
   documentIds?: string[];
-  result: any;
+  result: SanityMutationResult;
 }> {
   try {
     const client = createSanityClient(projectId, dataset);
@@ -264,7 +274,7 @@ export async function createDocument(
         success: true,
         message: `${result.count} documents created successfully`,
         documentIds: result.ids,
-        result
+        result: result.result
       };
     }
     
@@ -273,9 +283,9 @@ export async function createDocument(
     
     return {
       success: true,
-      message: `Document created successfully with ID: ${result._id}`,
-      documentId: result._id,
-      result
+      message: `Document created successfully with ID: ${result.id}`,
+      documentId: result.id,
+      result: result.result
     };
   } catch (error: any) {
     console.error(`Error creating document:`, error);
@@ -296,42 +306,46 @@ export async function editDocument(
   projectId: string, 
   dataset: string, 
   documentId: string | string[], 
-  patch: Record<string, any>
+  patch: PatchOperations
 ): Promise<{
   success: boolean;
   message: string;
   documentId?: string;
   documentIds?: string[];
-  result: any;
+  result: SanityMutationResult;
 }> {
   try {
     const client = createSanityClient(projectId, dataset);
     
-    // Handle array of document IDs
-    if (Array.isArray(documentId)) {
-      const result = await editMultipleDocuments(client, documentId, patch);
-      
-      return {
-        success: true,
-        message: `Edited ${documentId.length} documents successfully`,
-        documentIds: documentId.map(id => normalizeDraftId(id)),
-        result
-      };
+    // Process document IDs
+    const documentIds = normalizeDocumentIds(documentId);
+    
+    if (documentIds.length === 0) {
+      return createErrorResponse('No valid document IDs provided');
     }
     
-    // Handle single document ID
-    const draftId = normalizeDraftId(documentId);
-    const result = await editSingleDocument(client, documentId, patch);
+    let result;
+    let processedIds: string[];
+    
+    if (documentIds.length === 1) {
+      const response = await editSingleDocument(client, documentIds[0], patch);
+      result = response.result;
+      processedIds = response.processedIds;
+    } else {
+      const response = await editMultipleDocuments(client, documentIds, patch);
+      result = response.result;
+      processedIds = response.processedIds;
+    }
     
     return {
       success: true,
-      message: `Document ${draftId} edited successfully`,
-      documentId: draftId,
+      message: `Successfully edited ${processedIds.length} document(s)`,
+      documentIds: processedIds,
       result
     };
-  } catch (error: any) {
-    console.error(`Error editing document:`, error);
-    throw new Error(`Failed to edit document: ${error.message}`);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return createErrorResponse(`Failed to edit document(s): ${errorMessage}`);
   }
 }
 
@@ -357,7 +371,7 @@ export async function deleteDocument(
   message: string;
   documentId?: string;
   documentIds?: string[];
-  result: any;
+  result: SanityMutationResult;
 }> {
   try {
     const client = createSanityClient(projectId, dataset);
@@ -430,10 +444,10 @@ function prepareDocumentIdForDeletion(id: string): { baseDocId: string, draftId:
  * Sets up a transaction for deleting multiple documents
  */
 function setupDeleteTransaction(
-  transaction: any,
+  transaction: SanityTransaction,
   documentIds: string[],
   additionalDrafts?: string[]
-): { transaction: any, processedIds: string[] } {
+): { transaction: SanityTransaction, processedIds: string[] } {
   const processedIds = [];
   
   // Process each document ID
@@ -463,13 +477,13 @@ function setupDeleteTransaction(
  * Deletes multiple documents in a transaction
  */
 async function deleteMultipleDocuments(
-  client: any,
+  client: SanityClient,
   documentIds: string[],
   options?: {
     includeDrafts?: string[];
     purge?: boolean;
   }
-): Promise<{ result: any, processedIds: string[] }> {
+): Promise<{ result: SanityMutationResult, processedIds: string[] }> {
   // Process each document ID
   const transaction = client.transaction();
   
@@ -505,7 +519,7 @@ export async function replaceDraftDocument(
   message: string;
   documentId?: string;
   documentIds?: string[];
-  result: any;
+  result: SanityMutationResult;
 }> {
   try {
     const client = createSanityClient(projectId, dataset);
@@ -593,20 +607,31 @@ export async function replaceDraftDocument(
  * @returns Result of the edit operation
  */
 async function editSingleDocument(
-  client: any, 
+  client: SanityClient, 
   documentId: string, 
-  patch: Record<string, any>
-): Promise<any> {
+  patch: PatchOperations
+): Promise<{ result: SanityMutationResult, processedIds: string[] }> {
   const draftId = normalizeDraftId(documentId);
+  const transaction = client.transaction();
   
-  // Create a patch
-  const transaction = client.patch(draftId);
+  // Create the patch operation on the draft document
+  const patchObj = client.patch(draftId);
+  applyPatchOperations(patch, patchObj);
   
-  // Apply all patch operations
-  applyPatchOperations(patch, transaction);
+  // Add the patch to the transaction
+  transaction.patch(patchObj);
   
-  // Commit the patch
-  return await transaction.commit();
+  // Commit the transaction
+  const result = await transaction.commit();
+  
+  return {
+    result: {
+      documentId: draftId,
+      transactionId: result.transactionId,
+      results: result.results
+    },
+    processedIds: [draftId]
+  };
 }
 
 /**
@@ -618,33 +643,34 @@ async function editSingleDocument(
  * @returns Result of the edit operation
  */
 async function editMultipleDocuments(
-  client: any, 
+  client: SanityClient,
   documentIds: string[], 
-  patch: Record<string, any>
-): Promise<any> {
-  if (documentIds.length === 0) {
-    throw new Error('Empty array of document IDs provided');
-  }
+  patch: PatchOperations
+): Promise<{ result: SanityMutationResult, processedIds: string[] }> {
+  // Normalize all document IDs to draft IDs
+  const draftIds = documentIds.map(id => normalizeDraftId(id));
   
-  // Process each document ID
+  // Create a transaction for batch operations
   const transaction = client.transaction();
   
-  for (const id of documentIds) {
-    // Ensure ID points to a draft document
-    const draftId = normalizeDraftId(id);
-    
-    // Create a patch for each document
-    const patchOps = client.patch(draftId);
-    
-    // Apply all patch operations
-    applyPatchOperations(patch, patchOps);
-    
-    // Add the patch to the transaction
-    transaction.patch(patchOps);
-  }
+  // Apply the patch to each document
+  draftIds.forEach(id => {
+    const patchObj = client.patch(id);
+    applyPatchOperations(patch, patchObj);
+    transaction.patch(patchObj);
+  });
   
-  // Commit all patches at once
-  return await transaction.commit();
+  // Commit the transaction
+  const result = await transaction.commit();
+  
+  return {
+    result: {
+      documentId: draftIds[0], // Return the first ID for backward compatibility
+      transactionId: result.transactionId,
+      results: result.results
+    },
+    processedIds: draftIds
+  };
 }
 
 /**
@@ -657,11 +683,11 @@ async function editMultipleDocuments(
  * @returns The created version document
  */
 async function createSingleDocumentVersion(
-  client: any,
+  client: SanityClient,
   releaseId: string,
   documentId: string,
   content?: Record<string, any>
-): Promise<any> {
+): Promise<SanityDocument> {
   const baseDocId = normalizeBaseDocId(documentId);
   
   // Get document content
@@ -701,7 +727,7 @@ export async function createDocumentVersion(
   message: string;
   versionId?: string;
   versionIds?: string[];
-  result: any;
+  result: SanityMutationResult;
 }> {
   try {
     const client = createSanityClient(projectId, dataset);
@@ -766,7 +792,7 @@ export async function discardDocumentVersion(
   message: string;
   versionId?: string;
   versionIds?: string[];
-  result: any;
+  result: SanityMutationResult;
 }> {
   try {
     const client = createSanityClient(projectId, dataset);
@@ -834,7 +860,7 @@ export async function unpublishDocumentWithRelease(
   message: string;
   documentId?: string;
   documentIds?: string[];
-  result: any;
+  result: SanityMutationResult;
 }> {
   try {
     const client = createSanityClient(projectId, dataset);

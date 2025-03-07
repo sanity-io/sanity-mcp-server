@@ -13,8 +13,8 @@
 4. ✅ Reduce complexity in controllers/releases.ts, focusing on addDocumentToRelease and removeDocumentFromRelease
 5. ✅ Reduce complexity in controllers/actions.ts, focusing on createDocument and deleteDocument
 6. ✅ Reduce complexity in controllers/releases.ts for createRelease function
+7. ✅ Add unit tests for utility functions in documentHelpers.ts
 
-7. 🔄 Add unit tests for utility functions in documentHelpers.ts
 8. 🔄 Replace `any` types with more specific types across core controller files
 9. 🔄 Reduce complexity in embeddings.ts, particularly in semanticSearch function
 
@@ -57,3 +57,4 @@
 - ✅ Remove `modifyPortableTextField` functionality (complex implementation with high cognitive complexity)
 - ✅ Refactor `editDocument` and `createDocumentVersion` in `controllers/actions.ts`
 - ✅ Extract repeated patterns in `actions.ts` to shared utility functions
+- ✅ Add unit tests for utility functions in documentHelpers.ts

@@ -1,6 +1,6 @@
 {
   "statistics": {
-    "detectionDate": "2025-03-07T00:33:12.250Z",
+    "detectionDate": "2025-03-07T02:10:01.563Z",
     "formats": {
       "typescript": {
         "sources": {
@@ -19,6 +19,18 @@
           "src/utils/portableText.ts": {
             "lines": 218,
             "tokens": 1678,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/utils/documentHelpers.ts": {
+            "lines": 156,
+            "tokens": 966,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -52,15 +64,27 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "src/types/sanity.ts": {
+            "lines": 141,
+            "tokens": 1042,
+            "sources": 1,
+            "clones": 1,
+            "duplicatedLines": 7,
+            "duplicatedTokens": 92,
+            "percentage": 4.96,
+            "percentageTokens": 8.83,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "src/types/index.ts": {
-            "lines": 110,
-            "tokens": 726,
+            "lines": 102,
+            "tokens": 667,
             "sources": 1,
             "clones": 1,
             "duplicatedLines": 16,
             "duplicatedTokens": 160,
-            "percentage": 14.55,
-            "percentageTokens": 22.04,
+            "percentage": 15.69,
+            "percentageTokens": 23.99,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -101,14 +125,14 @@
             "newClones": 0
           },
           "src/tools/mutateTools.ts": {
-            "lines": 226,
-            "tokens": 2342,
+            "lines": 170,
+            "tokens": 1652,
             "sources": 1,
-            "clones": 6,
-            "duplicatedLines": 46,
-            "duplicatedTokens": 744,
-            "percentage": 20.35,
-            "percentageTokens": 31.77,
+            "clones": 2,
+            "duplicatedLines": 10,
+            "duplicatedTokens": 158,
+            "percentage": 5.88,
+            "percentageTokens": 9.56,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -173,26 +197,26 @@
             "newClones": 0
           },
           "src/controllers/schema.ts": {
-            "lines": 203,
-            "tokens": 1500,
+            "lines": 221,
+            "tokens": 1660,
+            "sources": 1,
+            "clones": 2,
+            "duplicatedLines": 18,
+            "duplicatedTokens": 190,
+            "percentage": 8.14,
+            "percentageTokens": 11.45,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
+          "src/controllers/releases.ts": {
+            "lines": 821,
+            "tokens": 5116,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
             "duplicatedTokens": 0,
             "percentage": 0,
             "percentageTokens": 0,
-            "newDuplicatedLines": 0,
-            "newClones": 0
-          },
-          "src/controllers/releases.ts": {
-            "lines": 846,
-            "tokens": 5461,
-            "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 90,
-            "duplicatedTokens": 616,
-            "percentage": 10.64,
-            "percentageTokens": 11.28,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -209,32 +233,32 @@
             "newClones": 0
           },
           "src/controllers/mutate.ts": {
-            "lines": 453,
-            "tokens": 3537,
+            "lines": 456,
+            "tokens": 3041,
             "sources": 1,
-            "clones": 3,
-            "duplicatedLines": 46,
-            "duplicatedTokens": 370,
-            "percentage": 10.15,
-            "percentageTokens": 10.46,
+            "clones": 4,
+            "duplicatedLines": 45,
+            "duplicatedTokens": 386,
+            "percentage": 9.87,
+            "percentageTokens": 12.69,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "src/controllers/groq.ts": {
-            "lines": 334,
-            "tokens": 2471,
+            "lines": 428,
+            "tokens": 3364,
             "sources": 1,
-            "clones": 0,
-            "duplicatedLines": 0,
-            "duplicatedTokens": 0,
-            "percentage": 0,
-            "percentageTokens": 0,
+            "clones": 2,
+            "duplicatedLines": 18,
+            "duplicatedTokens": 220,
+            "percentage": 4.21,
+            "percentageTokens": 6.54,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "src/controllers/embeddings.ts": {
             "lines": 168,
-            "tokens": 1287,
+            "tokens": 1284,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -245,14 +269,14 @@
             "newClones": 0
           },
           "src/controllers/actions.ts": {
-            "lines": 837,
-            "tokens": 5862,
+            "lines": 928,
+            "tokens": 6279,
             "sources": 1,
-            "clones": 13,
-            "duplicatedLines": 238,
-            "duplicatedTokens": 1770,
-            "percentage": 28.43,
-            "percentageTokens": 30.19,
+            "clones": 7,
+            "duplicatedLines": 104,
+            "duplicatedTokens": 772,
+            "percentage": 11.21,
+            "percentageTokens": 12.29,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -282,28 +306,28 @@
           }
         },
         "total": {
-          "lines": 4473,
-          "tokens": 32774,
-          "sources": 23,
-          "clones": 16,
-          "duplicatedLines": 256,
-          "duplicatedTokens": 2243,
-          "percentage": 5.72,
-          "percentageTokens": 6.84,
+          "lines": 4887,
+          "tokens": 34659,
+          "sources": 25,
+          "clones": 13,
+          "duplicatedLines": 147,
+          "duplicatedTokens": 1402,
+          "percentage": 3.01,
+          "percentageTokens": 4.05,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 4473,
-      "tokens": 32774,
-      "sources": 23,
-      "clones": 16,
-      "duplicatedLines": 256,
-      "duplicatedTokens": 2243,
-      "percentage": 5.72,
-      "percentageTokens": 6.84,
+      "lines": 4887,
+      "tokens": 34659,
+      "sources": 25,
+      "clones": 13,
+      "duplicatedLines": 147,
+      "duplicatedTokens": 1402,
+      "percentage": 3.01,
+      "percentageTokens": 4.05,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -384,57 +408,21 @@
     {
       "format": "typescript",
       "lines": 6,
-      "fragment": ",\n        parameters: z.object({\n          projectId: z.string().optional().describe('Project ID, if not provided will use the project ID from the environment'),\n          dataset: z.string().optional().describe('Dataset name, if not provided will use the dataset from the environment'),\n          documentId: z.string().describe('ID of the document to update'),\n          document",
-      "tokens": 0,
-      "firstFile": {
-        "name": "src/tools/mutateTools.ts",
-        "start": 91,
-        "end": 96,
-        "startLoc": {
-          "line": 91,
-          "column": 30,
-          "position": 869
-        },
-        "endLoc": {
-          "line": 96,
-          "column": 9,
-          "position": 938
-        }
-      },
-      "secondFile": {
-        "name": "src/tools/mutateTools.ts",
-        "start": 64,
-        "end": 69,
-        "startLoc": {
-          "line": 64,
-          "column": 46,
-          "position": 537
-        },
-        "endLoc": {
-          "line": 69,
-          "column": 10,
-          "position": 606
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 6,
       "fragment": ",\n        parameters: z.object({\n          projectId: z.string().optional().describe('Project ID, if not provided will use the project ID from the environment'),\n          dataset: z.string().optional().describe('Dataset name, if not provided will use the dataset from the environment'),\n          mutations: z.array(z.record(z.any())).describe('Array of mutation objects'),\n          options",
       "tokens": 0,
       "firstFile": {
         "name": "src/tools/mutateTools.ts",
-        "start": 177,
-        "end": 182,
+        "start": 150,
+        "end": 155,
         "startLoc": {
-          "line": 177,
+          "line": 150,
           "column": 31,
-          "position": 1756
+          "position": 1424
         },
         "endLoc": {
-          "line": 182,
+          "line": 155,
           "column": 8,
-          "position": 1835
+          "position": 1503
         }
       },
       "secondFile": {
@@ -450,42 +438,6 @@
           "line": 51,
           "column": 16,
           "position": 434
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 14,
-      "fragment": ",\n        description: 'Update a Portable Text field using markdown',\n        parameters: z.object({\n          projectId: z.string().optional().describe('Project ID, if not provided will use the project ID from the environment'),\n          dataset: z.string().optional().describe('Dataset name, if not provided will use the dataset from the environment'),\n          documentId: z.string().describe('ID of the document to update'),\n          fieldPath: z.string().describe('Path to the Portable Text field (e.g., \"body\")'),\n          operations: z.array(z.object({\n            type: z.enum(['insert', 'replace', 'remove']).describe('Type of operation'),\n            position: z.enum(['beginning', 'end', 'at']).optional().describe('Position to insert/replace at'),\n            atIndex: z.number().optional().describe('Index to insert/replace/remove at'),\n            value: z.union([z.string(), z.any()]).optional().describe('Value to insert/replace (markdown string or PT blocks)')\n          })).describe('Array of operations to perform'),\n          options",
-      "tokens": 0,
-      "firstFile": {
-        "name": "src/tools/mutateTools.ts",
-        "start": 197,
-        "end": 210,
-        "startLoc": {
-          "line": 197,
-          "column": 21,
-          "position": 1986
-        },
-        "endLoc": {
-          "line": 210,
-          "column": 8,
-          "position": 2210
-        }
-      },
-      "secondFile": {
-        "name": "src/tools/mutateTools.ts",
-        "start": 63,
-        "end": 76,
-        "startLoc": {
-          "line": 63,
-          "column": 18,
-          "position": 530
-        },
-        "endLoc": {
-          "line": 76,
-          "column": 15,
-          "position": 754
         }
       }
     },
@@ -563,73 +515,145 @@
     },
     {
       "format": "typescript",
-      "lines": 46,
-      "fragment": ": string[];\n  result: any;\n}> {\n  try {\n    // Check API version first\n    validateApiVersion();\n    \n    // WORKAROUND: Handle the case where documentIds might be a JSON string representation of an array\n    // Due to an issue in the MCP SDK's transport layer, arrays of strings sometimes arrive as serialized JSON strings\n    // rather than being properly deserialized into actual arrays.\n    let parsedDocIds: string[];\n    \n    if (Array.isArray(documentIds)) {\n      // Already an array - use as is\n      parsedDocIds = documentIds;\n    } else if (typeof documentIds === 'string') {\n      // Check if this is a JSON string array\n      if (documentIds.startsWith('[') && documentIds.endsWith(']')) {\n        try {\n          // Attempt to parse as JSON\n          const parsed = JSON.parse(documentIds);\n          if (Array.isArray(parsed)) {\n            // Successfully parsed as array\n            parsedDocIds = parsed;\n          } else {\n            // Parsed as something else (object, number, etc.) - treat as single ID\n            parsedDocIds = [documentIds];\n          }\n        } catch (e) {\n          // If parsing fails, treat as a single string\n          parsedDocIds = [documentIds];\n        }\n      } else {\n        // Regular string - treat as single ID\n        parsedDocIds = [documentIds];\n      }\n    } else {\n      // Unexpected type - convert to string and use as single ID\n      parsedDocIds = [String(documentIds)];\n    }\n    \n    if (parsedDocIds.length === 0) {\n      throw new Error(\"No document IDs provided\");\n    }\n    \n    const",
+      "lines": 10,
+      "fragment": ".to];\n              \n              for (const refType of refTypes) {\n                const referencedType = allTypes.find(t => t.name === refType.type);\n                if (referencedType && !processedTypes.has(referencedType.name)) {\n                  referencedTypes.push(referencedType);\n                  findReferences(referencedType);\n                }\n              }\n            } else",
       "tokens": 0,
       "firstFile": {
-        "name": "src/controllers/releases.ts",
-        "start": 266,
-        "end": 311,
+        "name": "src/controllers/schema.ts",
+        "start": 131,
+        "end": 140,
         "startLoc": {
-          "line": 266,
-          "column": 12,
-          "position": 1843
+          "line": 131,
+          "column": 10,
+          "position": 1034
         },
         "endLoc": {
-          "line": 311,
-          "column": 6,
-          "position": 2151
+          "line": 140,
+          "column": 5,
+          "position": 1129
         }
       },
       "secondFile": {
-        "name": "src/controllers/releases.ts",
-        "start": 119,
-        "end": 164,
+        "name": "src/controllers/schema.ts",
+        "start": 114,
+        "end": 125,
         "startLoc": {
-          "line": 119,
-          "column": 11,
-          "position": 798
+          "line": 114,
+          "column": 6,
+          "position": 818
         },
         "endLoc": {
-          "line": 164,
-          "column": 25,
-          "position": 1106
+          "line": 125,
+          "column": 41,
+          "position": 916
         }
       }
     },
     {
       "format": "typescript",
-      "lines": 16,
-      "fragment": ";\n    set?: Record<string, any>;\n    setIfMissing?: Record<string, any>;\n    unset?: string | string[];\n    inc?: Record<string, number>;\n    dec?: Record<string, number>;\n    insert?: {\n      items: any[] | any;\n      position: 'before' | 'after' | 'replace';\n      at: string;\n    };\n    diffMatchPatch?: Record<string, string>;\n  };\n}\n\nexport type",
+      "lines": 8,
+      "fragment": "set?: Record<string, any>;\n    setIfMissing?: Record<string, any>;\n    unset?: string | string[];\n    inc?: Record<string, number>;\n    dec?: Record<string, number>;\n    insert?: InsertOperation;\n    diffMatchPatch?: Record<string, string>;\n  }",
       "tokens": 0,
       "firstFile": {
         "name": "src/controllers/mutate.ts",
-        "start": 60,
-        "end": 75,
+        "start": 64,
+        "end": 71,
         "startLoc": {
-          "line": 60,
-          "column": 2,
-          "position": 466
+          "line": 64,
+          "column": 5,
+          "position": 623
         },
         "endLoc": {
-          "line": 75,
+          "line": 71,
+          "column": 2,
+          "position": 715
+        }
+      },
+      "secondFile": {
+        "name": "src/types/sanity.ts",
+        "start": 135,
+        "end": 142,
+        "startLoc": {
+          "line": 135,
+          "column": 3,
+          "position": 951
+        },
+        "endLoc": {
+          "line": 142,
+          "column": 2,
+          "position": 1042
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 12,
+      "fragment": ";\n    set?: Record<string, any>;\n    setIfMissing?: Record<string, any>;\n    unset?: string | string[];\n    inc?: Record<string, number>;\n    dec?: Record<string, number>;\n    insert?: InsertOperation;\n    diffMatchPatch?: Record<string, string>;\n  };\n}\n\nexport type",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/controllers/mutate.ts",
+        "start": 77,
+        "end": 88,
+        "startLoc": {
+          "line": 77,
+          "column": 2,
+          "position": 754
+        },
+        "endLoc": {
+          "line": 88,
           "column": 5,
-          "position": 607
+          "position": 857
         }
       },
       "secondFile": {
         "name": "src/controllers/mutate.ts",
-        "start": 42,
-        "end": 57,
+        "start": 63,
+        "end": 74,
         "startLoc": {
-          "line": 42,
+          "line": 63,
           "column": 7,
-          "position": 294
+          "position": 620
         },
         "endLoc": {
-          "line": 57,
+          "line": 74,
           "column": 10,
-          "position": 435
+          "position": 723
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 10,
+      "fragment": "if (params.filter && typeof params.filter === 'function' && Array.isArray(filtered)) {\n      filtered = filtered.filter(params.filter);\n    }\n    \n    // Apply additional limit if specified\n    if (params.limit && typeof params.limit === 'number' && Array.isArray(filtered)) {\n      filtered = filtered.slice(0, params.limit);\n    }\n    \n    // Include query and document count in the response",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/controllers/groq.ts",
+        "start": 156,
+        "end": 165,
+        "startLoc": {
+          "line": 156,
+          "column": 5,
+          "position": 1228
+        },
+        "endLoc": {
+          "line": 165,
+          "column": 52,
+          "position": 1338
+        }
+      },
+      "secondFile": {
+        "name": "src/controllers/groq.ts",
+        "start": 70,
+        "end": 79,
+        "startLoc": {
+          "line": 70,
+          "column": 5,
+          "position": 517
+        },
+        "endLoc": {
+          "line": 79,
+          "column": 19,
+          "position": 627
         }
       }
     },
@@ -640,248 +664,140 @@
       "tokens": 0,
       "firstFile": {
         "name": "src/controllers/actions.ts",
-        "start": 4,
-        "end": 20,
+        "start": 21,
+        "end": 37,
         "startLoc": {
-          "line": 4,
+          "line": 21,
           "column": 1,
-          "position": 19
+          "position": 99
         },
         "endLoc": {
-          "line": 20,
+          "line": 37,
           "column": 4,
-          "position": 107
+          "position": 187
         }
       },
       "secondFile": {
         "name": "src/controllers/mutate.ts",
-        "start": 5,
-        "end": 14,
+        "start": 26,
+        "end": 35,
         "startLoc": {
-          "line": 5,
+          "line": 26,
           "column": 1,
-          "position": 29
+          "position": 355
         },
         "endLoc": {
-          "line": 14,
+          "line": 35,
           "column": 7,
-          "position": 117
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 19,
-      "fragment": "): Promise<{\n  success: boolean;\n  message: string;\n  documentId?: string;\n  documentIds?: string[];\n  result: any;\n}> {\n  try {\n    const client = createSanityClient(projectId, dataset);\n    \n    // Handle array of document IDs\n    if (Array.isArray(documentId)) {\n      if (documentId.length === 0) {\n        throw new Error('Empty array of document IDs provided');\n      }\n      \n      // Process each document ID\n      const transaction = client.transaction();\n      const",
-      "tokens": 0,
-      "firstFile": {
-        "name": "src/controllers/actions.ts",
-        "start": 366,
-        "end": 384,
-        "startLoc": {
-          "line": 366,
-          "column": 1,
-          "position": 2641
-        },
-        "endLoc": {
-          "line": 384,
-          "column": 6,
-          "position": 2781
-        }
-      },
-      "secondFile": {
-        "name": "src/controllers/actions.ts",
-        "start": 272,
-        "end": 291,
-        "startLoc": {
-          "line": 272,
-          "column": 1,
-          "position": 1895
-        },
-        "endLoc": {
-          "line": 291,
-          "column": 4,
-          "position": 2037
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 16,
-      "fragment": "// Delete any additional draft IDs specified\n    if (options?.includeDrafts && options.includeDrafts.length > 0) {\n      options.includeDrafts.forEach(id => {\n        transaction.delete(id);\n      });\n    }\n    \n    // Commit the transaction\n    const result = await transaction.commit({\n      // If purge is true, completely remove document from history\n      visibility: options?.purge ? 'async' : 'sync'\n    });\n    \n    return {\n      success: true,\n      message: `Document ",
-      "tokens": 0,
-      "firstFile": {
-        "name": "src/controllers/actions.ts",
-        "start": 435,
-        "end": 450,
-        "startLoc": {
-          "line": 435,
-          "column": 5,
-          "position": 3123
-        },
-        "endLoc": {
-          "line": 450,
-          "column": 11,
-          "position": 3242
-        }
-      },
-      "secondFile": {
-        "name": "src/controllers/actions.ts",
-        "start": 400,
-        "end": 415,
-        "startLoc": {
-          "line": 400,
-          "column": 7,
-          "position": 2888
-        },
-        "endLoc": {
-          "line": 415,
-          "column": 2,
-          "position": 3007
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 19,
-      "fragment": "): Promise<{\n  success: boolean;\n  message: string;\n  documentId?: string;\n  documentIds?: string[];\n  result: any;\n}> {\n  try {\n    const client = createSanityClient(projectId, dataset);\n    \n    // Handle array of documents\n    if (Array.isArray(documents)) {\n      if (documents.length === 0) {\n        throw new Error('Empty array of documents provided');\n      }\n      \n      // Validate and prepare each document\n      const preparedDocs = documents.map(doc => {\n        // Ensure document has _type and _id",
-      "tokens": 0,
-      "firstFile": {
-        "name": "src/controllers/actions.ts",
-        "start": 472,
-        "end": 490,
-        "startLoc": {
-          "line": 472,
-          "column": 1,
-          "position": 3363
-        },
-        "endLoc": {
-          "line": 490,
-          "column": 37,
-          "position": 3506
-        }
-      },
-      "secondFile": {
-        "name": "src/controllers/actions.ts",
-        "start": 169,
-        "end": 187,
-        "startLoc": {
-          "line": 169,
-          "column": 1,
-          "position": 1111
-        },
-        "endLoc": {
-          "line": 187,
-          "column": 29,
-          "position": 1254
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 13,
-      "fragment": "?: string[];\n  result: any;\n}> {\n  try {\n    const client = createSanityClient(projectId, dataset);\n    \n    // Handle array of document IDs\n    if (Array.isArray(documentId)) {\n      if (documentId.length === 0) {\n        throw new Error('Empty array of document IDs provided');\n      }\n      \n      const",
-      "tokens": 0,
-      "firstFile": {
-        "name": "src/controllers/actions.ts",
-        "start": 576,
-        "end": 588,
-        "startLoc": {
-          "line": 576,
-          "column": 11,
-          "position": 4092
-        },
-        "endLoc": {
-          "line": 588,
-          "column": 6,
-          "position": 4184
-        }
-      },
-      "secondFile": {
-        "name": "src/controllers/actions.ts",
-        "start": 276,
-        "end": 288,
-        "startLoc": {
-          "line": 276,
-          "column": 12,
-          "position": 1926
-        },
-        "endLoc": {
-          "line": 288,
-          "column": 28,
-          "position": 2018
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 33,
-      "fragment": ".replace(/^drafts\\./, '');\n    const draftId = `drafts.${baseDocId}`;\n    \n    // Try to get document content\n    let documentContent;\n    try {\n      // First try to get the draft version\n      documentContent = await client.getDocument(draftId);\n      \n      // If draft not found, try the published version\n      if (!documentContent) {\n        documentContent = await client.getDocument(baseDocId);\n      }\n    } catch (e) {\n      // If content parameter is provided, we'll use that instead\n      if (!content) {\n        throw new Error(`Document ${baseDocId} not found`);\n      }\n    }\n    \n    // Create version document\n    const versionDoc = {\n      _type: 'release.version',\n      _id: `release.version.${releaseId}.${baseDocId}`,\n      releaseId,\n      documentId: baseDocId,\n      content: content || documentContent\n    };\n    \n    // Create the version\n    const result = await client.create(versionDoc);\n    \n    return",
-      "tokens": 0,
-      "firstFile": {
-        "name": "src/controllers/actions.ts",
-        "start": 639,
-        "end": 671,
-        "startLoc": {
-          "line": 639,
-          "column": 11,
-          "position": 4542
-        },
-        "endLoc": {
-          "line": 671,
-          "column": 7,
-          "position": 4764
-        }
-      },
-      "secondFile": {
-        "name": "src/controllers/actions.ts",
-        "start": 594,
-        "end": 625,
-        "startLoc": {
-          "line": 594,
-          "column": 3,
-          "position": 4236
-        },
-        "endLoc": {
-          "line": 625,
-          "column": 11,
-          "position": 4456
+          "position": 443
         }
       }
     },
     {
       "format": "typescript",
       "lines": 17,
-      "fragment": "): Promise<{\n  success: boolean;\n  message: string;\n  documentId?: string;\n  documentIds?: string[];\n  result: any;\n}> {\n  try {\n    const client = createSanityClient(projectId, dataset);\n    \n    // Handle array of document IDs\n    if (Array.isArray(documentId)) {\n      if (documentId.length === 0) {\n        throw new Error('Empty array of document IDs provided');\n      }\n      \n      const unpublishDocs",
+      "fragment": "): Promise<{\n  success: boolean;\n  message: string;\n  documentId?: string;\n  documentIds?: string[];\n  result: SanityMutationResult;\n}> {\n  try {\n    const client = createSanityClient(projectId, dataset);\n    \n    // Handle array of documents\n    if (Array.isArray(documents)) {\n      if (documents.length === 0) {\n        throw new Error('Empty array of documents provided');\n      }\n      \n      // Validate and prepare each document",
       "tokens": 0,
       "firstFile": {
         "name": "src/controllers/actions.ts",
-        "start": 767,
-        "end": 783,
+        "start": 517,
+        "end": 533,
         "startLoc": {
-          "line": 767,
+          "line": 517,
           "column": 1,
-          "position": 5346
+          "position": 3575
         },
         "endLoc": {
-          "line": 783,
-          "column": 14,
-          "position": 5471
+          "line": 533,
+          "column": 38,
+          "position": 3698
         }
       },
       "secondFile": {
         "name": "src/controllers/actions.ts",
-        "start": 272,
-        "end": 588,
+        "start": 255,
+        "end": 271,
         "startLoc": {
-          "line": 272,
+          "line": 255,
           "column": 1,
-          "position": 1895
+          "position": 1785
         },
         "endLoc": {
-          "line": 588,
+          "line": 271,
+          "column": 6,
+          "position": 1908
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 13,
+      "fragment": "?: string[];\n  result: SanityMutationResult;\n}> {\n  try {\n    const client = createSanityClient(projectId, dataset);\n    \n    // Handle array of document IDs\n    if (Array.isArray(documentId)) {\n      if (documentId.length === 0) {\n        throw new Error('Empty array of document IDs provided');\n      }\n      \n      const versionIds",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/controllers/actions.ts",
+        "start": 729,
+        "end": 741,
+        "startLoc": {
+          "line": 729,
           "column": 11,
-          "position": 4186
+          "position": 4918
+        },
+        "endLoc": {
+          "line": 741,
+          "column": 11,
+          "position": 5012
+        }
+      },
+      "secondFile": {
+        "name": "src/controllers/actions.ts",
+        "start": 373,
+        "end": 385,
+        "startLoc": {
+          "line": 373,
+          "column": 12,
+          "position": 2599
+        },
+        "endLoc": {
+          "line": 385,
+          "column": 2,
+          "position": 2693
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 17,
+      "fragment": "): Promise<{\n  success: boolean;\n  message: string;\n  documentId?: string;\n  documentIds?: string[];\n  result: SanityMutationResult;\n}> {\n  try {\n    const client = createSanityClient(projectId, dataset);\n    \n    // Handle array of document IDs\n    if (Array.isArray(documentId)) {\n      if (documentId.length === 0) {\n        throw new Error('Empty array of document IDs provided');\n      }\n      \n      const unpublishDocs",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/controllers/actions.ts",
+        "start": 858,
+        "end": 874,
+        "startLoc": {
+          "line": 858,
+          "column": 1,
+          "position": 5763
+        },
+        "endLoc": {
+          "line": 874,
+          "column": 14,
+          "position": 5888
+        }
+      },
+      "secondFile": {
+        "name": "src/controllers/actions.ts",
+        "start": 369,
+        "end": 385,
+        "startLoc": {
+          "line": 369,
+          "column": 1,
+          "position": 2568
+        },
+        "endLoc": {
+          "line": 385,
+          "column": 2,
+          "position": 2693
         }
       }
     }

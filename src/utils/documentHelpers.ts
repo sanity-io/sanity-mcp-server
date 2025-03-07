@@ -1,6 +1,7 @@
 /**
  * Document helper utility functions for Sanity operations
  */
+import { SanityClient, SanityPatch, SanityDocument, SanityError, PatchOperations, InsertOperation } from '../types/sanity.js';
 
 /**
  * Normalizes document ID to ensure it has a 'drafts.' prefix
@@ -28,7 +29,7 @@ export function normalizeBaseDocId(documentId: string): string {
  * @param patch - The patch operations to apply
  * @param patchObj - The Sanity patch object to modify
  */
-export function applyPatchOperations(patch: Record<string, any>, patchObj: any): void {
+export function applyPatchOperations(patch: Record<string, any>, patchObj: SanityPatch): void {
   if (patch.set) patchObj.set(patch.set);
   if (patch.setIfMissing) patchObj.setIfMissing(patch.setIfMissing);
   if (patch.unset) patchObj.unset(patch.unset);
@@ -59,10 +60,10 @@ export function applyPatchOperations(patch: Record<string, any>, patchObj: any):
  * @throws Error if document not found and no fallback content provided
  */
 export async function getDocumentContent(
-  client: any, 
+  client: SanityClient, 
   documentId: string, 
-  fallbackContent?: Record<string, any>
-): Promise<Record<string, any>> {
+  fallbackContent?: SanityDocument
+): Promise<SanityDocument> {
   const baseDocId = normalizeBaseDocId(documentId);
   const draftId = `drafts.${baseDocId}`;
   
@@ -95,12 +96,17 @@ export async function getDocumentContent(
  * Creates a standardized error response for controller functions
  * 
  * @param message - The error message
- * @param error - The original error object
- * @returns Standardized error object
+ * @param error - The original error object (optional)
+ * @returns Standardized error message
  */
-export function createErrorResponse(message: string, error: any): Error {
-  console.error(`${message}:`, error);
-  return new Error(`${message}: ${error.message}`);
+export function createErrorResponse(message: string, error?: Error | SanityError): Error {
+  if (error) {
+    console.error(`${message}:`, error);
+    return new Error(`${message}: ${error.message}`);
+  } else {
+    console.error(message);
+    return new Error(message);
+  }
 }
 
 /**

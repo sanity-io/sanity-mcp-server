@@ -152,6 +152,82 @@ OPENAI_API_KEY=your_openai_api_key
 
 ## Development
 
+### Project Structure
+
+The project is organized as follows:
+
+- `src/`: Source code
+  - `controllers/`: Controller modules for different Sanity features
+  - `types/`: TypeScript type definitions
+  - `utils/`: Utility functions
+  - `config/`: Configuration files
+- `config/`: Configuration files for development tools
+  - `.eslintrc.json`: ESLint configuration
+  - `.eslintignore`: Files to ignore in ESLint
+  - `tsconfig.test.json`: TypeScript configuration for tests
+- `scripts/`: Development and build scripts
+  - `quality/`: Code quality measurement scripts and outputs
+    - `find-complex-functions.js`: Identifies complex functions
+    - `prioritize-improvements.js`: Generates prioritized improvement recommendations
+    - `output/`: Output files from quality checks
+- `test/`: Test files
+  - `unit/`: Unit tests
+  - `integration/`: Integration tests
+- `schemas/`: Sanity schema files (not tracked in version control)
+
+### Code Quality Tools
+
+The project includes several tools for maintaining code quality:
+
+#### Static Analysis
+
+```bash
+# Run ESLint for static code analysis
+npm run lint
+
+# Run ESLint and auto-fix issues where possible
+npm run lint:fix
+```
+
+#### Complexity Analysis
+
+```bash
+# Identify functions with high cognitive complexity
+npm run complexity
+```
+
+This generates a report at `scripts/quality/output/complexity-report.json` highlighting functions that exceed the recommended complexity threshold of 10.
+
+#### Code Duplication Detection
+
+```bash
+# Find duplicate code blocks
+npm run find:duplicates
+```
+
+This generates an HTML report at `scripts/quality/output/html/index.html` showing duplicated code blocks across the codebase.
+
+#### Code Coverage
+
+```bash
+# Run tests with coverage reporting
+npm run test:coverage
+```
+
+This generates a coverage report in the `coverage` directory, showing which parts of the codebase are covered by tests.
+
+#### Combined Quality Check
+
+```bash
+# Run all quality checks at once
+npm run quality:check
+
+# Generate a prioritized report of quality improvements
+npm run quality:report
+```
+
+The `quality:report` command analyzes the output from all quality tools and generates a prioritized list of recommended improvements at `scripts/quality/output/improvement-recommendations.md`, sorted by impact/effort ratio.
+
 ### Type Checking
 
 Run the TypeScript type checker:

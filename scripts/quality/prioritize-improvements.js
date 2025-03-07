@@ -18,7 +18,7 @@ const PRIORITIES = {
 };
 
 // Read complexity data
-const complexData = fs.readFileSync('./complexity-results.txt', 'utf8').split('\n');
+const complexData = fs.readFileSync('./scripts/quality/output/complexity-results.txt', 'utf8').split('\n');
 
 // Parse coverage data (this is an approximation as we'd need to parse the actual coverage report)
 // Based on the test:coverage output
@@ -45,7 +45,7 @@ const coverageData = [
 
 // Parse duplication data
 // We'll extract this from the jscpd output
-const duplicationLines = fs.readFileSync('./report/html/index.html', 'utf8')
+const duplicationLines = fs.readFileSync('./scripts/quality/output/html/index.html', 'utf8')
   .match(/<p>Found <span>(\d+)<\/span> exact clones with <span>(\d+)<\/span>/);
 
 let totalClones = 0;
@@ -155,7 +155,7 @@ coverageData.forEach(file => {
 });
 
 // Add duplication recommendations from jscpd output
-const duplicationReport = fs.readFileSync('./report/html/jscpd-report.json', 'utf8');
+const duplicationReport = fs.readFileSync('./scripts/quality/output/html/jscpd-report.json', 'utf8');
 const dupeData = JSON.parse(duplicationReport);
 
 dupeData.duplicates.forEach(dupe => {
@@ -200,5 +200,5 @@ recommendations.forEach((rec, i) => {
 });
 
 // Write report to file
-fs.writeFileSync('./improvement-recommendations.md', report);
-console.log('Generated improvement recommendations in improvement-recommendations.md');
+fs.writeFileSync('./scripts/quality/output/improvement-recommendations.md', report);
+console.log('Generated improvement recommendations in scripts/quality/output/improvement-recommendations.md');

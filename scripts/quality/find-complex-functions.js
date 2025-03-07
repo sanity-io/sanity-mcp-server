@@ -1,7 +1,7 @@
 import fs from 'fs';
 
 // Read the JSON report
-const report = JSON.parse(fs.readFileSync('./complexity-report.json', 'utf8'));
+const report = JSON.parse(fs.readFileSync('./scripts/quality/output/complexity-report.json', 'utf8'));
 
 // Extract function complexity from the messages
 const complexFunctions = [];

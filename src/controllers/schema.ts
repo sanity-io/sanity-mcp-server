@@ -1,9 +1,10 @@
 import { readFile } from 'fs/promises';
 import config from '../config/config.js';
-import { SchemaType } from '../types/index.js';
+import { SchemaType, SchemaField } from '../types/index.js';
+import { SanityDocument } from '../types/sanity.js';
 
 interface SchemaTypeDetails extends SchemaType {
-  fields?: any[];
+  fields?: SchemaField[];
   [key: string]: any;
 }
 
@@ -49,36 +50,35 @@ export async function getSchema(projectId: string, dataset: string = 'production
 export async function getSchemaForType(
   projectId: string, 
   dataset: string = 'production', 
-  typeName: string,
-  options: { includeReferences?: boolean } = {}
+  typeName: string, 
+  options: { 
+    includeReferences?: boolean;
+  } = {}
 ): Promise<SchemaTypeDetails> {
   try {
+    // Get the full schema
     const schema = await getSchema(projectId, dataset);
     
-    // Find any type with the given name, not just document types
-    const typeSchema = schema.find(item => item.name === typeName);
+    // Find the specific type
+    const typeSchema = schema.find(type => type.name === typeName);
     
     if (!typeSchema) {
       throw new Error(`Type ${typeName} not found in schema`);
     }
     
-    // If includeReferences is true, also include referenced types
-    if (options.includeReferences) {
-      const result = { 
-        ...typeSchema, 
-        references: [] as SchemaTypeDetails[]
-      };
-      
-      // Find referenced types
-      const referencedTypes = findReferencedTypes(typeSchema, schema);
-      if (referencedTypes.length > 0) {
-        result.references = referencedTypes;
-      }
-      
-      return result;
+    // If references are not needed, return just the type schema
+    if (!options.includeReferences) {
+      return typeSchema;
     }
     
-    return typeSchema;
+    // Find referenced types
+    const referencedTypes = findReferencedTypes(typeSchema, schema);
+    
+    // Add references to the type schema (for backwards compatibility)
+    return {
+      ...typeSchema,
+      references: referencedTypes
+    };
   } catch (error: any) {
     console.error(`Error getting schema for type ${typeName}:`, error);
     throw new Error(`Failed to get schema for type ${typeName}: ${error.message}`);
@@ -93,55 +93,68 @@ export async function getSchemaForType(
  * @returns Array of referenced types
  */
 function findReferencedTypes(typeSchema: SchemaTypeDetails, allTypes: SchemaTypeDetails[]): SchemaTypeDetails[] {
-  const references: SchemaTypeDetails[] = [];
-  const referencedTypeNames = new Set<string>();
+  const referencedTypes: SchemaTypeDetails[] = [];
+  const processedTypes = new Set<string>();
   
-  // Helper function to recursively check for references
-  function checkForReferences(obj: any) {
-    if (!obj || typeof obj !== 'object') return;
-    
-    // Check if this is a reference definition
-    if (obj.type === 'reference' && obj.to?.type) {
-      referencedTypeNames.add(obj.to.type);
+  // Helper function to recursively find references
+  function findReferences(type: SchemaTypeDetails) {
+    // Skip if already processed
+    if (processedTypes.has(type.name)) {
+      return;
     }
     
-    // Check for object types that might be inline or referenced
-    if (obj.type === 'object' && obj.name) {
-      referencedTypeNames.add(obj.name);
-    }
+    // Mark as processed
+    processedTypes.add(type.name);
     
-    // Check arrays for object or reference types
-    if (obj.type === 'array' && obj.of) {
-      (Array.isArray(obj.of) ? obj.of : [obj.of]).forEach((item: any) => {
-        checkForReferences(item);
-      });
-    }
-    
-    // Check for dereferencesTo property which indicates a reference
-    if (obj.dereferencesTo) {
-      referencedTypeNames.add(obj.dereferencesTo);
-    }
-    
-    // Recursively check all other properties
-    Object.values(obj).forEach(value => {
-      if (value && typeof value === 'object') {
-        checkForReferences(value);
+    // Process fields 
+    if (type.fields && Array.isArray(type.fields)) {
+      for (const field of type.fields) {
+        // Check for reference types
+        if (field.type === 'reference' && field.to) {
+          const refTypes = Array.isArray(field.to) ? field.to : [field.to];
+          
+          for (const refType of refTypes) {
+            const referencedType = allTypes.find(t => t.name === refType.type);
+            if (referencedType && !processedTypes.has(referencedType.name)) {
+              referencedTypes.push(referencedType);
+              findReferences(referencedType);
+            }
+          }
+        }
+        
+        // Check for array types with references
+        if (field.type === 'array' && field.of) {
+          const arrayTypes = Array.isArray(field.of) ? field.of : [field.of];
+          
+          for (const arrayType of arrayTypes) {
+            if (arrayType.type === 'reference' && arrayType.to) {
+              const refTypes = Array.isArray(arrayType.to) ? arrayType.to : [arrayType.to];
+              
+              for (const refType of refTypes) {
+                const referencedType = allTypes.find(t => t.name === refType.type);
+                if (referencedType && !processedTypes.has(referencedType.name)) {
+                  referencedTypes.push(referencedType);
+                  findReferences(referencedType);
+                }
+              }
+            } else {
+              // Handle other array types that aren't references
+              const embeddedType = allTypes.find(t => t.name === arrayType.type);
+              if (embeddedType && !processedTypes.has(embeddedType.name)) {
+                referencedTypes.push(embeddedType);
+                findReferences(embeddedType);
+              }
+            }
+          }
+        }
       }
-    });
+    }
   }
   
-  // Start the recursive search
-  checkForReferences(typeSchema);
+  // Start the recursion
+  findReferences(typeSchema);
   
-  // Add all found referenced types to the result
-  referencedTypeNames.forEach(name => {
-    const referencedType = allTypes.find(t => t.name === name);
-    if (referencedType && !references.some(r => r.name === name)) {
-      references.push(referencedType);
-    }
-  });
-  
-  return references;
+  return referencedTypes;
 }
 
 /**
@@ -158,18 +171,21 @@ export async function listSchemaTypes(
   { allTypes = false }: { allTypes?: boolean } = {}
 ): Promise<SchemaType[]> {
   try {
+    // Get the full schema
     const schema = await getSchema(projectId, dataset);
     
+    // Filter to document types only, unless allTypes is true
     const filteredSchema = allTypes 
       ? schema 
-      : schema.filter(item => item.type === 'document');
+      : schema.filter(type => type.type === 'document');
     
-    return filteredSchema.map(item => ({
-      name: item.name,
-      type: item.type
+    // Map to just the name and type
+    return filteredSchema.map(type => ({
+      name: type.name,
+      type: type.type
     }));
   } catch (error: any) {
-    console.error(`Error listing schema types for ${projectId}/${dataset}:`, error);
+    console.error(`Error listing schema types:`, error);
     throw new Error(`Failed to list schema types: ${error.message}`);
   }
 }
@@ -188,9 +204,11 @@ export async function getTypeSchema(
   typeName: string
 ): Promise<SchemaTypeDetails> {
   try {
+    // Get the full schema
     const schema = await getSchema(projectId, dataset);
     
-    const typeSchema = schema.find(item => item.name === typeName);
+    // Find the specific type
+    const typeSchema = schema.find(type => type.name === typeName);
     
     if (!typeSchema) {
       throw new Error(`Type '${typeName}' not found in schema`);
@@ -198,7 +216,7 @@ export async function getTypeSchema(
     
     return typeSchema;
   } catch (error: any) {
-    console.error(`Error getting type schema for ${typeName}:`, error);
+    console.error(`Error getting type schema:`, error);
     throw new Error(`Failed to get type schema: ${error.message}`);
   }
 }

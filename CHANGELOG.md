@@ -6,12 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.1.2] - 2025-03-07
 ### Added
-- Utility module `documentHelpers.ts` for common document operations:
-  - `normalizeDocumentIds`: Standardizes document ID normalization across controllers
-  - `applyPatchOperations`: Applies patch operations to a Sanity patch
-  - `getDocumentContent`: Retrieves document content with draft/published fallback
-  - `createErrorResponse`: Creates standardized error responses
+- Utility module `documentHelpers.ts` for common document operations
+- Added new interfaces in `sanity.ts`:
+  - `InsertOperation`: Type-safe interface for array insert operations
+  - `PatchOperations`: Type-safe interface for document patch operations
 - ESLint configuration for TypeScript code quality
 - Test-specific ESLint rules to prevent noise in test files
 - Code coverage reporting with Vitest
@@ -25,38 +26,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `quality:report`: Generate prioritized improvement recommendations
 
 ### Changed
+- Refactored `applyPatchOperations` function in `documentHelpers.ts` to improve type safety and preserve backward compatibility
+  - Added proper type safety using the new `PatchOperations` interface
+  - Maintained consistent parameter order to prevent breaking existing tests
+  - Enhanced error handling for insert operations
+- Updated function calls in `mutate.ts` and `actions.ts` to use the refactored `applyPatchOperations` function
 - Refactored `editDocument` function to reduce cognitive complexity
-  - Extracted `editMultipleDocuments` and `editSingleDocument` helper functions
-  - Added proper error handling with descriptive messages
 - Refactored `createDocumentVersion` function to reduce cognitive complexity
-  - Extracted `processDocumentForVersion` and `createVersionAction` helper functions
-  - Added validation of input parameters
 - Refactored `modifyDocuments` function in `controllers/mutate.ts` to reduce cognitive complexity
-  - Extracting helper functions for each mutation type
-  - Adding proper TypeScript interfaces for Sanity Transaction and Patch objects
-  - Replacing generic 'any' types with more specific types
-- Refactored `addDocumentToRelease` and `removeDocumentFromRelease` functions in `controllers/releases.ts` to reduce cognitive complexity
-- Refactored `createDocument` and `deleteDocument` functions in `controllers/actions.ts` to reduce cognitive complexity
-  - Extracted helper functions for preparing and processing documents
-  - Improved code organization and readability
-- Refactored `createRelease` function in `controllers/releases.ts` to reduce cognitive complexity
-  - Added validation, metadata creation, and error handling helper functions
-- Improved error handling consistency
-- Refactored `editDocument` in `controllers/actions.ts` to reduce cognitive complexity by extracting helper functions
-- Refactored `createDocumentVersion` in `controllers/actions.ts` to reduce cognitive complexity
-- Refactored `modifyDocuments` in `controllers/mutate.ts` to reduce cognitive complexity by:
-  - Extracting helper functions for each mutation type
-  - Adding proper TypeScript interfaces for Sanity Transaction and Patch objects
-  - Replacing generic 'any' types with more specific types
+- Refactored `addDocumentToRelease` and `removeDocumentFromRelease` functions in `controllers/releases.ts`
+- Refactored `createDocument` and `deleteDocument` functions in `controllers/actions.ts`
+- Refactored `createRelease` function in `controllers/releases.ts`
+- Simplified `applyInsertOperation` function to handle insert operations more efficiently
+- Enhanced type safety in various utility functions and controllers by replacing `any` types with specific types
+- Improved project structure by moving configuration files into dedicated directories:
+  - Configuration files moved to `config/` directory
+  - Quality scripts and output moved to `scripts/quality/` directory
 
 ### Removed
 - Removed `modifyPortableTextField` functionality and related code from controllers, tools, and tests
 - `PortableTextOperation` interface
 - `mutateTextField` tool which was no longer being used
 - Removed redundant `PortableTextOperation` interfaces from type definitions
-- Removed `modifyPortableTextField` functionality and related code from controllers, tools, and tests
 
 ### Fixed
+- Fixed type definitions in controllers to ensure backward compatibility with existing tests
+- Improved error handling consistency across controllers
 - Converted variable declarations from 'let' to 'const' where appropriate
 
 ## [0.1.1] - 2024-10-25

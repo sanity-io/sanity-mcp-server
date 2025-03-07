@@ -1,5 +1,5 @@
 import { createSanityClient } from '../utils/sanityClient.js';
-import { SanityClient } from '@sanity/client';
+import { SanityClient, SanityError, SanityDocument, InsertOperation, PatchOperations } from '../types/sanity.js';
 
 // Define interface for Sanity transaction
 interface SanityTransaction {
@@ -66,11 +66,7 @@ export interface PatchByIdMutation {
     unset?: string | string[];
     inc?: Record<string, number>;
     dec?: Record<string, number>;
-    insert?: {
-      items: any[] | any;
-      position: 'before' | 'after' | 'replace';
-      at: string;
-    };
+    insert?: InsertOperation;
     diffMatchPatch?: Record<string, string>;
   };
 }
@@ -84,11 +80,7 @@ export interface PatchByQueryMutation {
     unset?: string | string[];
     inc?: Record<string, number>;
     dec?: Record<string, number>;
-    insert?: {
-      items: any[] | any;
-      position: 'before' | 'after' | 'replace';
-      at: string;
-    };
+    insert?: InsertOperation;
     diffMatchPatch?: Record<string, string>;
   };
 }
@@ -174,7 +166,7 @@ function addPatchByIdMutation(
   transaction: SanityTransaction,
   id: string,
   ifRevisionID?: string,
-  patchOperations?: Record<string, any>
+  patchOperations?: PatchOperations
 ): void {
   if (!patchOperations) return;
   
@@ -203,14 +195,14 @@ function addPatchByQueryMutation(
   transaction: SanityTransaction,
   query: string,
   params?: Record<string, any>,
-  patchOperations?: Record<string, any>
+  patchOperations?: PatchOperations
 ): void {
   if (!patchOperations) return;
   
   transaction.patch({
     query,
     params,
-    ...constructPatchOperations(patchOperations)
+    ...patchOperations
   });
 }
 
@@ -222,7 +214,7 @@ function addPatchByQueryMutation(
  */
 function applyPatchOperationsToClient(
   patch: SanityPatch,
-  patchOperations: Record<string, any>
+  patchOperations: PatchOperations
 ): void {
   // Apply patch operations in the correct order: set, setIfMissing, unset, inc, dec, insert
   if (patchOperations.set) {
@@ -246,7 +238,11 @@ function applyPatchOperationsToClient(
   }
   
   if (patchOperations.insert) {
-    applyInsertOperation(patch, patchOperations.insert);
+    const insertOp = patchOperations.insert;
+    const { items, position, at } = insertOp;
+    if (items && position && at) {
+      patch.insert(position, at, items);
+    }
   }
 }
 
@@ -256,14 +252,10 @@ function applyPatchOperationsToClient(
  * @param patch - Sanity patch client
  * @param insertOp - Insert operation details
  */
-function applyInsertOperation(patch: SanityPatch, insertOp: any): void {
-  const { items, position, ...rest } = insertOp;
-  if (position === 'before') {
-    patch.insert('before', rest.at, items);
-  } else if (position === 'after') {
-    patch.insert('after', rest.at, items);
-  } else if (position === 'replace') {
-    patch.insert('replace', rest.at, items);
+function applyInsertOperation(patch: SanityPatch, insertOp: InsertOperation): void {
+  const { items, position, at } = insertOp;
+  if (position === 'before' || position === 'after' || position === 'replace') {
+    patch.insert(position, at, items);
   }
 }
 
@@ -301,7 +293,7 @@ function processMutation(
   
   // Handle patch mutation
   if ('patch' in mutation) {
-    const { id, query, params, ifRevisionID, ...patchOperations } = mutation.patch as any;
+    const { id, query, params, ifRevisionID, ...patchOperations } = mutation.patch as PatchOperations & { id?: string; query?: string; params?: Record<string, any>; ifRevisionID?: string };
     
     if (query) {
       // Patch by query
@@ -323,7 +315,7 @@ function processMutation(
 async function retrieveDocumentsForMutations(
   client: SanityClient,
   mutations: Mutation[]
-): Promise<any[]> {
+): Promise<(SanityDocument | null)[]> {
   return await Promise.all(mutations.map(async (mutation) => {
     // Type guard for different mutation types
     if ('create' in mutation) {
@@ -353,7 +345,7 @@ interface MutateDocumentsResult {
   success: boolean;
   message: string;
   result: Record<string, any>;
-  documents?: Record<string, any>[];
+  documents?: SanityDocument[];
 }
 
 /**
@@ -397,7 +389,7 @@ async function modifyDocuments(
         success: true,
         message: `Successfully applied ${mutations.length} mutations`,
         result,
-        documents: documents.filter(Boolean)
+        documents: documents.filter(Boolean) as SanityDocument[]
       };
     } else {
       return {
@@ -406,14 +398,12 @@ async function modifyDocuments(
         result
       };
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     console.error(`Error modifying documents:`, error);
-    throw new Error(`Failed to modify documents: ${error.message}`);
+    throw new Error(`Failed to modify documents: ${errorMessage}`);
   }
 }
-
-// Export the refactored function
-export { modifyDocuments };
 
 /**
  * Helper function to construct patch operations
@@ -421,9 +411,9 @@ export { modifyDocuments };
  * @param patch - Raw patch object with operations
  * @returns Formatted patch operations
  */
-function constructPatchOperations(patch: Record<string, any>): Record<string, any> {
+function constructPatchOperations(patch: Record<string, any>): PatchOperations {
   // Extract operations from the patch object
-  const operations: Record<string, any> = {};
+  const operations: PatchOperations = {};
   
   // Handle 'set' operations
   if (patch.set) {
@@ -462,3 +452,6 @@ function constructPatchOperations(patch: Record<string, any>): Record<string, an
   
   return operations;
 }
+
+// Export the refactored function
+export { modifyDocuments };
