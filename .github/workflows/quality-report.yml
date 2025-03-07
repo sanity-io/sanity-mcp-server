@@ -35,6 +35,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Run tests to gather results
+        run: npm test -- --reporter json --outputFile=test-results.json || true
+
       - name: Generate quality report
         run: npm run quality:report
 
@@ -42,6 +45,10 @@ jobs:
         run: |
           mkdir -p quality-report
           cp -r scripts/quality/output/* quality-report/
+          # Copy test results to quality report directory
+          if [ -f "test-results.json" ]; then
+            cp test-results.json quality-report/
+          fi
           echo "<!DOCTYPE html>
           <html>
           <head>
@@ -49,6 +56,7 @@ jobs:
             <meta name='viewport' content='width=device-width, initial-scale=1'>
             <title>Sanity MCP Server - Quality Report</title>
             <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css'>
+            <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css'>
             <style>
               body { padding: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; }
               .report-container { max-width: 1200px; margin: 0 auto; }
@@ -105,8 +113,56 @@ jobs:
               </div>
             </div>
             
+            <!-- Test Results Section -->
+            <div class='metric-card card mt-4'>
+              <div class='card-header bg-purple text-white' style='background-color: #6f42c1;'>
+                <h5 class='card-title mb-0'>Test Results Summary</h5>
+              </div>
+              <div class='card-body'>
+                <div class='row'>
+                  <div class='col-md-6'>
+                    <div class='chart-container' id='test-results-chart'></div>
+                  </div>
+                  <div class='col-md-6'>
+                    <div id='test-results-summary' class='p-3'>
+                      <h4 class='text-center mb-4'>Overall Test Status</h4>
+                      <div id='test-status-indicator' class='text-center mb-4'>
+                        <div class='spinner-border text-primary' role='status'>
+                          <span class='visually-hidden'>Loading...</span>
+                        </div>
+                      </div>
+                      <div class='row text-center'>
+                        <div class='col-6'>
+                          <div class='card' style='background-color: #e8f5e9;'>
+                            <div class='card-body'>
+                              <h3 id='tests-passed' class='text-success'>-</h3>
+                              <p class='text-muted mb-0'>Tests Passed</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div class='col-6'>
+                          <div class='card' style='background-color: #ffebee;'>
+                            <div class='card-body'>
+                              <h3 id='tests-failed' class='text-danger'>-</h3>
+                              <p class='text-muted mb-0'>Tests Failed</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <h5 class='mt-4 mb-3'>Test Suites</h5>
+                <div id='test-suites-list' class='accordion'>
+                  <!-- Test suites will be populated here -->
+                </div>
+              </div>
+            </div>
+            
             <script src='https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js'></script>
             <script src='https://code.jquery.com/jquery-3.6.0.min.js'></script>
+            <script src='https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js'></script>
             <script>
               // Load the quality metrics data
               fetch('quality-history.json')
@@ -236,6 +292,128 @@ jobs:
                       }
                     }
                   });
+                });
+              
+              // Load test results
+              fetch('test-results.json')
+                .then(response => response.json())
+                .then(testData => {
+                  // Update test summary counts
+                  const totalTests = testData.numTotalTests || 0;
+                  const failedTests = testData.numFailedTests || 0;
+                  const passedTests = totalTests - failedTests;
+                  
+                  $('#tests-passed').text(passedTests);
+                  $('#tests-failed').text(failedTests);
+                  
+                  // Update overall status indicator
+                  const statusIndicator = $('#test-status-indicator');
+                  statusIndicator.empty();
+                  
+                  if (failedTests === 0) {
+                    statusIndicator.html('<div class="alert alert-success p-3 text-center" role="alert"><h2><i class="bi bi-check-circle"></i> All Tests Passing</h2><p class="mb-0">All test suites executed successfully</p></div>');
+                  } else {
+                    statusIndicator.html(`<div class="alert alert-danger p-3 text-center" role="alert"><h2><i class="bi bi-x-circle"></i> ${failedTests} Failed Tests</h2><p class="mb-0">Some tests are failing</p></div>`);
+                  }
+                  
+                  // Create test results chart
+                  const testResultsCtx = document.getElementById('test-results-chart').getContext('2d');
+                  new Chart(testResultsCtx, {
+                    type: 'pie',
+                    data: {
+                      labels: ['Passed', 'Failed'],
+                      datasets: [{
+                        data: [passedTests, failedTests],
+                        backgroundColor: [
+                          '#4caf50',  // Green for passed
+                          '#f44336'   // Red for failed
+                        ],
+                        borderColor: [
+                          '#388e3c',
+                          '#d32f2f'
+                        ],
+                        borderWidth: 1
+                      }]
+                    },
+                    options: {
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          position: 'bottom'
+                        },
+                        title: {
+                          display: true,
+                          text: 'Test Results Distribution'
+                        }
+                      }
+                    }
+                  });
+                  
+                  // Populate test suites accordion
+                  const testSuitesList = $('#test-suites-list');
+                  if (testData.testResults) {
+                    testData.testResults.forEach((suite, index) => {
+                      const suiteStatus = suite.numFailingTests === 0 ? 
+                        '<span class="badge bg-success ms-2">Passing</span>' : 
+                        `<span class="badge bg-danger ms-2">${suite.numFailingTests} Failed</span>`;
+                      
+                      const suiteName = suite.testFilePath.split('/').pop();
+                      const suiteElement = $(`
+                        <div class="accordion-item">
+                          <h2 class="accordion-header" id="heading-${index}">
+                            <button class="accordion-button ${suite.numFailingTests === 0 ? 'collapsed' : ''}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${index}" aria-expanded="${suite.numFailingTests > 0}" aria-controls="collapse-${index}">
+                              <div class="d-flex justify-content-between w-100">
+                                <span>${suiteName}</span>
+                                ${suiteStatus}
+                              </div>
+                            </button>
+                          </h2>
+                          <div id="collapse-${index}" class="accordion-collapse collapse ${suite.numFailingTests > 0 ? 'show' : ''}" aria-labelledby="heading-${index}">
+                            <div class="accordion-body">
+                              <table class="table table-sm">
+                                <thead>
+                                  <tr>
+                                    <th>Test</th>
+                                    <th>Status</th>
+                                    <th>Duration</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </div>
+                      `);
+                      
+                      const tableBody = suiteElement.find('tbody');
+                      suite.testResults.forEach(test => {
+                        const status = test.status === 'passed' ? 
+                          '<span class="badge bg-success">Pass</span>' : 
+                          '<span class="badge bg-danger">Fail</span>';
+                        
+                        const duration = (test.duration / 1000).toFixed(2);
+                        
+                        tableBody.append(`
+                          <tr class="${test.status === 'passed' ? '' : 'table-danger'}">
+                            <td>${test.title}</td>
+                            <td>${status}</td>
+                            <td>${duration}s</td>
+                          </tr>
+                        `);
+                      });
+                      
+                      testSuitesList.append(suiteElement);
+                    });
+                  } else {
+                    testSuitesList.html('<div class="alert alert-warning">No test results available</div>');
+                  }
+                })
+                .catch(error => {
+                  console.error('Error loading test results:', error);
+                  $('#test-suites-list').html('<div class="alert alert-warning">Error loading test results</div>');
+                  $('#test-status-indicator').html('<div class="alert alert-warning">No test data available</div>');
                 });
             </script>
           </body>

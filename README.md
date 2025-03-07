@@ -353,9 +353,9 @@ Key metrics at a glance:
 
 #### Detailed Quality Information
 
-- [📊 Interactive Quality Metrics Dashboard](./scripts/quality/output/quality-metrics-chart.html) - Visual trends of code quality over time
-- [📝 Quality Improvement Recommendations](./scripts/quality/output/improvement-recommendations.md) - Prioritized list of suggested improvements
-- [📈 Raw Quality Data (NDJSON)](./scripts/quality/quality-tag-checkpoint.ndjson) - Historical quality metrics for all releases
+- [📊 Interactive Quality Metrics Dashboard](https://sanity-io.github.io/sanity-mcp-server/quality-metrics-chart.html) - Visual trends of code quality over time
+- [📝 Quality Improvement Recommendations](https://sanity-io.github.io/sanity-mcp-server/improvement-recommendations.html) - Prioritized list of suggested improvements
+- [📈 Raw Quality Data](https://sanity-io.github.io/sanity-mcp-server/quality-tag-checkpoint.json) - Historical quality metrics for all releases
 
 Quality metrics are automatically updated on each release and can be manually generated with `npm run quality:report`.
 
