@@ -7,7 +7,7 @@
 
 import { z } from 'zod';
 import { Mutation } from '../controllers/mutate.js';
-import { SanityDocument, PatchOperations, SanityMutationResult } from './sanity.js';
+import { SanityDocument, PatchOperations, SanityMutationResult, SanityActionResult } from './sanity.js';
 import { SchemaType, SchemaField, SearchOptions, SearchResponse } from './index.js';
 
 /**
@@ -180,4 +180,25 @@ export interface SearchParams extends ProjectDatasetParams {
   limit?: number;
   filter?: string | Record<string, any>;
   options?: SearchOptions;
+}
+
+/**
+ * Actions-related shared interfaces
+ */
+
+export interface DocumentIdParam extends ProjectDatasetParams {
+  documentId: string | string[];
+}
+
+export interface ReleaseDocumentIdParam extends ProjectDatasetParams {
+  releaseId: string;
+  documentId: string | string[];
+}
+
+export interface ActionResult {
+  success: boolean;
+  message: string;
+  documentId?: string;
+  documentIds?: string[];
+  result: SanityActionResult | SanityMutationResult;
 } 

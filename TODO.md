@@ -22,9 +22,9 @@
    
    3. **Refactor tool definitions in tool provider files** (IN PROGRESS)
       - ✅ MutateTools: Created shared interfaces and updated tool definitions
-      - 🔜 SchemaTools: Need to define shared interfaces for schema operations
-      - 🔜 GroqTools: Need to define shared interfaces for GROQ query operations
-      - 🔜 ActionsTools: Need to define shared interfaces for Sanity actions
+      - ✅ SchemaTools: Created shared interfaces for schema operations
+      - ✅ GroqTools: Created shared interfaces for GROQ query operations
+      - ✅ ActionsTools: Created shared interfaces for Sanity actions
       - 🔜 ContextTools: Need to define shared interfaces for context operations
       - 🔜 ProjectsTools: Need to define shared interfaces for project operations
       - 🔜 ReleasesTools: Need to define shared interfaces for release management
