@@ -1,0 +1,11 @@
+{
+  "name": "echo-mcp-server",
+  "version": "1.0.0",
+  "description": "Simple MCP echo server for testing",
+  "main": "test-echo-server.js",
+  "type": "module",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.6.1",
+    "zod": "^3.22.4"
+  }
+} 

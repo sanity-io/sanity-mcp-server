@@ -1,18 +1,18 @@
 {
   "statistics": {
-    "detectionDate": "2025-03-07T02:10:01.563Z",
+    "detectionDate": "2025-03-07T20:00:10.539Z",
     "formats": {
       "typescript": {
         "sources": {
           "src/utils/sanityClient.ts": {
-            "lines": 177,
-            "tokens": 1221,
+            "lines": 170,
+            "tokens": 1184,
             "sources": 1,
             "clones": 1,
             "duplicatedLines": 16,
             "duplicatedTokens": 160,
-            "percentage": 9.04,
-            "percentageTokens": 13.1,
+            "percentage": 9.41,
+            "percentageTokens": 13.51,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -28,9 +28,21 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
+          "src/utils/logger.ts": {
+            "lines": 24,
+            "tokens": 227,
+            "sources": 1,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
+            "newDuplicatedLines": 0,
+            "newClones": 0
+          },
           "src/utils/documentHelpers.ts": {
-            "lines": 156,
-            "tokens": 966,
+            "lines": 203,
+            "tokens": 1334,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -65,38 +77,38 @@
             "newClones": 0
           },
           "src/types/sanity.ts": {
-            "lines": 141,
-            "tokens": 1042,
+            "lines": 150,
+            "tokens": 1015,
             "sources": 1,
             "clones": 1,
             "duplicatedLines": 7,
             "duplicatedTokens": 92,
-            "percentage": 4.96,
-            "percentageTokens": 8.83,
+            "percentage": 4.67,
+            "percentageTokens": 9.06,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "src/types/index.ts": {
-            "lines": 102,
-            "tokens": 667,
+            "lines": 117,
+            "tokens": 782,
             "sources": 1,
             "clones": 1,
             "duplicatedLines": 16,
             "duplicatedTokens": 160,
-            "percentage": 15.69,
-            "percentageTokens": 23.99,
+            "percentage": 13.68,
+            "percentageTokens": 20.46,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "src/tools/schemaTools.ts": {
-            "lines": 58,
-            "tokens": 493,
+            "lines": 76,
+            "tokens": 647,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 12,
-            "duplicatedTokens": 156,
-            "percentage": 20.69,
-            "percentageTokens": 31.64,
+            "clones": 0,
+            "duplicatedLines": 0,
+            "duplicatedTokens": 0,
+            "percentage": 0,
+            "percentageTokens": 0,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -137,8 +149,8 @@
             "newClones": 0
           },
           "src/tools/index.ts": {
-            "lines": 91,
-            "tokens": 587,
+            "lines": 92,
+            "tokens": 596,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -161,14 +173,14 @@
             "newClones": 0
           },
           "src/tools/embeddingsTools.ts": {
-            "lines": 57,
-            "tokens": 461,
+            "lines": 58,
+            "tokens": 477,
             "sources": 1,
             "clones": 1,
             "duplicatedLines": 6,
             "duplicatedTokens": 78,
-            "percentage": 10.53,
-            "percentageTokens": 16.92,
+            "percentage": 10.34,
+            "percentageTokens": 16.35,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
@@ -197,20 +209,20 @@
             "newClones": 0
           },
           "src/controllers/schema.ts": {
-            "lines": 221,
-            "tokens": 1660,
+            "lines": 222,
+            "tokens": 1669,
             "sources": 1,
             "clones": 2,
             "duplicatedLines": 18,
             "duplicatedTokens": 190,
-            "percentage": 8.14,
-            "percentageTokens": 11.45,
+            "percentage": 8.11,
+            "percentageTokens": 11.38,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "src/controllers/releases.ts": {
-            "lines": 821,
-            "tokens": 5116,
+            "lines": 829,
+            "tokens": 5152,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -233,32 +245,32 @@
             "newClones": 0
           },
           "src/controllers/mutate.ts": {
-            "lines": 456,
-            "tokens": 3041,
+            "lines": 469,
+            "tokens": 3176,
             "sources": 1,
-            "clones": 4,
-            "duplicatedLines": 45,
-            "duplicatedTokens": 386,
-            "percentage": 9.87,
-            "percentageTokens": 12.69,
+            "clones": 3,
+            "duplicatedLines": 29,
+            "duplicatedTokens": 298,
+            "percentage": 6.18,
+            "percentageTokens": 9.38,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "src/controllers/groq.ts": {
-            "lines": 428,
-            "tokens": 3364,
+            "lines": 451,
+            "tokens": 3628,
             "sources": 1,
-            "clones": 2,
-            "duplicatedLines": 18,
-            "duplicatedTokens": 220,
-            "percentage": 4.21,
-            "percentageTokens": 6.54,
+            "clones": 4,
+            "duplicatedLines": 30,
+            "duplicatedTokens": 392,
+            "percentage": 6.65,
+            "percentageTokens": 10.8,
             "newDuplicatedLines": 0,
             "newClones": 0
           },
           "src/controllers/embeddings.ts": {
-            "lines": 168,
-            "tokens": 1284,
+            "lines": 172,
+            "tokens": 1331,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -268,21 +280,9 @@
             "newDuplicatedLines": 0,
             "newClones": 0
           },
-          "src/controllers/actions.ts": {
-            "lines": 928,
-            "tokens": 6279,
-            "sources": 1,
-            "clones": 7,
-            "duplicatedLines": 104,
-            "duplicatedTokens": 772,
-            "percentage": 11.21,
-            "percentageTokens": 12.29,
-            "newDuplicatedLines": 0,
-            "newClones": 0
-          },
           "src/config/config.ts": {
-            "lines": 70,
-            "tokens": 503,
+            "lines": 90,
+            "tokens": 708,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -293,8 +293,8 @@
             "newClones": 0
           },
           "src/index.ts": {
-            "lines": 64,
-            "tokens": 443,
+            "lines": 109,
+            "tokens": 832,
             "sources": 1,
             "clones": 0,
             "duplicatedLines": 0,
@@ -306,28 +306,28 @@
           }
         },
         "total": {
-          "lines": 4887,
-          "tokens": 34659,
+          "lines": 4181,
+          "tokens": 30290,
           "sources": 25,
-          "clones": 13,
-          "duplicatedLines": 147,
-          "duplicatedTokens": 1402,
-          "percentage": 3.01,
-          "percentageTokens": 4.05,
+          "clones": 9,
+          "duplicatedLines": 87,
+          "duplicatedTokens": 980,
+          "percentage": 2.08,
+          "percentageTokens": 3.24,
           "newDuplicatedLines": 0,
           "newClones": 0
         }
       }
     },
     "total": {
-      "lines": 4887,
-      "tokens": 34659,
+      "lines": 4181,
+      "tokens": 30290,
       "sources": 25,
-      "clones": 13,
-      "duplicatedLines": 147,
-      "duplicatedTokens": 1402,
-      "percentage": 3.01,
-      "percentageTokens": 4.05,
+      "clones": 9,
+      "duplicatedLines": 87,
+      "duplicatedTokens": 980,
+      "percentage": 2.08,
+      "percentageTokens": 3.24,
       "newDuplicatedLines": 0,
       "newClones": 0
     }
@@ -340,68 +340,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "src/types/index.ts",
-        "start": 70,
-        "end": 86,
+        "start": 79,
+        "end": 95,
         "startLoc": {
-          "line": 70,
+          "line": 79,
           "column": 2,
-          "position": 415
+          "position": 491
         },
         "endLoc": {
-          "line": 86,
+          "line": 95,
           "column": 2,
-          "position": 575
+          "position": 651
         }
       },
       "secondFile": {
         "name": "src/utils/sanityClient.ts",
-        "start": 41,
-        "end": 57,
+        "start": 6,
+        "end": 22,
         "startLoc": {
-          "line": 41,
+          "line": 6,
           "column": 2,
-          "position": 225
+          "position": 52
         },
         "endLoc": {
-          "line": 57,
+          "line": 22,
           "column": 25,
-          "position": 386
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 7,
-      "fragment": ",\n        parameters: z.object({\n          projectId: z.string().optional().describe('Project ID, if not provided will use the project ID from the environment'),\n          dataset: z.string().optional().describe('Dataset name, if not provided will use the dataset from the environment')\n        }),\n        handler: async (args: any) => {\n          return await releasesController",
-      "tokens": 0,
-      "firstFile": {
-        "name": "src/tools/releasesTools.ts",
-        "start": 42,
-        "end": 48,
-        "startLoc": {
-          "line": 42,
-          "column": 29,
-          "position": 273
-        },
-        "endLoc": {
-          "line": 48,
-          "column": 19,
-          "position": 351
-        }
-      },
-      "secondFile": {
-        "name": "src/tools/schemaTools.ts",
-        "start": 24,
-        "end": 30,
-        "startLoc": {
-          "line": 24,
-          "column": 52,
-          "position": 104
-        },
-        "endLoc": {
-          "line": 30,
-          "column": 17,
-          "position": 182
+          "position": 213
         }
       }
     },
@@ -484,32 +448,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "src/tools/embeddingsTools.ts",
-        "start": 23,
-        "end": 29,
-        "startLoc": {
-          "line": 23,
-          "column": 68,
-          "position": 86
-        },
-        "endLoc": {
-          "line": 29,
-          "column": 21,
-          "position": 164
-        }
-      },
-      "secondFile": {
-        "name": "src/tools/schemaTools.ts",
         "start": 24,
         "end": 30,
         "startLoc": {
           "line": 24,
-          "column": 52,
-          "position": 104
+          "column": 68,
+          "position": 102
         },
         "endLoc": {
           "line": 30,
-          "column": 17,
-          "position": 182
+          "column": 21,
+          "position": 180
+        }
+      },
+      "secondFile": {
+        "name": "src/tools/releasesTools.ts",
+        "start": 42,
+        "end": 48,
+        "startLoc": {
+          "line": 42,
+          "column": 29,
+          "position": 273
+        },
+        "endLoc": {
+          "line": 48,
+          "column": 19,
+          "position": 351
         }
       }
     },
@@ -520,32 +484,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "src/controllers/schema.ts",
-        "start": 131,
-        "end": 140,
+        "start": 132,
+        "end": 141,
         "startLoc": {
-          "line": 131,
+          "line": 132,
           "column": 10,
-          "position": 1034
+          "position": 1043
         },
         "endLoc": {
-          "line": 140,
+          "line": 141,
           "column": 5,
-          "position": 1129
+          "position": 1138
         }
       },
       "secondFile": {
         "name": "src/controllers/schema.ts",
-        "start": 114,
-        "end": 125,
+        "start": 115,
+        "end": 126,
         "startLoc": {
-          "line": 114,
+          "line": 115,
           "column": 6,
-          "position": 818
+          "position": 827
         },
         "endLoc": {
-          "line": 125,
+          "line": 126,
           "column": 41,
-          "position": 916
+          "position": 925
         }
       }
     },
@@ -556,32 +520,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "src/controllers/mutate.ts",
-        "start": 64,
-        "end": 71,
+        "start": 57,
+        "end": 64,
         "startLoc": {
-          "line": 64,
+          "line": 57,
           "column": 5,
-          "position": 623
+          "position": 581
         },
         "endLoc": {
-          "line": 71,
+          "line": 64,
           "column": 2,
-          "position": 715
+          "position": 673
         }
       },
       "secondFile": {
         "name": "src/types/sanity.ts",
-        "start": 135,
-        "end": 142,
+        "start": 143,
+        "end": 150,
         "startLoc": {
-          "line": 135,
+          "line": 143,
           "column": 3,
-          "position": 951
+          "position": 916
         },
         "endLoc": {
-          "line": 142,
-          "column": 2,
-          "position": 1042
+          "line": 150,
+          "column": 13,
+          "position": 1008
         }
       }
     },
@@ -592,32 +556,68 @@
       "tokens": 0,
       "firstFile": {
         "name": "src/controllers/mutate.ts",
-        "start": 77,
-        "end": 88,
+        "start": 70,
+        "end": 81,
         "startLoc": {
-          "line": 77,
+          "line": 70,
           "column": 2,
-          "position": 754
+          "position": 712
         },
         "endLoc": {
-          "line": 88,
+          "line": 81,
           "column": 5,
-          "position": 857
+          "position": 815
         }
       },
       "secondFile": {
         "name": "src/controllers/mutate.ts",
-        "start": 63,
-        "end": 74,
+        "start": 56,
+        "end": 67,
         "startLoc": {
-          "line": 63,
+          "line": 56,
           "column": 7,
-          "position": 620
+          "position": 578
         },
         "endLoc": {
-          "line": 74,
+          "line": 67,
           "column": 10,
-          "position": 723
+          "position": 681
+        }
+      }
+    },
+    {
+      "format": "typescript",
+      "lines": 7,
+      "fragment": "let results;\n    if (process.env.NODE_ENV === 'test') {\n      // In test mode, only pass query and params without the third parameter\n      const queryParams = params.params && typeof params.params === 'object' ? params.params : {};\n      results = await client.fetch(query, queryParams);\n    } else {\n      // In production, use all three parameters",
+      "tokens": 0,
+      "firstFile": {
+        "name": "src/controllers/groq.ts",
+        "start": 152,
+        "end": 158,
+        "startLoc": {
+          "line": 152,
+          "column": 5,
+          "position": 1225
+        },
+        "endLoc": {
+          "line": 158,
+          "column": 43,
+          "position": 1311
+        }
+      },
+      "secondFile": {
+        "name": "src/controllers/groq.ts",
+        "start": 57,
+        "end": 63,
+        "startLoc": {
+          "line": 57,
+          "column": 5,
+          "position": 398
+        },
+        "endLoc": {
+          "line": 63,
+          "column": 6,
+          "position": 484
         }
       }
     },
@@ -628,176 +628,32 @@
       "tokens": 0,
       "firstFile": {
         "name": "src/controllers/groq.ts",
-        "start": 156,
-        "end": 165,
+        "start": 172,
+        "end": 181,
         "startLoc": {
-          "line": 156,
+          "line": 172,
           "column": 5,
-          "position": 1228
+          "position": 1436
         },
         "endLoc": {
-          "line": 165,
+          "line": 181,
           "column": 52,
-          "position": 1338
+          "position": 1546
         }
       },
       "secondFile": {
         "name": "src/controllers/groq.ts",
-        "start": 70,
-        "end": 79,
+        "start": 76,
+        "end": 85,
         "startLoc": {
-          "line": 70,
+          "line": 76,
           "column": 5,
-          "position": 517
+          "position": 604
         },
         "endLoc": {
-          "line": 79,
+          "line": 85,
           "column": 19,
-          "position": 627
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 17,
-      "fragment": "interface SanityDocumentStub<T extends { _type: string }> {\n  _type: string;\n  [key: string]: any;\n}\n\ninterface IdentifiedSanityDocumentStub<T extends Record<string, any>> extends SanityDocumentStub<T & { _type: string }> {\n  _id: string;\n}\n\n/**\n * Publishes a document or multiple documents (makes draft the published version)\n * \n * @param projectId - Sanity project ID\n * @param dataset - Dataset name\n * @param documentId - The document ID or array of IDs to publish\n * @returns Result of the publish operation\n */",
-      "tokens": 0,
-      "firstFile": {
-        "name": "src/controllers/actions.ts",
-        "start": 21,
-        "end": 37,
-        "startLoc": {
-          "line": 21,
-          "column": 1,
-          "position": 99
-        },
-        "endLoc": {
-          "line": 37,
-          "column": 4,
-          "position": 187
-        }
-      },
-      "secondFile": {
-        "name": "src/controllers/mutate.ts",
-        "start": 26,
-        "end": 35,
-        "startLoc": {
-          "line": 26,
-          "column": 1,
-          "position": 355
-        },
-        "endLoc": {
-          "line": 35,
-          "column": 7,
-          "position": 443
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 17,
-      "fragment": "): Promise<{\n  success: boolean;\n  message: string;\n  documentId?: string;\n  documentIds?: string[];\n  result: SanityMutationResult;\n}> {\n  try {\n    const client = createSanityClient(projectId, dataset);\n    \n    // Handle array of documents\n    if (Array.isArray(documents)) {\n      if (documents.length === 0) {\n        throw new Error('Empty array of documents provided');\n      }\n      \n      // Validate and prepare each document",
-      "tokens": 0,
-      "firstFile": {
-        "name": "src/controllers/actions.ts",
-        "start": 517,
-        "end": 533,
-        "startLoc": {
-          "line": 517,
-          "column": 1,
-          "position": 3575
-        },
-        "endLoc": {
-          "line": 533,
-          "column": 38,
-          "position": 3698
-        }
-      },
-      "secondFile": {
-        "name": "src/controllers/actions.ts",
-        "start": 255,
-        "end": 271,
-        "startLoc": {
-          "line": 255,
-          "column": 1,
-          "position": 1785
-        },
-        "endLoc": {
-          "line": 271,
-          "column": 6,
-          "position": 1908
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 13,
-      "fragment": "?: string[];\n  result: SanityMutationResult;\n}> {\n  try {\n    const client = createSanityClient(projectId, dataset);\n    \n    // Handle array of document IDs\n    if (Array.isArray(documentId)) {\n      if (documentId.length === 0) {\n        throw new Error('Empty array of document IDs provided');\n      }\n      \n      const versionIds",
-      "tokens": 0,
-      "firstFile": {
-        "name": "src/controllers/actions.ts",
-        "start": 729,
-        "end": 741,
-        "startLoc": {
-          "line": 729,
-          "column": 11,
-          "position": 4918
-        },
-        "endLoc": {
-          "line": 741,
-          "column": 11,
-          "position": 5012
-        }
-      },
-      "secondFile": {
-        "name": "src/controllers/actions.ts",
-        "start": 373,
-        "end": 385,
-        "startLoc": {
-          "line": 373,
-          "column": 12,
-          "position": 2599
-        },
-        "endLoc": {
-          "line": 385,
-          "column": 2,
-          "position": 2693
-        }
-      }
-    },
-    {
-      "format": "typescript",
-      "lines": 17,
-      "fragment": "): Promise<{\n  success: boolean;\n  message: string;\n  documentId?: string;\n  documentIds?: string[];\n  result: SanityMutationResult;\n}> {\n  try {\n    const client = createSanityClient(projectId, dataset);\n    \n    // Handle array of document IDs\n    if (Array.isArray(documentId)) {\n      if (documentId.length === 0) {\n        throw new Error('Empty array of document IDs provided');\n      }\n      \n      const unpublishDocs",
-      "tokens": 0,
-      "firstFile": {
-        "name": "src/controllers/actions.ts",
-        "start": 858,
-        "end": 874,
-        "startLoc": {
-          "line": 858,
-          "column": 1,
-          "position": 5763
-        },
-        "endLoc": {
-          "line": 874,
-          "column": 14,
-          "position": 5888
-        }
-      },
-      "secondFile": {
-        "name": "src/controllers/actions.ts",
-        "start": 369,
-        "end": 385,
-        "startLoc": {
-          "line": 369,
-          "column": 1,
-          "position": 2568
-        },
-        "endLoc": {
-          "line": 385,
-          "column": 2,
-          "position": 2693
+          "position": 714
         }
       }
     }

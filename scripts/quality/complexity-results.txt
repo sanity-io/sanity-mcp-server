@@ -1,0 +1,27 @@
+Most complex functions:
+1. controllers/embeddings.ts:82:8 - Async function 'semanticSearch' has a complexity of 17. Maximum allowed is 10.
+2. controllers/embeddings.ts:82:23 - Refactor this function to reduce its Cognitive Complexity from 14 to the 10 allowed.
+3. controllers/groq.ts:25:8 - Async function 'searchContent' has a complexity of 21. Maximum allowed is 10.
+4. controllers/groq.ts:25:23 - Refactor this function to reduce its Cognitive Complexity from 28 to the 10 allowed.
+5. controllers/groq.ts:119:8 - Async function 'query' has a complexity of 16. Maximum allowed is 10.
+6. controllers/groq.ts:119:23 - Refactor this function to reduce its Cognitive Complexity from 12 to the 10 allowed.
+7. controllers/groq.ts:257:10 - Refactor this function to reduce its Cognitive Complexity from 11 to the 10 allowed.
+8. controllers/mutate.ts:215:1 - Function 'applyPatchOperationsToClient' has a complexity of 11. Maximum allowed is 10.
+9. controllers/mutate.ts:215:10 - Refactor this function to reduce its Cognitive Complexity from 11 to the 10 allowed.
+10. controllers/schema.ts:100:3 - Function 'findReferences' has a complexity of 23. Maximum allowed is 10.
+11. controllers/schema.ts:100:12 - Refactor this function to reduce its Cognitive Complexity from 69 to the 10 allowed.
+12. integration/release-document-workflow.test.ts:51:12 - Async arrow function has a complexity of 13. Maximum allowed is 10.
+13. integration/release-document-workflow.test.ts:51:21 - Refactor this function to reduce its Cognitive Complexity from 24 to the 10 allowed.
+14. utils/documentHelpers.ts:32:8 - Function 'applyPatchOperations' has a complexity of 11. Maximum allowed is 10.
+15. utils/documentHelpers.ts:120:17 - Refactor this function to reduce its Cognitive Complexity from 15 to the 10 allowed.
+16. utils/portableText.ts:41:21 - Arrow function has a complexity of 15. Maximum allowed is 10.
+17. utils/portableText.ts:41:27 - Refactor this function to reduce its Cognitive Complexity from 13 to the 10 allowed.
+
+Files with most complexity issues:
+1. controllers/groq.ts - 5 issues
+2. controllers/embeddings.ts - 2 issues
+3. controllers/mutate.ts - 2 issues
+4. controllers/schema.ts - 2 issues
+5. integration/release-document-workflow.test.ts - 2 issues
+6. utils/documentHelpers.ts - 2 issues
+7. utils/portableText.ts - 2 issues
