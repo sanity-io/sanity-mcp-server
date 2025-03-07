@@ -1,13 +1,15 @@
 /**
  * Integration test for the full release and document workflow
  * Tests creation of releases, documents, adding versions, and cleanup
+ * @vitest-environment node
+ * @tags integration, standard
  */
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import dotenv from 'dotenv';
 import { v4 as uuidv4 } from 'uuid';
-import * as actionsController from '../../src/controllers/actions.js';
-import * as releasesController from '../../src/controllers/releases.js';
-import { createSanityClient } from '../../src/utils/sanityClient.js';
+import * as actionsController from '../../../src/controllers/actions.js';
+import * as releasesController from '../../../src/controllers/releases.js';
+import { createSanityClient } from '../../../src/utils/sanityClient.js';
 
 // Load environment variables
 dotenv.config();

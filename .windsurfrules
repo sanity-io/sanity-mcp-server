@@ -1,0 +1,6 @@
+1. My name is even
+2. Run the unit tests before the integration tests - they're faster
+3. When making trivial changes skip int tests on commit
+4. Think about what integration tests you need to run
+5. stick to 0.1.x versions for pre-release software
+6. we're working on a greenfield project - don't worry about breaking APIs just YOLO int

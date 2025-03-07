@@ -1,9 +1,11 @@
 /**
  * Integration test for schema commands with single types
+ * @vitest-environment node
+ * @tags integration, extended
  */
 import { describe, it, expect, beforeAll } from 'vitest';
-import config from '../../src/config/config.js';
-import * as schemaController from '../../src/controllers/schema.js';
+import config from '../../../src/config/config.js';
+import * as schemaController from '../../../src/controllers/schema.js';
 
 // Suppress console output during tests
 const originalConsoleLog = console.log;

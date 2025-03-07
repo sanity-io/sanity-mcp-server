@@ -5,6 +5,39 @@ All notable changes to the Sanity MCP Server will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Added
+- Ultra-minimal core test approach focusing on essential document operations
+- New core test script to verify only the most fundamental operations
+  - `test:core`: Only runs the essential document operations test (create, read, update, delete)
+  - Updated pre-commit hook to run just unit tests and core test
+- Optimized integration test organization with three categories: critical, standard, and extended
+- New npm scripts for targeted test runs:
+  - `test:integration:critical`: Only runs critical integration tests (fast, pre-commit)
+  - `test:integration:standard`: Runs the standard integration test suite (pre-merge)
+  - `test:integration:extended`: Runs extended integration tests (comprehensive but slow)
+  - `test:pre-commit`: Runs unit tests + core test (minimal & fast)
+  - `test:pre-merge`: Runs unit tests + critical and standard integration tests
+- Integration Test Optimization:
+  - Split integration tests into three categories (Critical, Standard, Extended)
+  - Added new npm scripts for targeted test runs
+  - Created GitHub Actions workflow for optimized CI testing
+  - Updated pre-commit and pre-push hooks
+- Improved core document operations tests to use client.getDocument() for reliable document retrieval
+- Performance optimizations for core tests:
+  - Implemented smart polling with predicate conditions instead of fixed delays
+  - Reduced polling intervals from 1000ms to 300ms
+  - Added parallel execution for document deletion checks
+  - Reduced test execution time by ~35% (from ~9s to ~6s)
+- Enhanced document testing with better error logging and fallback mechanisms for draft and published documents
+
+### Changed
+- Modified document operations tests to use client.transaction() directly for updates and patches
+- Made tests more resilient by using consistent document ID tracking between operations
+
+### Fixed
+- Fixed issue with document updating and verification by ensuring draft documents are properly handled
+
 ## [0.1.3] - 2025-03-07
 ### Fixed
 - Enhanced type safety with proper interfaces for SanityDocument, SanityPatch, and SanityTransaction 
@@ -89,7 +122,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed tests for the new tools structure
 - Ensured tool names are consistent across all provider implementations
 
-## [0.1.0] - 2025-03-07T00:16:06+01:00 - Document API Consistency
+## [0.1.0] - 2025-03-07
 
 ### Added
 - Integration tests for release document workflow

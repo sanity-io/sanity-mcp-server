@@ -6,7 +6,7 @@ import {
   getDocumentContent,
   createErrorResponse,
   normalizeDocumentIds
-} from '../../src/utils/documentHelpers';
+} from '../../../src/utils/documentHelpers.js';
 
 describe('Document Helpers', () => {
   describe('normalizeDraftId', () => {

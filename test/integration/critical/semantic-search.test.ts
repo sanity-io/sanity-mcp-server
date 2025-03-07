@@ -1,8 +1,10 @@
 /**
  * Integration test for semantic search tools
+ * @vitest-environment node
+ * @tags integration, critical
  */
 import { describe, it, expect } from 'vitest';
-import { EmbeddingsToolProvider } from '../../src/tools/embeddingsTools.js';
+import { EmbeddingsToolProvider } from '../../../src/tools/embeddingsTools.js';
 
 describe('Search Tools Integration', () => {
   it('should have semanticSearch tool registered with correct parameters', () => {

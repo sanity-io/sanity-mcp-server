@@ -1,14 +1,16 @@
 /**
- * Integration test for array parameter deserialization in MCP
+ * Integration test for array parameter deserialization
  * 
  * This test specifically tests that arrays of strings are properly deserialized
  * when passed through the MCP client to our server.
+ * @vitest-environment node
+ * @tags integration, standard
  */
 import { describe, it, expect, beforeAll, afterAll, vi, beforeEach } from 'vitest';
 import dotenv from 'dotenv';
+import * as releases from '../../../src/controllers/releases.js';
 import { v4 as uuidv4 } from 'uuid';
-import * as releasesController from '../../src/controllers/releases.js';
-import { createSanityClient } from '../../src/utils/sanityClient.js';
+import { createSanityClient } from '../../../src/utils/sanityClient.js';
 
 // Load environment variables
 dotenv.config();
@@ -49,7 +51,7 @@ describe('Array Parameter Deserialization Integration Test', () => {
   };
 
   // Create a mock function for releasesController.addDocumentToRelease
-  const originalAddDocToRelease = releasesController.addDocumentToRelease;
+  const originalAddDocToRelease = releases.addDocumentToRelease;
   let mockAddDocumentToRelease: any;
 
   // Skip tests if environment is not properly configured
@@ -60,7 +62,7 @@ describe('Array Parameter Deserialization Integration Test', () => {
     }
     
     // Create a test release
-    const createResult = await releasesController.createRelease(
+    const createResult = await releases.createRelease(
       projectId,
       dataset,
       releaseId,
@@ -88,7 +90,7 @@ describe('Array Parameter Deserialization Integration Test', () => {
     }
     
     // Set up mock for addDocumentToRelease to spy on the parameters it receives
-    mockAddDocumentToRelease = vi.spyOn(releasesController, 'addDocumentToRelease');
+    mockAddDocumentToRelease = vi.spyOn(releases, 'addDocumentToRelease');
     // Let it pass through to the real implementation
     mockAddDocumentToRelease.mockImplementation((...args) => {
       return originalAddDocToRelease(...args);
@@ -131,7 +133,7 @@ describe('Array Parameter Deserialization Integration Test', () => {
       
       // Clean up release - first archive it
       try {
-        await releasesController.archiveRelease(projectId, dataset, releaseId);
+        await releases.archiveRelease(projectId, dataset, releaseId);
         console.log(`Archived release: ${releaseId}`);
       } catch (error) {
         console.warn(`Failed to archive release ${releaseId}:`, error);
@@ -139,7 +141,7 @@ describe('Array Parameter Deserialization Integration Test', () => {
       
       // Then delete it
       try {
-        await releasesController.deleteRelease(projectId, dataset, releaseId);
+        await releases.deleteRelease(projectId, dataset, releaseId);
         console.log(`Cleaned up release: ${releaseId}`);
       } catch (error) {
         console.warn(`Failed to delete release ${releaseId}:`, error);
@@ -151,7 +153,7 @@ describe('Array Parameter Deserialization Integration Test', () => {
   
   it('should properly deserialize array parameter with direct function call', async () => {
     // Call the function with an actual array
-    const result = await releasesController.addDocumentToRelease(
+    const result = await releases.addDocumentToRelease(
       projectId,
       dataset,
       releaseId,
@@ -179,7 +181,7 @@ describe('Array Parameter Deserialization Integration Test', () => {
     const jsonStringArray = JSON.stringify([test2Doc1, test2Doc2]);
     
     // Call with the JSON string
-    const result = await releasesController.addDocumentToRelease(
+    const result = await releases.addDocumentToRelease(
       projectId,
       dataset,
       releaseId,
@@ -218,7 +220,7 @@ describe('Array Parameter Deserialization Integration Test', () => {
     }
     
     // Call with a single string document ID
-    const result = await releasesController.addDocumentToRelease(
+    const result = await releases.addDocumentToRelease(
       projectId,
       dataset,
       releaseId,
@@ -246,7 +248,7 @@ describe('Array Parameter Deserialization Integration Test', () => {
     // This test demonstrates the union type handling
     // Define a function that accepts the union type just like the tool definition
     async function testWithUnionType(docIds: string | string[]) {
-      return await releasesController.addDocumentToRelease(
+      return await releases.addDocumentToRelease(
         projectId,
         dataset,
         releaseId,

@@ -1,0 +1,5 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Run more comprehensive tests before pushing
+npm run test:pre-merge
