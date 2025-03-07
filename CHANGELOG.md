@@ -6,11 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.1.5] - 2025-03-14
 ### Changed
 - Reorganized project structure by moving configuration files to a dedicated `config/` directory
   - Moved `tsconfig.json` to `config/tsconfig.json`
   - Moved `vitest.config.ts` to `config/vitest.config.ts`
   - Updated npm scripts to reference new file locations
+
+### Added
+- Unified type definitions across controllers and tools
+  - Created shared interfaces in `src/types/sharedTypes.ts`
+  - Updated tool definitions to use shared parameter interfaces
+  - Ensured consistent type safety between controllers and their tool counterparts
+  - Added proper handling of optional projectId and dataset parameters
+  - Implemented type conversion for parameters that need it (e.g., string to string[])
 
 ## [0.1.4] - 2025-03-07
 ### Added
