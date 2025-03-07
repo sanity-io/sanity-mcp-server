@@ -7,18 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- TBD
+
+## [0.2.1] - 2025-03-07
+### Added
 - Centralized error handling system
   - Created `errorHandler.ts` utility for standardized error handling across the application
   - Implemented structured error logging with consistent format
   - Added support for error context, source tracking, and error codes
   - Created domain-specific error handler factory function
   - Defined common error codes for better error categorization
+- Enhanced GitHub Pages quality report
+  - Added comprehensive test results section with detailed visualization
+  - Included colorful indicators for test status and metrics
+  - Fixed links to ensure all quality reports are accessible
 
 ### Changed
 - Improved error handling in document operations
   - Updated `createErrorResponse` to use the new centralized error handler
   - Enhanced error messages with more context and better formatting
   - Standardized error logging format across the application
+- Updated GitHub workflow for quality reports
+  - Added test execution and result collection
+  - Improved reporting of test pass/fail metrics
+  - Enhanced visualization with interactive elements
 
 ## [0.2.0] - 2025-03-07
 ### Added
