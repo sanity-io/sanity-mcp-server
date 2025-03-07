@@ -1,0 +1,258 @@
+name: Quality Report
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate quality report
+        run: npm run quality:report
+
+      - name: Create report directory
+        run: |
+          mkdir -p quality-report
+          cp -r scripts/quality/output/* quality-report/
+          echo "<!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset='utf-8'>
+            <meta name='viewport' content='width=device-width, initial-scale=1'>
+            <title>Sanity MCP Server - Quality Report</title>
+            <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css'>
+            <style>
+              body { padding: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; }
+              .report-container { max-width: 1200px; margin: 0 auto; }
+              .metric-card { margin-bottom: 20px; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+              .chart-container { height: 300px; }
+              h1 { margin-bottom: 30px; }
+              .timestamp { font-size: 0.9rem; color: #6c757d; margin-bottom: 30px; }
+            </style>
+          </head>
+          <body>
+            <div class='report-container'>
+              <h1>Sanity MCP Server - Quality Report</h1>
+              <p class='timestamp'>Generated on: $(date)</p>
+              
+              <div class='row'>
+                <div class='col-md-6'>
+                  <div class='metric-card card'>
+                    <div class='card-header bg-primary text-white'>
+                      <h5 class='card-title mb-0'>Code Quality Metrics</h5>
+                    </div>
+                    <div class='card-body'>
+                      <div class='chart-container' id='metrics-chart'></div>
+                    </div>
+                  </div>
+                </div>
+                <div class='col-md-6'>
+                  <div class='metric-card card'>
+                    <div class='card-header bg-success text-white'>
+                      <h5 class='card-title mb-0'>Test Coverage</h5>
+                    </div>
+                    <div class='card-body'>
+                      <div class='chart-container' id='coverage-chart'></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class='metric-card card mt-4'>
+                <div class='card-header bg-info text-white'>
+                  <h5 class='card-title mb-0'>Improvement Opportunities</h5>
+                </div>
+                <div class='card-body'>
+                  <div id='improvements-list'></div>
+                </div>
+              </div>
+              
+              <div class='metric-card card mt-4'>
+                <div class='card-header bg-warning text-white'>
+                  <h5 class='card-title mb-0'>File Complexity Analysis</h5>
+                </div>
+                <div class='card-body'>
+                  <div id='complexity-list'></div>
+                </div>
+              </div>
+            </div>
+            
+            <script src='https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js'></script>
+            <script src='https://code.jquery.com/jquery-3.6.0.min.js'></script>
+            <script>
+              // Load the quality metrics data
+              fetch('quality-history.json')
+                .then(response => response.json())
+                .then(data => {
+                  // Populate the charts with the latest data
+                  const latestEntry = data[data.length - 1];
+                  
+                  // Load the improvement opportunities
+                  fetch('improvement-opportunities.json')
+                    .then(response => response.json())
+                    .then(improvements => {
+                      const improvementsContainer = document.getElementById('improvements-list');
+                      const improvementsList = document.createElement('ul');
+                      improvementsList.className = 'list-group';
+                      
+                      improvements.forEach(item => {
+                        const li = document.createElement('li');
+                        li.className = 'list-group-item';
+                        li.innerHTML = `<strong>${item.file}</strong>: ${item.description} <span class='badge bg-${item.impact === 'high' ? 'danger' : item.impact === 'medium' ? 'warning' : 'info'}'>${item.impact} impact</span>`;
+                        improvementsList.appendChild(li);
+                      });
+                      
+                      improvementsContainer.appendChild(improvementsList);
+                    });
+                  
+                  // Load the complexity analysis
+                  fetch('complexity-report.json')
+                    .then(response => response.json())
+                    .then(complexity => {
+                      const complexityContainer = document.getElementById('complexity-list');
+                      const complexityTable = document.createElement('table');
+                      complexityTable.className = 'table table-striped';
+                      
+                      const thead = document.createElement('thead');
+                      thead.innerHTML = '<tr><th>File</th><th>Function</th><th>Complexity</th><th>Lines</th></tr>';
+                      complexityTable.appendChild(thead);
+                      
+                      const tbody = document.createElement('tbody');
+                      complexity.forEach(item => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `<td>${item.file}</td><td>${item.function}</td><td class='${item.complexity > 15 ? 'text-danger' : item.complexity > 10 ? 'text-warning' : ''}'>${item.complexity}</td><td>${item.lines}</td>`;
+                        tbody.appendChild(tr);
+                      });
+                      
+                      complexityTable.appendChild(tbody);
+                      complexityContainer.appendChild(complexityTable);
+                    });
+                  
+                  // Create metrics chart
+                  const metricsCtx = document.getElementById('metrics-chart').getContext('2d');
+                  const metricsChart = new Chart(metricsCtx, {
+                    type: 'bar',
+                    data: {
+                      labels: ['Warnings', 'Errors', 'Duplications', 'Complex Functions'],
+                      datasets: [{
+                        label: 'Current',
+                        data: [
+                          latestEntry.warnings,
+                          latestEntry.errors,
+                          latestEntry.duplications,
+                          latestEntry.complexFunctions
+                        ],
+                        backgroundColor: [
+                          'rgba(255, 205, 86, 0.5)',
+                          'rgba(255, 99, 132, 0.5)',
+                          'rgba(54, 162, 235, 0.5)',
+                          'rgba(153, 102, 255, 0.5)'
+                        ],
+                        borderColor: [
+                          'rgb(255, 205, 86)',
+                          'rgb(255, 99, 132)',
+                          'rgb(54, 162, 235)',
+                          'rgb(153, 102, 255)'
+                        ],
+                        borderWidth: 1
+                      }]
+                    },
+                    options: {
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      scales: {
+                        y: {
+                          beginAtZero: true
+                        }
+                      }
+                    }
+                  });
+                  
+                  // Create coverage chart
+                  const coverageCtx = document.getElementById('coverage-chart').getContext('2d');
+                  const coverageChart = new Chart(coverageCtx, {
+                    type: 'doughnut',
+                    data: {
+                      labels: ['Covered', 'Uncovered'],
+                      datasets: [{
+                        label: 'Test Coverage',
+                        data: [
+                          latestEntry.coverage,
+                          100 - latestEntry.coverage
+                        ],
+                        backgroundColor: [
+                          'rgba(75, 192, 192, 0.5)',
+                          'rgba(201, 203, 207, 0.5)'
+                        ],
+                        borderColor: [
+                          'rgb(75, 192, 192)',
+                          'rgb(201, 203, 207)'
+                        ],
+                        borderWidth: 1
+                      }]
+                    },
+                    options: {
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          position: 'bottom'
+                        },
+                        tooltip: {
+                          callbacks: {
+                            label: function(context) {
+                              return `${context.label}: ${context.raw}%`;
+                            }
+                          }
+                        }
+                      }
+                    }
+                  });
+                });
+            </script>
+          </body>
+          </html>" > quality-report/index.html
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: 'quality-report'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
+
+      - name: Output quality report URL
+        run: |
+          echo "::notice title=Quality Report::Quality report is available at ${{ steps.deployment.outputs.page_url }}" 
