@@ -10,6 +10,7 @@ yarn.lock
 .env.test.local
 .env.production.local
 mcp.json
+.windsurfrules
 
 # Build output
 dist/
