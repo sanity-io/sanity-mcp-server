@@ -1,244 +1,291 @@
 #!/usr/bin/env node
 
-const fs = require('fs');
-const path = require('path');
-const { execSync } = require('child_process');
-const { version } = require('../../package.json');
+import fs from 'fs';
+import path from 'path';
+import { exec } from 'child_process';
+import { fileURLToPath } from 'url';
 
-// Directories
+// Get the directory name of the current module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const outputDir = path.join(__dirname, 'output');
+
+// Ensure output directory exists
 if (!fs.existsSync(outputDir)) {
   fs.mkdirSync(outputDir, { recursive: true });
 }
 
-// Output files
-const QUALITY_HISTORY_FILE = path.join(outputDir, 'quality-history.json');
-const COMPLEXITY_REPORT_FILE = path.join(outputDir, 'complexity-report.json');
-const IMPROVEMENTS_FILE = path.join(outputDir, 'improvement-opportunities.json');
-
-// Run eslint to get warnings and errors
+/**
+ * Gets metrics from ESLint output
+ */
 function getLintMetrics() {
-  try {
-    const result = execSync('npx eslint . --ext .ts --config config/.eslintrc.json -f json', { encoding: 'utf8' });
-    const lintResults = JSON.parse(result);
-    
-    let warnings = 0;
-    let errors = 0;
-
-    lintResults.forEach(file => {
-      file.messages.forEach(msg => {
-        if (msg.severity === 1) warnings++;
-        if (msg.severity === 2) errors++;
-      });
-    });
-
-    return { warnings, errors };
-  } catch (error) {
-    // ESLint might exit with non-zero status if there are errors
-    try {
-      const result = error.stdout.toString();
-      const lintResults = JSON.parse(result);
-      
-      let warnings = 0;
-      let errors = 0;
-
-      lintResults.forEach(file => {
-        file.messages.forEach(msg => {
-          if (msg.severity === 1) warnings++;
-          if (msg.severity === 2) errors++;
-        });
-      });
-
-      return { warnings, errors };
-    } catch (innerError) {
-      console.error('Error parsing ESLint results:', innerError);
-      return { warnings: 0, errors: 0 };
-    }
-  }
-}
-
-// Get code duplication metrics
-function getDuplicationMetrics() {
-  try {
-    const result = execSync('npx jscpd . --pattern "src/**/*.ts" --ignore "src/types/**/*.ts,dist/**" --format typescript', { encoding: 'utf8' });
-    
-    // Extract duplication percentage
-    const match = result.match(/duplicated lines: (\d+\.\d+)%/);
-    const duplications = match ? parseFloat(match[1]) : 0;
-    
-    return { duplications };
-  } catch (error) {
-    console.error('Error running jscpd:', error);
-    return { duplications: 0 };
-  }
-}
-
-// Get complex functions
-function getComplexFunctions() {
-  try {
-    const result = execSync('npx eslint . --ext .ts --config config/.eslintrc.json --rule "complexity: [\"warn\", 10]" --rule "sonarjs/cognitive-complexity: [\"warn\", 10]" -f json', { encoding: 'utf8' });
-    let lintResults;
-    
-    try {
-      lintResults = JSON.parse(result);
-    } catch {
-      lintResults = JSON.parse(error.stdout.toString());
-    }
-    
-    let complexFunctions = 0;
-    const complexityReport = [];
-    
-    lintResults.forEach(file => {
-      file.messages.forEach(msg => {
-        if (msg.ruleId === 'complexity' || msg.ruleId === 'sonarjs/cognitive-complexity') {
-          complexFunctions++;
-          
-          // Extract function name from message
-          const fnNameMatch = msg.message.match(/Function '([^']+)'/);
-          const fnName = fnNameMatch ? fnNameMatch[1] : 'Anonymous function';
-          
-          // Extract complexity value
-          const complexityMatch = msg.message.match(/complexity of (\d+)/);
-          const complexity = complexityMatch ? parseInt(complexityMatch[1]) : 0;
-          
-          complexityReport.push({
-            file: file.filePath.replace(process.cwd(), ''),
-            function: fnName,
-            complexity,
-            lines: `${msg.line}-${msg.endLine || msg.line}`,
-            message: msg.message
+  return new Promise((resolve, reject) => {
+    exec('npm run lint -- -f json', (error, stdout) => {
+      try {
+        // Extract the JSON part from the output
+        const jsonStart = stdout.indexOf('[');
+        const jsonEnd = stdout.lastIndexOf(']') + 1;
+        const jsonOutput = stdout.substring(jsonStart, jsonEnd);
+        
+        const lintResults = JSON.parse(jsonOutput);
+        
+        let warnings = 0;
+        let errors = 0;
+        
+        lintResults.forEach(file => {
+          file.messages.forEach(message => {
+            if (message.severity === 1) {
+              warnings++;
+            } else if (message.severity === 2) {
+              errors++;
+            }
           });
-        }
-      });
+        });
+        
+        resolve({ warnings, errors });
+      } catch (e) {
+        console.error('Error parsing lint results:', e);
+        resolve({ warnings: 0, errors: 0 }); // Provide default values in case of error
+      }
     });
-    
-    // Sort by complexity (highest first)
-    complexityReport.sort((a, b) => b.complexity - a.complexity);
-    
-    // Write complexity report
-    fs.writeFileSync(COMPLEXITY_REPORT_FILE, JSON.stringify(complexityReport, null, 2));
-    
-    return { complexFunctions, complexityReport };
-  } catch (error) {
-    console.error('Error analyzing code complexity:', error);
-    return { complexFunctions: 0, complexityReport: [] };
-  }
+  });
 }
 
-// Get test coverage metrics
+/**
+ * Gets metrics for code duplication
+ */
+function getDuplicationMetrics() {
+  return new Promise((resolve) => {
+    exec('npm run find:duplicates', () => {
+      try {
+        const jscpdPath = path.join(outputDir, 'jscpd-report.json');
+        if (fs.existsSync(jscpdPath)) {
+          const jscpdData = JSON.parse(fs.readFileSync(jscpdPath, 'utf8'));
+          resolve({ duplications: jscpdData.statistics.total.duplications });
+        } else {
+          resolve({ duplications: 0 });
+        }
+      } catch (e) {
+        console.error('Error parsing duplication results:', e);
+        resolve({ duplications: 0 });
+      }
+    });
+  });
+}
+
+/**
+ * Analyzes complex functions in the codebase
+ */
+function getComplexFunctions() {
+  return new Promise((resolve) => {
+    exec('npm run complexity', () => {
+      try {
+        const complexityPath = path.join(outputDir, 'complexity-report.json');
+        if (fs.existsSync(complexityPath)) {
+          const complexityData = JSON.parse(fs.readFileSync(complexityPath, 'utf8'));
+          
+          const complexFunctions = [];
+          let complexFunctionCount = 0;
+          
+          complexityData.forEach(file => {
+            if (!file.filePath) return;
+            
+            const relativePath = file.filePath.replace(/^.*?\/src\//, 'src/');
+            
+            file.messages.forEach(message => {
+              if (message.ruleId === 'complexity' || message.ruleId === 'sonarjs/cognitive-complexity') {
+                complexFunctionCount++;
+                
+                // Extract function name if available
+                let functionName = 'unknown';
+                if (message.message.includes("function '")) {
+                  functionName = message.message.split("function '")[1].split("'")[0];
+                } else if (message.message.includes("method '")) {
+                  functionName = message.message.split("method '")[1].split("'")[0];
+                }
+                
+                // Extract complexity value
+                const complexityMatch = message.message.match(/complexity of (\d+)/);
+                const complexity = complexityMatch ? parseInt(complexityMatch[1], 10) : 0;
+                
+                complexFunctions.push({
+                  file: relativePath,
+                  function: functionName,
+                  complexity,
+                  lines: message.line,
+                  message: message.message
+                });
+              }
+            });
+          });
+          
+          // Sort by complexity (highest first)
+          complexFunctions.sort((a, b) => b.complexity - a.complexity);
+          
+          // Only include the top 20 most complex functions
+          const topComplexFunctions = complexFunctions.slice(0, 20);
+          
+          fs.writeFileSync(
+            path.join(outputDir, 'complexity-report.json'),
+            JSON.stringify(topComplexFunctions, null, 2)
+          );
+          
+          resolve({ complexFunctions: complexFunctionCount, details: topComplexFunctions });
+        } else {
+          resolve({ complexFunctions: 0, details: [] });
+        }
+      } catch (e) {
+        console.error('Error parsing complexity results:', e);
+        resolve({ complexFunctions: 0, details: [] });
+      }
+    });
+  });
+}
+
+/**
+ * Gets test coverage metrics
+ */
 function getCoverageMetrics() {
-  try {
-    // Run tests with coverage
-    execSync('npx vitest run --coverage', { stdio: 'inherit' });
-    
-    // Read coverage report (if it exists)
-    const coverageFile = path.join(process.cwd(), 'coverage', 'coverage-summary.json');
-    
-    if (fs.existsSync(coverageFile)) {
-      const coverageData = JSON.parse(fs.readFileSync(coverageFile, 'utf8'));
-      const coverage = coverageData.total.lines.pct;
-      return { coverage };
-    }
-    
-    return { coverage: 0 };
-  } catch (error) {
-    console.error('Error measuring test coverage:', error);
-    return { coverage: 0 };
-  }
+  return new Promise((resolve) => {
+    exec('npm run test:coverage', (error) => {
+      try {
+        // If there's a coverage report, extract stats
+        const coveragePath = path.join(process.cwd(), 'coverage', 'coverage-summary.json');
+        if (fs.existsSync(coveragePath)) {
+          const coverageData = JSON.parse(fs.readFileSync(coveragePath, 'utf8'));
+          const coverage = coverageData.total.statements.pct || 0;
+          resolve({ coverage: Math.round(coverage) });
+        } else {
+          console.warn('No coverage report found');
+          resolve({ coverage: 0 });
+        }
+      } catch (e) {
+        console.error('Error parsing coverage results:', e);
+        resolve({ coverage: 0 });
+      }
+    });
+  });
 }
 
-// Generate improvement opportunities
+/**
+ * Generates a list of improvement opportunities
+ */
 function generateImprovementOpportunities(complexityReport) {
   const opportunities = [];
   
-  // Add high complexity functions as high impact opportunities
-  complexityReport.filter(fn => fn.complexity > 15).forEach(fn => {
+  // Add complex functions as high impact opportunities
+  for (const func of complexityReport.details.slice(0, 5)) {
     opportunities.push({
-      file: fn.file,
-      description: `Refactor function ${fn.function} to reduce cognitive complexity from ${fn.complexity} to 15 or less`,
+      file: func.file,
+      description: `Function "${func.function}" has a complexity of ${func.complexity}`,
       impact: 'high',
-      effort: 'medium'
+      type: 'complexity'
     });
-  });
+  }
   
-  // TODO: Add more types of improvement opportunities based on:
-  // - Low test coverage files
-  // - Files with many lint warnings
-  // - Files with high duplication
+  // Add more opportunities based on other metrics
+  // TODO: Add more types of opportunities based on duplication, coverage, etc.
   
-  // Write improvements file
-  fs.writeFileSync(IMPROVEMENTS_FILE, JSON.stringify(opportunities, null, 2));
+  fs.writeFileSync(
+    path.join(outputDir, 'improvement-opportunities.json'),
+    JSON.stringify(opportunities, null, 2)
+  );
   
   return opportunities;
 }
 
-// Update quality history
+/**
+ * Updates the quality history file
+ */
 function updateQualityHistory(metrics) {
+  const historyPath = path.join(outputDir, 'quality-history.json');
   let history = [];
   
-  // Read existing history if available
-  if (fs.existsSync(QUALITY_HISTORY_FILE)) {
-    history = JSON.parse(fs.readFileSync(QUALITY_HISTORY_FILE, 'utf8'));
+  // Load existing history if available
+  if (fs.existsSync(historyPath)) {
+    try {
+      history = JSON.parse(fs.readFileSync(historyPath, 'utf8'));
+    } catch (e) {
+      console.warn('Error parsing quality history, starting fresh');
+    }
   }
   
-  // Add new entry
+  // Add new entry with timestamp
   const entry = {
     ...metrics,
-    version,
     timestamp: new Date().toISOString(),
-    git: {
-      commit: execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim(),
-      branch: execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf8' }).trim()
-    }
+    version: JSON.parse(fs.readFileSync('package.json', 'utf8')).version
   };
   
+  // Keep only the last 10 entries
   history.push(entry);
+  if (history.length > 10) {
+    history = history.slice(history.length - 10);
+  }
   
-  // Write updated history
-  fs.writeFileSync(QUALITY_HISTORY_FILE, JSON.stringify(history, null, 2));
+  fs.writeFileSync(historyPath, JSON.stringify(history, null, 2));
   
   return history;
 }
 
-// Main function to generate quality report
+/**
+ * Main function to generate the quality report
+ */
 async function generateQualityReport() {
   console.log('Generating quality report...');
   
-  // Gather metrics
-  const lintMetrics = getLintMetrics();
-  console.log('Lint metrics:', lintMetrics);
-  
-  const duplicationMetrics = getDuplicationMetrics();
-  console.log('Duplication metrics:', duplicationMetrics);
-  
-  const { complexFunctions, complexityReport } = getComplexFunctions();
-  console.log('Complex functions:', complexFunctions);
-  
-  const coverageMetrics = getCoverageMetrics();
-  console.log('Coverage metrics:', coverageMetrics);
-  
-  // Generate improvement opportunities
-  const opportunities = generateImprovementOpportunities(complexityReport);
-  console.log(`Generated ${opportunities.length} improvement opportunities`);
-  
-  // Combine metrics
-  const metrics = {
-    ...lintMetrics,
-    ...duplicationMetrics,
-    complexFunctions,
-    ...coverageMetrics
-  };
-  
-  // Update quality history
-  const history = updateQualityHistory(metrics);
-  console.log(`Updated quality history (${history.length} entries)`);
-  
-  console.log('Quality report generated successfully!');
-  console.log(`Results saved to ${outputDir}`);
+  try {
+    // Ensure output directory exists
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+    }
+    
+    // Get metrics from various sources
+    const lintMetrics = await getLintMetrics();
+    console.log('Lint metrics:', lintMetrics);
+    
+    const duplicationMetrics = await getDuplicationMetrics();
+    console.log('Duplication metrics:', duplicationMetrics);
+    
+    const complexityReport = await getComplexFunctions();
+    console.log('Complex functions:', complexityReport.complexFunctions);
+    
+    const coverageMetrics = await getCoverageMetrics();
+    console.log('Coverage metrics:', coverageMetrics);
+    
+    // Combine all metrics
+    const metrics = {
+      warnings: lintMetrics.warnings,
+      errors: lintMetrics.errors,
+      duplications: duplicationMetrics.duplications,
+      complexFunctions: complexityReport.complexFunctions,
+      coverage: coverageMetrics.coverage
+    };
+    
+    // Generate improvement opportunities
+    const opportunities = generateImprovementOpportunities(complexityReport);
+    console.log(`Generated ${opportunities.length} improvement opportunities`);
+    
+    // Update quality history
+    const history = updateQualityHistory(metrics);
+    console.log(`Updated quality history (${history.length} entries)`);
+    
+    console.log('Quality report generated successfully');
+    
+    return { metrics, opportunities, history };
+  } catch (error) {
+    console.error('Error generating quality report:', error);
+    throw error;
+  }
 }
 
 // Run the report generator
-generateQualityReport().catch(error => {
-  console.error('Error generating quality report:', error);
-  process.exit(1);
-}); 
+generateQualityReport()
+  .then(() => {
+    console.log('Quality report completed');
+  })
+  .catch((error) => {
+    console.error('Quality report failed:', error);
+    process.exit(1);
+  }); 
