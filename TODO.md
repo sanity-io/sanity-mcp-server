@@ -1,68 +1,5 @@
 # TODO
 
-
-## Code Quality Improvements (Prioritized)
-
-1. ✅ Extract smaller functions from editDocument in controllers/actions.ts
-2. ✅ Extract smaller functions from createDocumentVersion in controllers/actions.ts
-3. ✅ Extract smaller functions from modifyDocuments in controllers/mutate.ts
-4. ✅ Reduce complexity in controllers/releases.ts, focusing on addDocumentToRelease and removeDocumentFromRelease
-5. ✅ Reduce complexity in controllers/actions.ts, focusing on createDocument and deleteDocument
-6. ✅ Reduce complexity in controllers/releases.ts for createRelease function
-7. ✅ Add unit tests for utility functions in documentHelpers.ts
-8. ✅ Replace `any` types with more specific types across core controller files
-9. ✅ Improve type safety across codebase, particularly for Sanity client operations
-10. 🔄 Reduce complexity in embeddings.ts, particularly in semanticSearch function
-11. 🆕 Take a more aggressive approach to type safety improvements (no backward compatibility needed):
-    - Completely eliminate remaining `any` types in non-test code
-    - Redesign function signatures for improved semantics and type safety
-    - Refactor parameter orders to be more intuitive without concern for existing consumers
-    - Remove conditional handling of test vs. production environments
-    - Consider using stricter TypeScript compiler options
-12. Add constants for commonly duplicated string literals (especially in test files)
-13. Refactor remaining functions with high cognitive complexity, especially in:
-    - controllers/embeddings.ts (listEmbeddingsIndices, semanticSearch)
-    - controllers/groq.ts
-    - controllers/schema.ts (checkForReferences)
-    - utils/documentHelpers.ts (applyPatchOperations)
-    - utils/portableText.ts
-
-## Tooling & Process Improvements
-
-- Set up ESLint + Prettier with TypeScript (including complexity analysis rules)
-- Add GitHub Action for linting
-- Improve CI pipeline
-- Add code coverage reporting
-
-## Error Handling
-
-- ✅ Extract error handling to a reusable createErrorResponse function (for consistency)
-- ✅ Apply this across controllers
-
-## Technical Debt
-
-- Move from TS-Node to a bundled dist
-- Refactor tests to be more maintaneous and use common setup functions
-- Evaluate moving to OpenAPI spec for route definition
-- ✅ Address TypeScript type conflicts with @sanity/client types
-
-## Done
-- ✅ Integration test for release document workflow
-- ✅ Fix TypeScript configuration for test files
-- ✅ Add pre-release hook for integration tests
-- ✅ Add pre-commit hook for running integration tests and type checking
-- ✅ Add integration test for array parameter deserialization
-- ✅ Check that we don't have errors serializing arrays over the protocol
-- ✅ Fix TypeScript errors in test files
-- ✅ Fix the schema command for single types
-- ✅ Update single document endpoints with pluralized versions - check if union types actually work (addDocumentToRelease is a good one, also getDocument). First see if we want to have separate verbs for single and plural versions or use union types. API design question.
-- ✅ Remove `modifyPortableTextField` functionality (complex implementation with high cognitive complexity)
-- ✅ Refactor `editDocument` and `createDocumentVersion` in `controllers/actions.ts`
-- ✅ Extract repeated patterns in `actions.ts` to shared utility functions
-- ✅ Add unit tests for utility functions in documentHelpers.ts
-
-# TODO List for Sanity MCP Server
-
 ## High Priority
 
 1. **Unify type definitions across controllers and tools**
@@ -84,6 +21,17 @@
 3. **Improve test coverage**
    - Add more tests for edge cases
    - Fix integration tests for the MCP server
+   - Increase coverage for low-coverage files, especially:
+     - src/controllers/projects.ts (1.47% covered)
+     - src/utils/portableText.ts (3.22% covered)  
+     - src/index.ts (0% covered)
+     - src/controllers/actions.ts (21.99% covered)
+     - src/tools/contextTools.ts (23.61% covered)
+
+4. **Address code complexity and duplication**
+   - Refactor the applyPatchOperations function in documentHelpers.ts to reduce complexity (currently 25, limit is 15)
+   - Extract duplicate code patterns across files into shared utility functions
+   - Create shared parameter validation functions for common parameter patterns
 
 ## Nice to Have
 
