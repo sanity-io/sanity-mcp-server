@@ -7,7 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- TBD
+- Centralized error handling system
+  - Created `errorHandler.ts` utility for standardized error handling across the application
+  - Implemented structured error logging with consistent format
+  - Added support for error context, source tracking, and error codes
+  - Created domain-specific error handler factory function
+  - Defined common error codes for better error categorization
+
+### Changed
+- Improved error handling in document operations
+  - Updated `createErrorResponse` to use the new centralized error handler
+  - Enhanced error messages with more context and better formatting
+  - Standardized error logging format across the application
 
 ## [0.2.0] - 2025-03-07
 ### Added
