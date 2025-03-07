@@ -96,18 +96,11 @@ function getComplexityMetrics() {
     // Read complexity results
     const complexityText = fs.readFileSync(COMPLEXITY_RESULTS, 'utf8');
     
-    // Count functions by complexity level
-    const highComplexityMatch = complexityText.match(/VERY_HIGH_COMPLEXITY/g) || [];
-    const mediumComplexityMatch = complexityText.match(/HIGH_COMPLEXITY/g) || [];
-    const lowComplexityMatch = complexityText.match(/MEDIUM_COMPLEXITY/g) || [];
-    
-    // Extract cyclomatic complexity from detailed results
-    // Example: "function 'searchContent' has a complexity of 21"
+    // Parse the complexity data
     const cyclomaticMatches = [...complexityText.matchAll(/has a complexity of (\d+)/g)];
     const cyclomaticValues = cyclomaticMatches.map(match => parseInt(match[1]));
     
     // Extract cognitive complexity from detailed results
-    // Example: "Refactor this function to reduce its Cognitive Complexity from 14 to the 10 allowed"
     const cognitiveMatches = [...complexityText.matchAll(/Cognitive Complexity from (\d+) to/g)];
     const cognitiveValues = cognitiveMatches.map(match => parseInt(match[1]));
     
@@ -118,6 +111,31 @@ function getComplexityMetrics() {
     const cognitiveAvg = cognitiveValues.length > 0 
       ? cognitiveValues.reduce((sum, val) => sum + val, 0) / cognitiveValues.length 
       : 0;
+    
+    // Categorize functions by complexity level:
+    // - High: cyclomatic > 20 or cognitive > 25
+    // - Medium: cyclomatic > 15 or cognitive > 15
+    // - Low: cyclomatic > 10 or cognitive > 10
+    let highCount = 0;
+    let mediumCount = 0;
+    let lowCount = 0;
+    
+    // Process cyclomatic complexity
+    cyclomaticValues.forEach(value => {
+      if (value > 20) highCount++;
+      else if (value > 15) mediumCount++;
+      else if (value > 10) lowCount++;
+    });
+    
+    // Process cognitive complexity
+    cognitiveValues.forEach(value => {
+      if (value > 25) highCount++;
+      else if (value > 15) mediumCount++;
+      else if (value > 10) lowCount++;
+    });
+    
+    // Dedup to avoid double-counting (since each function has both metrics)
+    const totalFunctions = Math.max(cyclomaticValues.length, cognitiveValues.length);
     
     return {
       cyclomaticComplexity: {
@@ -131,10 +149,10 @@ function getComplexityMetrics() {
         count: cognitiveValues.length
       },
       complexFunctions: {
-        high: highComplexityMatch.length,
-        medium: mediumComplexityMatch.length,
-        low: lowComplexityMatch.length,
-        total: cyclomaticValues.length
+        high: highCount,
+        medium: mediumCount,
+        low: lowCount,
+        total: totalFunctions
       }
     };
   } catch (error) {
