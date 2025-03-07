@@ -4,12 +4,7 @@ import { portableTextToMarkdown } from '../utils/portableText.js';
 import config from '../config/config.js';
 import { SanityClient, SanityDocument, SanityQueryParams } from '../types/sanity.js';
 import { SubscribeOptions } from '../types/index.js';
-
-// Create a logger that uses stderr instead of stdout
-const log = {
-  info: (...args: unknown[]) => console.error('[INFO]', ...args),
-  error: (...args: unknown[]) => console.error('[ERROR]', ...args)
-};
+import logger from '../utils/logger.js';
 
 interface Subscription {
   unsubscribe: () => void;
@@ -92,7 +87,7 @@ export async function searchContent(
     
     // For backward compatibility with tests expecting verification
     if (verifyWithLLM) {
-      log.info(`LLM verification requested for ${Array.isArray(results) ? results.length : 1} items - this feature is deprecated`);
+      logger.info(`LLM verification requested for ${Array.isArray(results) ? results.length : 1} items - this feature is deprecated`);
       return {
         query,
         results: processedResults,
@@ -112,7 +107,7 @@ export async function searchContent(
       count: Array.isArray(processedResults) ? processedResults.length : (processedResults ? 1 : 0)
     };
   } catch (error: any) {
-    log.error('Error executing GROQ query:', error);
+    logger.error('Error executing GROQ query:', error);
     throw new Error(`Failed to execute GROQ query: ${error.message}`);
   }
 }
@@ -170,7 +165,7 @@ export async function query(
     
     // LLM verification is deprecated - just log a message and return the results as-is
     if (params.verifyWithLLM && Array.isArray(results)) {
-      log.info(`LLM verification requested for ${results.length} items - this feature is deprecated`);
+      logger.info(`LLM verification requested for ${results.length} items - this feature is deprecated`);
     }
     
     // Apply additional filter if specified (useful for complex queries where you need to filter client-side)
@@ -192,7 +187,7 @@ export async function query(
     
     return response;
   } catch (error: any) {
-    log.error('Error executing GROQ query:', error);
+    logger.error('Error executing GROQ query:', error);
     throw new Error(`Failed to execute GROQ query: ${error.message}`);
   }
 }
@@ -208,7 +203,7 @@ async function verifyResults(results: SanityDocument[]): Promise<SanityDocument[
   // In a real implementation, you would send the results to an LLM API
   // and filter or tag the results based on the LLM's output
   
-  log.info(`LLM verification requested for ${results.length} items - this feature is deprecated`);
+  logger.info(`LLM verification requested for ${results.length} items - this feature is deprecated`);
   
   // Return the original results for now (no filtering)
   return results;
@@ -245,7 +240,7 @@ export async function subscribeToUpdates(
     // Set up event handlers for the subscription
     const sub = subscription.subscribe((update) => {
       // Process the update event
-      log.info(`Document update for subscription ${subscriptionId}:`, {
+      logger.info(`Document update for subscription ${subscriptionId}:`, {
         documentId: update.documentId,
         type: update.transition,
         result: update.result
@@ -264,7 +259,7 @@ export async function subscribeToUpdates(
       message: `Successfully subscribed to updates for query: ${query}`
     };
   } catch (error: any) {
-    log.error(`Error setting up subscription:`, error);
+    logger.error(`Error setting up subscription:`, error);
     throw new Error(`Failed to subscribe to updates: ${error.message}`);
   }
 }
@@ -451,7 +446,7 @@ export async function getGroqSpecification(): Promise<{
       source: "https://sanity-io.github.io/GROQ/"
     };
   } catch (error: any) {
-    log.error("Error fetching GROQ specification:", error);
+    logger.error("Error fetching GROQ specification:", error);
     throw new Error(`Failed to get GROQ specification: ${error.message}`);
   }
 }

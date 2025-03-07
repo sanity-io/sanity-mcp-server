@@ -2,6 +2,7 @@ import { readFile } from 'fs/promises';
 import config from '../config/config.js';
 import { SchemaType, SchemaField } from '../types/index.js';
 import { SanityDocument } from '../types/sanity.js';
+import logger from '../utils/logger.js';
 
 interface SchemaTypeDetails extends SchemaType {
   fields?: SchemaField[];
@@ -33,7 +34,7 @@ export async function getSchema(projectId: string, dataset: string = 'production
       throw readError;
     }
   } catch (error: any) {
-    console.error(`Error getting schema for ${projectId}/${dataset}:`, error);
+    logger.error(`Error getting schema for ${projectId}/${dataset}:`, error);
     throw new Error(`Failed to get schema: ${error.message}`);
   }
 }
@@ -80,7 +81,7 @@ export async function getSchemaForType(
       references: referencedTypes
     };
   } catch (error: any) {
-    console.error(`Error getting schema for type ${typeName}:`, error);
+    logger.error(`Error getting schema for type ${typeName}:`, error);
     throw new Error(`Failed to get schema for type ${typeName}: ${error.message}`);
   }
 }
@@ -185,7 +186,7 @@ export async function listSchemaTypes(
       type: type.type
     }));
   } catch (error: any) {
-    console.error(`Error listing schema types:`, error);
+    logger.error(`Error listing schema types:`, error);
     throw new Error(`Failed to list schema types: ${error.message}`);
   }
 }
@@ -216,7 +217,7 @@ export async function getTypeSchema(
     
     return typeSchema;
   } catch (error: any) {
-    console.error(`Error getting type schema:`, error);
+    logger.error(`Error getting type schema:`, error);
     throw new Error(`Failed to get type schema: ${error.message}`);
   }
 }

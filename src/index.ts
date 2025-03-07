@@ -9,12 +9,7 @@ import { zodToJsonSchema } from 'zod-to-json-schema';
 
 import config from './config/config.js';
 import * as toolsRegistry from './tools/index.js';
-
-// Create a logger that uses stderr instead of stdout
-const log = {
-  info: (...args: unknown[]) => console.error('[INFO]', ...args),
-  error: (...args: unknown[]) => console.error('[ERROR]', ...args)
-};
+import logger from './utils/logger.js';
 
 // Create MCP server
 const server = new Server(
@@ -49,7 +44,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       throw new Error("Arguments are required");
     }
 
-    log.info(`Executing tool: ${request.params.name} with args: ${JSON.stringify(request.params.arguments)}`);
+    logger.info(`Executing tool: ${request.params.name} with args: ${JSON.stringify(request.params.arguments)}`);
     const result = await toolsRegistry.executeTool(
       request.params.name, 
       request.params.arguments
@@ -58,14 +53,27 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     // Format result according to MCP specification
     // Ensure we have valid content for the response
     let textContent;
-    if (typeof result === 'string') {
-      textContent = result;
-    } else {
-      try {
+    try {
+      // Special handling for different result types
+      if (typeof result === 'string') {
+        textContent = result;
+      } else if (result === null || result === undefined) {
+        textContent = `${result}`;
+      } else if (typeof result === 'object') {
+        // Try to stringify with spaces for readability
         textContent = JSON.stringify(result, null, 2);
-      } catch (e) {
-        textContent = `[Error serializing result: ${e instanceof Error ? e.message : String(e)}]`;
+      } else {
+        // For other primitive types
+        textContent = String(result);
       }
+    } catch (e) {
+      logger.error("Error serializing response:", e);
+      textContent = `[Error serializing result: ${e instanceof Error ? e.message : String(e)}]`;
+    }
+    
+    // Verify the text content is properly set
+    if (textContent === undefined || textContent === null) {
+      textContent = "[No result data]";
     }
     
     const response = {
@@ -77,10 +85,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       ]
     };
     
-    log.info(`Tool response prepared`);
+    logger.info(`Tool response prepared`);
     return response;
   } catch (error: unknown) {
-    log.error("Error executing tool:", error);
+    logger.error("Error executing tool:", error);
     return {
       error: error instanceof Error ? error.message : String(error)
     };
@@ -90,13 +98,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 // Start listening on stdio
 const transport = new StdioServerTransport();
 
-log.info("Starting Sanity MCP Server...");
+logger.info("Starting Sanity MCP Server...");
 // Use the correct method to connect the server to the transport
 server.connect(transport)
   .then(() => {
-    log.info("Sanity MCP Server connected successfully!");
+    logger.info("Sanity MCP Server connected successfully!");
   })
   .catch(error => {
-    log.error("Failed to connect server:", error);
+    logger.error("Failed to connect server:", error);
     process.exit(1);
   });

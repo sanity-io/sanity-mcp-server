@@ -6,6 +6,7 @@
  */
 import { ToolDefinition } from '../types/tools.js';
 import { ToolProvider } from '../types/toolProvider.js';
+import logger from '../utils/logger.js';
 
 // Import specialized tool providers
 import { ContextToolProvider } from './contextTools.js';
@@ -86,7 +87,7 @@ export async function executeTool(toolName: string, args: Record<string, any> = 
     // Execute the tool handler with provided arguments
     return await tool.handler(args);
   } catch (error) {
-    console.error(`Error executing tool '${toolName}':`, error);
+    logger.error(`Error executing tool '${toolName}':`, error);
     throw error;
   }
 }
