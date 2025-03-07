@@ -21,20 +21,25 @@
       - Example: `handler: <T extends SharedParams, R>(args: T) => Promise<R>`
    
    3. **Refactor tool definitions in tool provider files** (IN PROGRESS)
-      - Update each tool definition to use the shared parameter interfaces
-      - Replace `any` in handler functions with proper types
-      - Ensure Zod schemas accurately reflect TypeScript types
-      - Currently implemented for some mutation tools in `mutateTools.ts`
-      - Next steps: Complete remaining tools in `mutateTools.ts` and then other tool providers
+      - ✅ MutateTools: Created shared interfaces and updated tool definitions
+      - 🔜 SchemaTools: Need to define shared interfaces for schema operations
+      - 🔜 GroqTools: Need to define shared interfaces for GROQ query operations
+      - 🔜 ActionsTools: Need to define shared interfaces for Sanity actions
+      - 🔜 ContextTools: Need to define shared interfaces for context operations
+      - 🔜 ProjectsTools: Need to define shared interfaces for project operations
+      - 🔜 ReleasesTools: Need to define shared interfaces for release management
+      - 🔜 EmbeddingsTools: Need to define shared interfaces for embeddings operations
    
    4. **Ensure parameter consistency** (IN PROGRESS)
       - Audit all optional vs. required parameters between tools and controllers
       - Make sure optional parameters in tool definitions are truly optional in controllers
       - Add default values where appropriate
+      - Implement consistent handling of projectId and dataset fallbacks
    
    5. **Create automated tests for type consistency** (PENDING)
-      - Add type checking tests to ensure tools and controllers remain in sync
-      - Test both TypeScript types and Zod schema validation
+      - Create a test module that verifies type compatibility between tools and controllers
+      - Add specific tests for each tool provider to ensure schema validation works correctly
+      - Test edge cases like missing optional parameters and type conversions
 
 ## Medium Priority
 

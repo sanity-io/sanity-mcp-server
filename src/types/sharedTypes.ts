@@ -8,6 +8,7 @@
 import { z } from 'zod';
 import { Mutation } from '../controllers/mutate.js';
 import { SanityDocument, PatchOperations, SanityMutationResult } from './sanity.js';
+import { SchemaType, SchemaField, SearchOptions, SearchResponse } from './index.js';
 
 /**
  * Interface for the result of document mutations
@@ -118,4 +119,65 @@ export type ZodSchemaFromInterface<T> = {
  */
 export interface ToolHandler<TParams, TResult> {
   (params: TParams): Promise<TResult>;
+}
+
+/**
+ * Schema-related shared interfaces
+ */
+
+export interface SchemaParams extends ProjectDatasetParams {
+  projectId: string;
+  dataset: string;
+}
+
+export interface GetSchemaParams extends SchemaParams {}
+
+export interface ListSchemaTypesParams extends SchemaParams {
+  allTypes?: boolean;
+}
+
+export interface GetTypeSchemaParams extends SchemaParams {
+  typeName: string;
+}
+
+export interface SchemaTypeDetails extends SchemaType {
+  fields?: SchemaField[];
+  [key: string]: any;
+}
+
+/**
+ * GROQ-related shared interfaces
+ */
+
+export interface GroqQueryParams extends ProjectDatasetParams {
+  query: string;
+  params?: Record<string, any>;
+}
+
+export interface GetDocumentParams extends ProjectDatasetParams {
+  documentId: string | string[];
+}
+
+export interface GroqQueryResult {
+  query: string;
+  results: SanityDocument | SanityDocument[];
+  count: number;
+  verification?: {
+    performed: boolean;
+    originalCount: number;
+    verifiedCount: number;
+  };
+}
+
+export interface GroqSpecResult {
+  specification: Record<string, any>;
+  source: string;
+}
+
+export interface SearchParams extends ProjectDatasetParams {
+  query: string;
+  indexName?: string;
+  limit?: number;
+  filter?: string | Record<string, any>;
+  options?: SearchOptions;
 } 

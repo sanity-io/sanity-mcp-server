@@ -9,6 +9,12 @@ import { ToolProvider } from '../types/toolProvider.js';
 import * as schemaController from '../controllers/schema.js';
 import config from '../config/config.js';
 import logger from '../utils/logger.js';
+import { 
+  GetSchemaParams, 
+  ListSchemaTypesParams, 
+  GetTypeSchemaParams,
+  SchemaTypeDetails
+} from '../types/sharedTypes.js';
 
 /**
  * Schema tools provider class
@@ -27,13 +33,10 @@ export class SchemaToolProvider implements ToolProvider {
         parameters: z.object({
           projectId: z.string().describe('Project ID to use for the request'),
           dataset: z.string().describe('Dataset name to use for the request')
-        }),
-        handler: async (args: any) => {
-          const projectId = args.projectId;
-          const dataset = args.dataset;
-          
-          logger.info(`Getting schema for project ${projectId}, dataset ${dataset}`);
-          return await schemaController.getSchema(projectId, dataset);
+        }) as z.ZodType<GetSchemaParams>,
+        handler: async (args: GetSchemaParams): Promise<SchemaTypeDetails[]> => {
+          logger.info(`Getting schema for project ${args.projectId}, dataset ${args.dataset}`);
+          return await schemaController.getSchema(args.projectId, args.dataset);
         }
       },
       {
@@ -43,13 +46,10 @@ export class SchemaToolProvider implements ToolProvider {
           projectId: z.string().describe('Project ID to use for the request'),
           dataset: z.string().describe('Dataset name to use for the request'),
           allTypes: z.boolean().optional().describe('Whether to include all types or only document types')
-        }),
-        handler: async (args: any) => {
-          const projectId = args.projectId;
-          const dataset = args.dataset;
-          
-          logger.info(`Listing schema types for project ${projectId}, dataset ${dataset}, allTypes=${args.allTypes || false}`);
-          return await schemaController.listSchemaTypes(projectId, dataset, { allTypes: args.allTypes });
+        }) as z.ZodType<ListSchemaTypesParams>,
+        handler: async (args: ListSchemaTypesParams): Promise<SchemaTypeDetails[]> => {
+          logger.info(`Listing schema types for project ${args.projectId}, dataset ${args.dataset}, allTypes=${args.allTypes || false}`);
+          return await schemaController.listSchemaTypes(args.projectId, args.dataset, { allTypes: args.allTypes });
         }
       },
       {
@@ -59,17 +59,14 @@ export class SchemaToolProvider implements ToolProvider {
           projectId: z.string().describe('Project ID to use for the request'),
           dataset: z.string().describe('Dataset name to use for the request'),
           typeName: z.string().describe('The type name to get the schema for')
-        }),
-        handler: async (args: any) => {
+        }) as z.ZodType<GetTypeSchemaParams>,
+        handler: async (args: GetTypeSchemaParams): Promise<SchemaTypeDetails> => {
           if (!args.typeName) {
             throw new Error('Type name is required');
           }
           
-          const projectId = args.projectId;
-          const dataset = args.dataset;
-          
-          logger.info(`Getting schema for type ${args.typeName} in project ${projectId}, dataset ${dataset}`);
-          return await schemaController.getTypeSchema(projectId, dataset, args.typeName);
+          logger.info(`Getting schema for type ${args.typeName} in project ${args.projectId}, dataset ${args.dataset}`);
+          return await schemaController.getTypeSchema(args.projectId, args.dataset, args.typeName);
         }
       }
     ];
