@@ -4,6 +4,12 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 
+// Create a logger that uses stderr instead of stdout
+const log = {
+  info: (...args) => console.error('[INFO]', ...args),
+  error: (...args) => console.error('[ERROR]', ...args)
+};
+
 // Create MCP server
 const server = new Server(
   {
@@ -19,7 +25,7 @@ const server = new Server(
 
 // Handle tool listing request
 server.setRequestHandler(ListToolsRequestSchema, async () => {
-  console.log("Received ListToolsRequest");
+  log.info("Received ListToolsRequest");
   
   return {
     tools: [{
@@ -41,7 +47,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 
 // Handle tool execution request
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  console.log(`Received CallToolRequest: ${JSON.stringify(request)}`);
+  log.info(`Received CallToolRequest: ${JSON.stringify(request)}`);
   
   try {
     // Check for required args
@@ -52,7 +58,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     // For echo tool
     if (request.params.name === "echo") {
       const message = request.params.arguments.message;
-      console.log(`Echo tool called with message: ${message}`);
+      log.info(`Echo tool called with message: ${message}`);
       
       // Explicit Claude format
       const response = {
@@ -64,24 +70,24 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         ]
       };
       
-      console.log(`Returning response: ${JSON.stringify(response)}`);
+      log.info(`Returning response: ${JSON.stringify(response)}`);
       return response;
     } else {
       throw new Error(`Unknown tool: ${request.params.name}`);
     }
   } catch (error) {
-    console.error("Error executing tool:", error);
+    log.error("Error executing tool:", error);
     return {
       error: error instanceof Error ? error.message : String(error)
     };
   }
 });
 
-console.log("Starting Echo MCP Server...");
+log.info("Starting Echo MCP Server...");
 const transport = new StdioServerTransport();
 server.connect(transport).then(() => {
-  console.log("Server connected successfully!");
+  log.info("Server connected successfully!");
 }).catch(error => {
-  console.error("Failed to connect server:", error);
+  log.error("Failed to connect server:", error);
   process.exit(1);
 }); 
