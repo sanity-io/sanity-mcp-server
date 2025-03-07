@@ -1,52 +1,18 @@
 /**
  * Type definitions for Sanity-related objects and operations
  */
-import { SanityClient as OriginalSanityClient } from '@sanity/client';
+import { 
+  SanityClient as OriginalSanityClient,
+  MutationSelection,
+  Patch as SanityPatchType,
+  Transaction as SanityTransactionType
+} from '@sanity/client';
 
 /**
- * Extended SanityClient interface with the specific methods used in our application
+ * Sanity Query Parameters
  */
-export interface SanityClient extends OriginalSanityClient {
-  // Document operations
-  getDocument(id: string): Promise<Record<string, any> | null>;
-  create(doc: Record<string, any>): Promise<Record<string, any>>;
-  createOrReplace(doc: Record<string, any>): Promise<Record<string, any>>;
-  createIfNotExists(doc: Record<string, any>): Promise<Record<string, any>>;
-  patch(id: string): SanityPatch;
-  delete(id: string): Promise<Record<string, any>>;
-  
-  // Transaction operations
-  transaction(): SanityTransaction;
-  
-  // Query operations
-  fetch<T = any>(query: string, params?: Record<string, any>): Promise<T>;
-}
-
-/**
- * Sanity Transaction interface
- */
-export interface SanityTransaction {
-  create(doc: Record<string, any>): SanityTransaction;
-  createOrReplace(doc: Record<string, any>): SanityTransaction;
-  createIfNotExists(doc: Record<string, any>): SanityTransaction;
-  delete(documentId: string): SanityTransaction;
-  patch(documentId: string, patchSpec: Record<string, any>): SanityTransaction;
-  patch(documentId: string, patches: SanityPatch): SanityTransaction;
-  commit(): Promise<{ results: Array<{ id: string, operation: string }> }>;
-}
-
-/**
- * Sanity Patch interface
- */
-export interface SanityPatch {
-  set(attributes: Record<string, any>): SanityPatch;
-  setIfMissing(attributes: Record<string, any>): SanityPatch;
-  unset(attributes: string[]): SanityPatch;
-  inc(attributes: Record<string, number>): SanityPatch;
-  dec(attributes: Record<string, number>): SanityPatch;
-  insert(position: string, path: string, items: any[]): SanityPatch;
-  diffMatchPatch(attributes: Record<string, string>): SanityPatch;
-  commit(): Promise<Record<string, any>>;
+export interface SanityQueryParams {
+  [key: string]: string | number | boolean | string[] | number[] | SanityQueryParams;
 }
 
 /**
@@ -60,6 +26,40 @@ export interface SanityDocument {
   _updatedAt?: string;
   [key: string]: any;
 }
+
+/**
+ * Sanity Patch interface
+ */
+export interface SanityPatch {
+  set(attributes: Record<string, any>): SanityPatch;
+  setIfMissing(attributes: Record<string, any>): SanityPatch;
+  replace(selector: string, value: any): SanityPatch;
+  inc(attributes: Record<string, number>): SanityPatch;
+  dec(attributes: Record<string, number>): SanityPatch;
+  insert(position: 'before' | 'after' | 'replace', selector: string, items: any[] | any): SanityPatch;
+  unset(attributes: string | string[]): SanityPatch;
+  diffMatchPatch(attributes: Record<string, string>): SanityPatch;
+  ifRevisionId(id: string): SanityPatch;
+  commit(): Promise<SanityMutationResult>;
+}
+
+/**
+ * Sanity Transaction interface
+ */
+export interface SanityTransaction {
+  create(doc: Record<string, any>): SanityTransaction;
+  createOrReplace(doc: Record<string, any>): SanityTransaction;
+  createIfNotExists(doc: Record<string, any>): SanityTransaction;
+  delete(documentId: string): SanityTransaction;
+  patch(documentId: string, patchSpec: Record<string, any>): SanityTransaction;
+  patch(documentId: string, patches: SanityPatch): SanityTransaction;
+  commit(): Promise<SanityMutationResult>;
+}
+
+/**
+ * Extended SanityClient interface with the specific methods used in our application
+ */
+export type SanityClient = OriginalSanityClient;
 
 /**
  * Sanity Draft Document interface
@@ -77,24 +77,29 @@ export interface SanityActionResult {
     id: string;
     document?: Record<string, any>;
   }>;
+  id?: string;
+  document?: Record<string, any>;
 }
 
 /**
  * Sanity Mutation Result interface
  */
 export interface SanityMutationResult {
-  documentId: string;
+  documentId?: string;
   transactionId?: string;
   results?: Array<{
     id: string;
     operation: string;
   }>;
+  id?: string;
+  operation?: string;
+  [key: string]: any; // Allow for other properties
 }
 
 /**
  * Sanity Error interface
  */
-export interface SanityError extends Error {
+export interface SanityError {
   statusCode?: number;
   message: string;
   details?: Record<string, unknown>;
@@ -125,7 +130,10 @@ export interface ReleaseDocument {
 export interface InsertOperation {
   items: any[] | any;
   position: 'before' | 'after' | 'replace';
-  at: string;
+  before?: string;
+  after?: string;
+  replace?: string;
+  at?: string; // For backward compatibility
 }
 
 /**
@@ -139,4 +147,5 @@ export interface PatchOperations {
   dec?: Record<string, number>;
   insert?: InsertOperation;
   diffMatchPatch?: Record<string, string>;
+  ifRevisionID?: string;
 }

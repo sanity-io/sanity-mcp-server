@@ -5,6 +5,7 @@
  */
 import { z } from 'zod';
 import { ToolProvider } from '../types/toolProvider.js';
+import { SanityDocument, SearchOptions } from '../types/index.js';
 import * as embeddingsController from '../controllers/embeddings.js';
 
 /**

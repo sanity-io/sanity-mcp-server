@@ -1,7 +1,6 @@
 # TODO
 
-- Run a code smell test on the repo and see what we should refactor. The huge tools.js file is a good candidate for refactoring. If we do that the new files should be paired 1:1 with the controllers that they describe.
-
+- Comprehensive integration tests for mutations
 - Don't list all of release content in the initialContext - just the names
 - Get more coverage on the integration tests for other workflows
 
@@ -14,12 +13,12 @@
 5. ✅ Reduce complexity in controllers/actions.ts, focusing on createDocument and deleteDocument
 6. ✅ Reduce complexity in controllers/releases.ts for createRelease function
 7. ✅ Add unit tests for utility functions in documentHelpers.ts
+8. ✅ Replace `any` types with more specific types across core controller files
+9. ✅ Improve type safety across codebase, particularly for Sanity client operations
+10. 🔄 Reduce complexity in embeddings.ts, particularly in semanticSearch function
 
-8. 🔄 Replace `any` types with more specific types across core controller files
-9. 🔄 Reduce complexity in embeddings.ts, particularly in semanticSearch function
-
-10. Add constants for commonly duplicated string literals (especially in test files)
-11. Refactor remaining functions with high cognitive complexity, especially in:
+11. Add constants for commonly duplicated string literals (especially in test files)
+12. Refactor remaining functions with high cognitive complexity, especially in:
     - controllers/embeddings.ts (listEmbeddingsIndices, semanticSearch)
     - controllers/groq.ts
     - controllers/schema.ts (checkForReferences)
@@ -35,14 +34,15 @@
 
 ## Error Handling
 
-- Extract error handling to a reusable createErrorResponse function (for consistency)
-- Apply this across controllers
+- ✅ Extract error handling to a reusable createErrorResponse function (for consistency)
+- ✅ Apply this across controllers
 
 ## Technical Debt
 
 - Move from TS-Node to a bundled dist
 - Refactor tests to be more maintaneous and use common setup functions
 - Evaluate moving to OpenAPI spec for route definition
+- ✅ Address TypeScript type conflicts with @sanity/client types
 
 ## Done
 - ✅ Integration test for release document workflow

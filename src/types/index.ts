@@ -1,16 +1,10 @@
 // Common TypeScript types for Sanity MCP Server
 
-import { SanityClient } from '@sanity/client';
+// Re-export Sanity types from sanity.ts
+export * from './sanity.js';
 
-// Sanity related types
-export interface SanityDocument {
-  _id: string;
-  _type: string;
-  _rev?: string;
-  _createdAt?: string;
-  _updatedAt?: string;
-  [key: string]: any;
-}
+// Import SanityDocument from sanity.ts
+import { SanityDocument } from './sanity.js';
 
 // Sanity client configuration
 export interface SanityClientConfig {
@@ -21,7 +15,7 @@ export interface SanityClientConfig {
   useCdn?: boolean;
 }
 
-// Search related types
+// Embeddings and search related types
 export interface EmbeddingIndex {
   status: 'active' | 'indexing' | 'failed';
   indexName: string;
@@ -37,13 +31,9 @@ export interface EmbeddingIndex {
   webhookId: string;
 }
 
-export interface SearchResult {
-  score: number;
-  value: {
-    documentId: string;
-    type: string;
-    [key: string]: any;
-  };
+export interface SearchResult extends SanityDocument {
+  score?: number;
+  value?: any;
 }
 
 export interface SearchResponse {
@@ -52,7 +42,13 @@ export interface SearchResponse {
 }
 
 export interface SearchOptions {
-  indexName: string;
+  // New properties
+  includeMetadata?: boolean;
+  limit?: number;
+  filter?: string | Record<string, any>;
+  
+  // Legacy properties for backward compatibility
+  indexName?: string;
   maxResults?: number;
   types?: string[];
   projectId?: string;
@@ -60,6 +56,19 @@ export interface SearchOptions {
 }
 
 // Schema related types
+export interface SchemaField {
+  name: string;
+  type: string;
+  title?: string;
+  description?: string;
+  of?: SchemaField[];
+  to?: SchemaField[];
+  fields?: SchemaField[];
+  options?: Record<string, any>;
+  validation?: any;
+  [key: string]: any;
+}
+
 export interface SchemaType {
   name: string;
   type: string;
@@ -100,4 +109,10 @@ export interface SubscribeOptions {
   projectId: string;
   dataset: string;
   query: string;
+}
+
+export interface ApiError {
+  statusCode: number;
+  message: string;
+  details?: Record<string, any>;
 }

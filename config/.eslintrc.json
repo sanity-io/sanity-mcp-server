@@ -48,7 +48,10 @@
       "files": ["test/**/*.ts"],
       "rules": {
         "complexity": "off",
-        "sonarjs/cognitive-complexity": "off"
+        "sonarjs/cognitive-complexity": "off",
+        "no-console": "off",
+        "@typescript-eslint/no-explicit-any": "off",
+        "sonarjs/no-duplicate-string": "off"
       }
     }
   ]

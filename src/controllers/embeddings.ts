@@ -4,7 +4,7 @@
 import config from '../config/config.js';
 import { SanityClient, SanityDocument } from '../types/sanity.js';
 import { createSanityClient } from '../utils/sanityClient.js';
-import { EmbeddingIndex, SearchOptions, SearchResponse } from '../types/index.js';
+import { EmbeddingIndex, SearchOptions, SearchResponse, SearchResult } from '../types/index.js';
 
 // Initialize Sanity client only if project ID is available
 const projectId = config.projectId || process.env.SANITY_PROJECT_ID;
@@ -146,7 +146,11 @@ export async function semanticSearch(query: string, {
     // Transform to our expected format with hits and total properties for consistency
     if (Array.isArray(rawResults)) {
       return {
-        hits: rawResults as SanityDocument[],
+        hits: rawResults.map(doc => ({
+          ...doc,
+          score: doc.score || 0,
+          value: doc.value || doc
+        })) as SearchResult[],
         total: rawResults.length
       };
     }

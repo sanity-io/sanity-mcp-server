@@ -44,16 +44,9 @@ export interface CreateIfNotExistsMutation {
   createIfNotExists: IdentifiedSanityDocumentStub<Record<string, any>>;
 }
 
-export interface DeleteByIdMutation {
+export interface DeleteMutation {
   delete: {
     id: string;
-  };
-}
-
-export interface DeleteByQueryMutation {
-  delete: {
-    query: string;
-    params?: Record<string, any>;
   };
 }
 
@@ -89,10 +82,9 @@ export type Mutation =
   | CreateMutation 
   | CreateOrReplaceMutation 
   | CreateIfNotExistsMutation 
-  | DeleteByIdMutation 
-  | DeleteByQueryMutation 
   | PatchByIdMutation 
-  | PatchByQueryMutation;
+  | PatchByQueryMutation 
+  | DeleteMutation;
 
 /**
  * Helper function to add create mutation to a transaction
@@ -137,19 +129,13 @@ function addCreateIfNotExistsMutation(
  * Helper function to add delete mutation to a transaction
  * 
  * @param transaction - Sanity transaction
- * @param mutation - Delete mutation (by ID or query)
+ * @param mutation - Delete mutation
  */
 function addDeleteMutation(
   transaction: SanityTransaction, 
-  mutation: DeleteByIdMutation | DeleteByQueryMutation
+  mutation: DeleteMutation
 ): void {
-  if ('query' in mutation.delete) {
-    // Delete by query
-    transaction.delete(mutation.delete.query);
-  } else if ('id' in mutation.delete) {
-    // Delete by ID
-    transaction.delete(mutation.delete.id);
-  }
+  transaction.delete(mutation.delete.id);
 }
 
 /**
@@ -238,24 +224,36 @@ function applyPatchOperationsToClient(
   }
   
   if (patchOperations.insert) {
-    const insertOp = patchOperations.insert;
-    const { items, position, at } = insertOp;
-    if (items && position && at) {
-      patch.insert(position, at, items);
-    }
+    applyInsertOperation(patch, patchOperations.insert);
   }
 }
 
 /**
  * Helper function to apply insert operation to a patch
  * 
- * @param patch - Sanity patch client
- * @param insertOp - Insert operation details
+ * @param patch - Sanity patch
+ * @param insertOp - Insert operation
  */
 function applyInsertOperation(patch: SanityPatch, insertOp: InsertOperation): void {
-  const { items, position, at } = insertOp;
+  const { items, position } = insertOp;
+  
+  // Get the appropriate selector
+  let selector = '';
+  if (insertOp.at) {
+    selector = insertOp.at;
+  } else if (insertOp.before) {
+    selector = insertOp.before;
+  } else if (insertOp.after) {
+    selector = insertOp.after;
+  } else if (insertOp.replace) {
+    selector = insertOp.replace;
+  }
+  
   if (position === 'before' || position === 'after' || position === 'replace') {
-    patch.insert(position, at, items);
+    // Only execute if we have a valid selector and items
+    if (selector && items) {
+      patch.insert(position, selector, items);
+    }
   }
 }
 
@@ -316,26 +314,35 @@ async function retrieveDocumentsForMutations(
   client: SanityClient,
   mutations: Mutation[]
 ): Promise<(SanityDocument | null)[]> {
-  return await Promise.all(mutations.map(async (mutation) => {
-    // Type guard for different mutation types
-    if ('create' in mutation) {
-      return client.getDocument(mutation.create._id);
-    } else if ('createOrReplace' in mutation) {
-      return client.getDocument(mutation.createOrReplace._id);
-    } else if ('createIfNotExists' in mutation) {
-      return client.getDocument(mutation.createIfNotExists._id);
-    } else if ('patch' in mutation) {
-      // Need to handle both patch by ID and patch by query
-      if ('id' in mutation.patch) {
-        return client.getDocument(mutation.patch.id);
-      } else if ('query' in mutation.patch) {
-        // For query-based patches we can't easily get the document
-        // without executing the query again
+  const results = await Promise.all(mutations.map(async (mutation) => {
+    try {
+      // Type guard for different mutation types
+      if ('create' in mutation && mutation.create?._id) {
+        return await client.getDocument(mutation.create._id);
+      } else if ('createOrReplace' in mutation && mutation.createOrReplace?._id) {
+        return await client.getDocument(mutation.createOrReplace._id);
+      } else if ('createIfNotExists' in mutation && mutation.createIfNotExists?._id) {
+        return await client.getDocument(mutation.createIfNotExists._id);
+      } else if ('patch' in mutation) {
+        // Need to handle both patch by ID and patch by query
+        if ('id' in mutation.patch && mutation.patch.id) {
+          return await client.getDocument(mutation.patch.id);
+        } 
+        // Query-based patches can't easily return documents
+        return null;
+      } else if ('delete' in mutation) {
+        // Deleted documents don't need to be returned
         return null;
       }
+      return null;
+    } catch (err) {
+      console.error(`Error retrieving document for mutation:`, err);
+      return null;
     }
-    return null;
   }));
+  
+  // All results are either SanityDocument or null at this point
+  return results as (SanityDocument | null)[];
 }
 
 /**
@@ -376,7 +383,13 @@ async function modifyDocuments(
     
     // Process each mutation
     mutations.forEach(mutation => {
-      processMutation(client, transaction, mutation);
+      // Ensure the document has a _type before creating
+      if ('create' in mutation && mutation.create && !mutation.create._type) {
+        throw new Error('_type is required for create mutations');
+      }
+      
+      // Add proper type information to the document before passing to transaction
+      processMutation(client, transaction as any, mutation);
     });
     
     // Commit the transaction

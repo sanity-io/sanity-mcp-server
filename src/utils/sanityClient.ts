@@ -1,42 +1,7 @@
-import { createClient, SanityClient } from '@sanity/client';
+import { createClient } from '@sanity/client';
 import fetch from 'node-fetch';
 import config from '../config/config.js';
-
-/**
- * Creates a Sanity client for a specific project and dataset
- * 
- * @param projectId - Sanity project ID
- * @param dataset - Dataset name (default: 'production')
- * @param options - Additional options to pass to the Sanity client
- * @returns Configured Sanity client instance
- */
-export function createSanityClient(
-  projectId: string, 
-  dataset: string = 'production', 
-  options: Record<string, any> = {}
-): SanityClient {
-  return createClient({
-    projectId,
-    dataset,
-    apiVersion: config.apiVersion,
-    token: config.sanityToken,
-    useCdn: false, // Using the API directly ensures we get fresh content
-    ...options
-  });
-}
-
-interface SanityProject {
-  id: string;
-  displayName: string;
-  organizationId: string;
-  isDefault: boolean;
-  createdAt: string;
-  studioHost?: string;
-  members: Array<{
-    id: string;
-    role: string;
-  }>;
-}
+import { SanityClient, SanityActionResult } from '../types/sanity.js';
 
 interface SanityAction {
   create?: Record<string, any>;
@@ -63,12 +28,40 @@ interface SanityAction {
   attributes?: Record<string, any>;
 }
 
-interface SanityActionResult {
-  transactionId: string;
-  results: Array<{
+interface SanityProject {
+  id: string;
+  displayName: string;
+  organizationId: string;
+  isDefault: boolean;
+  createdAt: string;
+  studioHost?: string;
+  members: Array<{
     id: string;
-    document?: Record<string, any>;
+    role: string;
   }>;
+}
+
+/**
+ * Creates a Sanity client for a specific project and dataset
+ * 
+ * @param projectId - Sanity project ID
+ * @param dataset - Dataset name (default: 'production')
+ * @param options - Additional options to pass to the Sanity client
+ * @returns Configured Sanity client instance
+ */
+export function createSanityClient(
+  projectId: string, 
+  dataset: string = 'production', 
+  options: Record<string, any> = {}
+): SanityClient {
+  return createClient({
+    projectId,
+    dataset,
+    apiVersion: config.apiVersion,
+    token: config.sanityToken,
+    useCdn: false, // Using the API directly ensures we get fresh content
+    ...options
+  });
 }
 
 /**

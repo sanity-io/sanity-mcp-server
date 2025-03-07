@@ -1,7 +1,15 @@
-import { createSanityClient, sanityApi, isSufficientApiVersion, SanityClient, SanityDocument, SanityActionResult } from '../utils/sanityClient.js';
+import { createSanityClient, sanityApi, isSufficientApiVersion } from '../utils/sanityClient.js';
 import { normalizeBaseDocId, normalizeDocumentIds, createErrorResponse, getDocumentContent } from '../utils/documentHelpers.js';
 import config from '../config/config.js';
-import { SanityError, ReleaseOptions, ReleaseDocument } from '../types/sanity.js';
+import { SanityClient, SanityDocument, SanityActionResult, SanityError, ReleaseOptions } from '../types/sanity.js';
+
+// Define local ReleaseDocument to avoid conflicts
+interface ReleaseDocument {
+  versionId: string;
+  documentId: string;
+  type: string;
+  title: string;
+}
 
 // Minimum API version required for Content Releases
 const REQUIRED_API_VERSION = '2024-05-23';

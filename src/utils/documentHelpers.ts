@@ -24,30 +24,77 @@ export function normalizeBaseDocId(documentId: string): string {
 }
 
 /**
- * Applies patch operations to a Sanity patch object
+ * Apply patch operations to a patch object
  * 
- * @param patch - The patch operations to apply
- * @param patchObj - The Sanity patch object to modify
+ * @param patch - Patch operations to apply
+ * @param patchObj - Patch object to apply them to
+ * @returns The updated patch object
  */
-export function applyPatchOperations(patch: Record<string, any>, patchObj: SanityPatch): void {
-  if (patch.set) patchObj.set(patch.set);
-  if (patch.setIfMissing) patchObj.setIfMissing(patch.setIfMissing);
-  if (patch.unset) patchObj.unset(patch.unset);
-  if (patch.inc) patchObj.inc(patch.inc);
-  if (patch.dec) patchObj.dec(patch.dec);
-  
-  // Handle insert operations for arrays
-  if (patch.insert) {
-    const { items, position, at } = patch.insert;
-    if (items && position && at) {
-      patchObj.insert(position, at, items);
+export function applyPatchOperations(patch: PatchOperations, patchObj: any): any {
+  // Check if patchObj is valid
+  if (!patchObj) {
+    console.error('Invalid patch object provided');
+    return patchObj;
+  }
+
+  // Set fields if provided
+  if (patch.set && typeof patchObj.set === 'function') {
+    patchObj = patchObj.set(patch.set);
+  }
+
+  // Set fields if missing
+  if (patch.setIfMissing && typeof patchObj.setIfMissing === 'function') {
+    patchObj = patchObj.setIfMissing(patch.setIfMissing);
+  }
+
+  // Unset fields
+  if (patch.unset && typeof patchObj.unset === 'function') {
+    patchObj = patchObj.unset(patch.unset);
+  }
+
+  // Increment fields
+  if (patch.inc && typeof patchObj.inc === 'function') {
+    patchObj = patchObj.inc(patch.inc);
+  }
+
+  // Decrement fields
+  if (patch.dec && typeof patchObj.dec === 'function') {
+    patchObj = patchObj.dec(patch.dec);
+  }
+
+  // Insert operations
+  if (patch.insert && typeof patchObj.insert === 'function') {
+    const { position, items } = patch.insert;
+    
+    // Get the appropriate selector
+    let selector = '';
+    if (patch.insert.at) {
+      // Legacy format
+      selector = patch.insert.at;
+    } else if (patch.insert.before) {
+      selector = patch.insert.before;
+    } else if (patch.insert.after) {
+      selector = patch.insert.after;
+    } else if (patch.insert.replace) {
+      selector = patch.insert.replace;
+    }
+
+    if (selector && items && position) {
+      patchObj = patchObj.insert(position, selector, items);
     }
   }
-  
-  // Handle diffMatchPatch operations for string patching
-  if (patch.diffMatchPatch) {
-    patchObj.diffMatchPatch(patch.diffMatchPatch);
+
+  // DiffMatchPatch operations
+  if (patch.diffMatchPatch && typeof patchObj.diffMatchPatch === 'function') {
+    patchObj = patchObj.diffMatchPatch(patch.diffMatchPatch);
   }
+
+  // If revisionID is provided
+  if (patch.ifRevisionID && typeof patchObj.ifRevisionId === 'function') {
+    patchObj = patchObj.ifRevisionId(patch.ifRevisionID);
+  }
+
+  return patchObj;
 }
 
 /**

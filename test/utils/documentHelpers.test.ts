@@ -98,10 +98,22 @@ describe('Document Helpers', () => {
         unset: ['oldField'],
         inc: { views: 1 }
       };
-      applyPatchOperations(patch, patchObj);
-      expect(patchObj.set).toHaveBeenCalledWith({ title: 'New Title' });
-      expect(patchObj.unset).toHaveBeenCalledWith(['oldField']);
-      expect(patchObj.inc).toHaveBeenCalledWith({ views: 1 });
+      // Mock all the necessary methods to ensure they exist before applying operations
+      const mockPatchObj = {
+        set: vi.fn().mockReturnThis(),
+        setIfMissing: vi.fn().mockReturnThis(),
+        unset: vi.fn().mockReturnThis(),
+        inc: vi.fn().mockReturnThis(),
+        dec: vi.fn().mockReturnThis(),
+        insert: vi.fn().mockReturnThis(),
+        diffMatchPatch: vi.fn().mockReturnThis(),
+        ifRevisionId: vi.fn().mockReturnThis()
+      };
+      
+      applyPatchOperations(patch, mockPatchObj);
+      expect(mockPatchObj.set).toHaveBeenCalledWith({ title: 'New Title' });
+      expect(mockPatchObj.unset).toHaveBeenCalledWith(['oldField']);
+      expect(mockPatchObj.inc).toHaveBeenCalledWith({ views: 1 });
     });
   });
 

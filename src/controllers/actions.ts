@@ -3,9 +3,8 @@ import {
   normalizeDraftId, 
   normalizeBaseDocId, 
   applyPatchOperations, 
-  getDocumentContent,
-  createErrorResponse,
-  normalizeDocumentIds
+  normalizeDocumentIds,
+  createErrorResponse
 } from '../utils/documentHelpers.js';
 import { 
   SanityClient, 
@@ -227,13 +226,20 @@ async function createSingleDocument(
   const preparedDoc = prepareDocumentForCreation(document);
   
   // Handle ifExists option
+  let result;
   if (options?.ifExists === 'ignore' && preparedDoc._id) {
     // Use createIfNotExists if we want to ignore existing docs
-    return await client.createIfNotExists(preparedDoc as IdentifiedSanityDocumentStub<Record<string, any>>);
+    result = await client.createIfNotExists(preparedDoc as IdentifiedSanityDocumentStub<Record<string, any>>);
   } else {
     // Default behavior - just create
-    return await client.create(preparedDoc as SanityDocumentStub<{ _type: string }>);
+    result = await client.create(preparedDoc as SanityDocumentStub<{ _type: string }>);
   }
+  
+  // Transform result to match expected interface
+  return {
+    result: { documentId: result._id },
+    id: result._id
+  };
 }
 
 /**
@@ -303,9 +309,9 @@ export async function createDocument(
  * @returns Result of the edit operation
  */
 export async function editDocument(
-  projectId: string, 
-  dataset: string, 
-  documentId: string | string[], 
+  projectId: string,
+  dataset: string = 'production',
+  documentId: string | string[],
   patch: PatchOperations
 ): Promise<{
   success: boolean;
@@ -318,11 +324,7 @@ export async function editDocument(
     const client = createSanityClient(projectId, dataset);
     
     // Process document IDs
-    const documentIds = normalizeDocumentIds(documentId);
-    
-    if (documentIds.length === 0) {
-      return createErrorResponse('No valid document IDs provided');
-    }
+    const documentIds = processDocumentIds(documentId);
     
     let result;
     let processedIds: string[];
@@ -343,9 +345,10 @@ export async function editDocument(
       documentIds: processedIds,
       result
     };
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    return createErrorResponse(`Failed to edit document(s): ${errorMessage}`);
+  } catch (err) {
+    // Convert Error to expected return type
+    const error = err as Error;
+    return { success: false, message: error.message || 'Error editing document', result: { documentId: '' } as SanityMutationResult };
   }
 }
 
@@ -444,10 +447,10 @@ function prepareDocumentIdForDeletion(id: string): { baseDocId: string, draftId:
  * Sets up a transaction for deleting multiple documents
  */
 function setupDeleteTransaction(
-  transaction: SanityTransaction,
+  transaction: any, 
   documentIds: string[],
   additionalDrafts?: string[]
-): { transaction: SanityTransaction, processedIds: string[] } {
+): { transaction: any, processedIds: string[] } {
   const processedIds = [];
   
   // Process each document ID
@@ -487,19 +490,19 @@ async function deleteMultipleDocuments(
   // Process each document ID
   const transaction = client.transaction();
   
-  const { transaction: updatedTransaction, processedIds } = setupDeleteTransaction(
+  const { transaction: preparedTransaction, processedIds } = setupDeleteTransaction(
     transaction,
     documentIds,
     options?.includeDrafts
   );
   
   // Commit the transaction
-  const result = await updatedTransaction.commit({
-    // If purge is true, completely remove document from history
-    visibility: options?.purge ? 'async' : 'sync'
-  });
+  const result = await preparedTransaction.commit();
   
-  return { result, processedIds };
+  return {
+    result,
+    processedIds
+  };
 }
 
 /**
@@ -618,8 +621,11 @@ async function editSingleDocument(
   const patchObj = client.patch(draftId);
   applyPatchOperations(patch, patchObj);
   
+  // Convert the patch to a plain object for use with transaction
+  const patchSpec = patchObjToSpec(patchObj);
+  
   // Add the patch to the transaction
-  transaction.patch(patchObj);
+  transaction.patch(draftId, patchSpec);
   
   // Commit the transaction
   const result = await transaction.commit();
@@ -657,7 +663,11 @@ async function editMultipleDocuments(
   draftIds.forEach(id => {
     const patchObj = client.patch(id);
     applyPatchOperations(patch, patchObj);
-    transaction.patch(patchObj);
+    
+    // Convert the patch to a plain object for use with transaction
+    const patchSpec = patchObjToSpec(patchObj);
+    
+    transaction.patch(id, patchSpec);
   });
   
   // Commit the transaction
@@ -671,6 +681,27 @@ async function editMultipleDocuments(
     },
     processedIds: draftIds
   };
+}
+
+/**
+ * Converts a patch object to a plain spec object for use with transaction
+ */
+function patchObjToSpec(patchObj: any): Record<string, any> {
+  // Extract the internal spec from the patch object
+  // This is a workaround since we can't directly access the internal spec
+  const patchSpec: Record<string, any> = {};
+  
+  // Check if patch has these properties and add them to the spec
+  if (patchObj._set) patchSpec.set = patchObj._set;
+  if (patchObj._setIfMissing) patchSpec.setIfMissing = patchObj._setIfMissing;
+  if (patchObj._unset) patchSpec.unset = patchObj._unset;
+  if (patchObj._inc) patchSpec.inc = patchObj._inc;
+  if (patchObj._dec) patchSpec.dec = patchObj._dec;
+  if (patchObj._insert) patchSpec.insert = patchObj._insert;
+  if (patchObj._diffMatchPatch) patchSpec.diffMatchPatch = patchObj._diffMatchPatch;
+  if (patchObj._ifRevisionId) patchSpec.ifRevisionId = patchObj._ifRevisionId;
+  
+  return patchSpec;
 }
 
 /**
@@ -926,4 +957,70 @@ export async function unpublishDocumentWithRelease(
     console.error(`Error marking document for unpublishing:`, error);
     throw new Error(`Failed to mark document for unpublishing: ${error.message}`);
   }
+}
+
+/**
+ * Process document IDs
+ */
+export function processDocumentIds(documentId: string | string[]): string[] {
+  const documentIds = normalizeDocumentIds(documentId);
+  
+  if (documentIds.length === 0) {
+    throw new Error('No valid document IDs provided');
+  }
+  
+  return documentIds;
+}
+
+/**
+ * Takes a document and ensures it has a valid document ID, or creates one
+ */
+function ensureDocumentId(document: Record<string, any>): SanityDocument {
+  // Make sure there's an ID
+  if (!document._id) {
+    // Generate a random ID if not provided
+    document._id = generatePrefixedId(document._type);
+  }
+  
+  // Make sure there's a type - this is required for Sanity documents
+  if (!document._type) {
+    throw new Error('Document is missing required _type field');
+  }
+  
+  // Cast to SanityDocument now that we've ensured _id and _type exist
+  return document as SanityDocument;
+}
+
+/**
+ * Gets document content and handles versioning
+ */
+async function getDocumentContent(
+  client: SanityClient, 
+  documentId: string, 
+  content?: Record<string, any>
+): Promise<Record<string, any>> {
+  // If content is provided, use it
+  if (content) {
+    return content;
+  }
+  
+  // Otherwise fetch from Sanity
+  const doc = await client.getDocument(documentId);
+  if (!doc) {
+    throw new Error(`Document not found: ${documentId}`);
+  }
+  
+  // Return the document content
+  return ensureDocumentId(doc);
+}
+
+/**
+ * Generates a prefixed ID based on the document type
+ * 
+ * @param type - Document type to prefix the ID with
+ * @returns Prefixed random ID
+ */
+function generatePrefixedId(type: string): string {
+  const randomId = Math.random().toString(36).substring(2, 10);
+  return `${type}.${randomId}`;
 }
