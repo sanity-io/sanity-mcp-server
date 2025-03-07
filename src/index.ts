@@ -48,8 +48,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       request.params.arguments
     );
 
+    // Format the result according to MCP specification
     return {
-      result
+      result: {
+        content: [
+          {
+            type: "text",
+            text: typeof result === 'string' 
+              ? result 
+              : JSON.stringify(result, null, 2)
+          }
+        ]
+      }
     };
   } catch (error: unknown) {
     console.error("Error executing tool:", error);
