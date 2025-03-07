@@ -263,6 +263,34 @@ For example, for a project with ID `zwl9ofqf` and dataset `production`, create:
 schemas/zwl9ofqf_production.json
 ```
 
+## MCP Tool Invocation in Different Environments
+
+### Cursor
+In Cursor, MCP tools are invoked using the pattern:
+```javascript
+mcp__toolName({ param1: "value1", param2: "value2" })
+```
+
+For example, to use the echo tool:
+```javascript
+mcp__echo({ message: "Hello World" })
+```
+
+### Claude Desktop
+Note that this differs from Claude Desktop, where tools are invoked using:
+```javascript
+mcp__serverName__toolName({ param1: "value1", param2: "value2" })
+```
+
+For example:
+```javascript
+mcp__minimal__echo({ message: "Hello World" })
+```
+
+This difference in naming conventions can cause confusion when moving between environments. Cursor treats all MCP tools in a flat namespace without requiring the server name prefix.
+
+Since Anthropic (creator of Claude) is the maintainer of the MCP standard, the Claude Desktop pattern with server name included is the recommended approach for cross-platform compatibility.
+
 ## License
 
 MIT
