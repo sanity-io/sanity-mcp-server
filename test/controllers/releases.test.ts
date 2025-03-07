@@ -206,7 +206,7 @@ describe('Releases Controller', () => {
         mockDocumentId
       );
 
-      expect(mockClient.getDocument).toHaveBeenCalledWith(mockDocumentId);
+      expect(mockClient.getDocument).toHaveBeenCalledWith(`drafts.${mockDocumentId}`);
       expect(sanityApi.performActions).toHaveBeenCalledWith(
         mockProjectId,
         mockDataset,
@@ -424,14 +424,14 @@ describe('Releases Controller', () => {
         [
           {
             actionType: 'sanity.action.document.delete',
-            id: `versions.${mockReleaseId}.${mockDocumentId}`
+            documentId: `versions.${mockReleaseId}.${mockDocumentId}`
           }
         ]
       );
 
       expect(result).toEqual({
         success: true,
-        message: `Document ${mockDocumentId} removed from release ${mockReleaseId} successfully`,
+        message: `1 document(s) removed from release ${mockReleaseId} successfully`,
         releaseId: mockReleaseId,
         documentIds: [mockDocumentId],
         result: mockResult
@@ -462,15 +462,15 @@ describe('Releases Controller', () => {
         [
           {
             actionType: 'sanity.action.document.delete',
-            id: `versions.${mockReleaseId}.${mockDocumentIds[0]}`
+            documentId: `versions.${mockReleaseId}.${mockDocumentIds[0]}`
           },
           {
             actionType: 'sanity.action.document.delete',
-            id: `versions.${mockReleaseId}.${mockDocumentIds[1]}`
+            documentId: `versions.${mockReleaseId}.${mockDocumentIds[1]}`
           },
           {
             actionType: 'sanity.action.document.delete',
-            id: `versions.${mockReleaseId}.${mockDocumentIds[2]}`
+            documentId: `versions.${mockReleaseId}.${mockDocumentIds[2]}`
           }
         ]
       );
@@ -478,7 +478,7 @@ describe('Releases Controller', () => {
       // Verify the result structure
       expect(result).toEqual({
         success: true,
-        message: `3 documents removed from release ${mockReleaseId} successfully`,
+        message: `${mockDocumentIds.length} document(s) removed from release ${mockReleaseId} successfully`,
         releaseId: mockReleaseId,
         documentIds: mockDocumentIds,
         result: mockResult
@@ -497,7 +497,9 @@ describe('Releases Controller', () => {
           mockReleaseId,
           mockDocumentId
         )
-      ).rejects.toThrow('Failed to remove document(s) from release: Version deletion failed');
+      ).rejects.toThrow(`Failed to remove document(s) from release ${mockReleaseId}: Version deletion failed`);
+
+      expect(sanityApi.performActions).toHaveBeenCalled();
     });
   });
 

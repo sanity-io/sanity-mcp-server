@@ -1,4 +1,5 @@
 import { createSanityClient, sanityApi, isSufficientApiVersion } from '../utils/sanityClient.js';
+import { normalizeBaseDocId, normalizeDocumentIds, createErrorResponse, getDocumentContent } from '../utils/documentHelpers.js';
 import config from '../config/config.js';
 
 // Minimum API version required for Content Releases
@@ -96,6 +97,62 @@ export async function createRelease(
 }
 
 /**
+ * Creates a version document action for a document in a release
+ * 
+ * @param releaseId - ID of the release
+ * @param documentId - ID of the document to create a version for
+ * @param attributes - Document content/attributes
+ * @returns The created action object
+ */
+function createVersionAction(releaseId: string, documentId: string, attributes: Record<string, any>) {
+  const baseDocId = normalizeBaseDocId(documentId);
+  const versionId = `versions.${releaseId}.${baseDocId}`;
+  
+  return {
+    actionType: 'sanity.action.document.version.create',
+    publishedId: baseDocId,
+    attributes: {
+      ...attributes,
+      _id: versionId
+    }
+  };
+}
+
+/**
+ * Processes a single document for adding to a release
+ * 
+ * @param client - Sanity client
+ * @param releaseId - ID of the release
+ * @param documentId - ID of the document to process
+ * @param content - Optional custom content
+ * @returns Object containing the processed document's action, ID, and version ID
+ * @throws Error if document is not found
+ */
+async function processDocumentForRelease(
+  client: any,
+  releaseId: string,
+  documentId: string,
+  content?: Record<string, any>
+) {
+  const baseDocId = normalizeBaseDocId(documentId);
+  
+  // Use provided content or fetch from Sanity
+  const attributes = content || await getDocumentContent(client, documentId);
+  
+  // Create version ID
+  const versionId = `versions.${releaseId}.${baseDocId}`;
+  
+  // Create the version action
+  const action = createVersionAction(releaseId, documentId, attributes);
+  
+  return {
+    action,
+    documentId: baseDocId,
+    versionId
+  };
+}
+
+/**
  * Adds a document or multiple documents to a content release
  * 
  * @param projectId - Sanity project ID
@@ -123,43 +180,8 @@ export async function addDocumentToRelease(
     // Check API version first
     validateApiVersion();
     
-    // WORKAROUND: Handle the case where documentIds might be a JSON string representation of an array
-    // Due to an issue in the MCP SDK's transport layer, arrays of strings sometimes arrive as serialized JSON strings
-    // rather than being properly deserialized into actual arrays.
-    let parsedDocIds: string[];
-    
-    if (Array.isArray(documentIds)) {
-      // Already an array - use as is
-      parsedDocIds = documentIds;
-    } else if (typeof documentIds === 'string') {
-      // Check if this is a JSON string array
-      if (documentIds.startsWith('[') && documentIds.endsWith(']')) {
-        try {
-          // Attempt to parse as JSON
-          const parsed = JSON.parse(documentIds);
-          if (Array.isArray(parsed)) {
-            // Successfully parsed as array
-            parsedDocIds = parsed;
-          } else {
-            // Parsed as something else (object, number, etc.) - treat as single ID
-            parsedDocIds = [documentIds];
-          }
-        } catch (e) {
-          // If parsing fails, treat as a single string
-          parsedDocIds = [documentIds];
-        }
-      } else {
-        // Regular string - treat as single ID
-        parsedDocIds = [documentIds];
-      }
-    } else {
-      // Unexpected type - convert to string and use as single ID
-      parsedDocIds = [String(documentIds)];
-    }
-    
-    if (parsedDocIds.length === 0) {
-      throw new Error("No document IDs provided");
-    }
+    // Normalize document IDs
+    const parsedDocIds = normalizeDocumentIds(documentIds);
     
     // Process each document
     const actions = [];
@@ -172,43 +194,17 @@ export async function addDocumentToRelease(
     // Process each document ID individually
     for (const documentId of parsedDocIds) {
       try {
-        const baseDocId = documentId.replace(/^drafts\./, '');
+        // Process the document and get its action
+        const { action, documentId: baseDocId, versionId } = await processDocumentForRelease(
+          client,
+          releaseId,
+          documentId,
+          content
+        );
         
-        // Determine if we need to fetch the current document content
-        let attributes = content;
-        
-        if (!attributes) {
-          try {
-            // First try to get the published version
-            attributes = await client.getDocument(baseDocId);
-          } catch (err) {
-            try {
-              // If published version doesn't exist, try draft
-              attributes = await client.getDocument(`drafts.${baseDocId}`);
-            } catch (draftErr) {
-              // Both requests failed - this document doesn't exist
-              throw new Error(`Document ${baseDocId} not found (neither published nor draft version exists)`);
-            }
-          }
-          
-          if (!attributes) {
-            throw new Error(`Document ${baseDocId} not found`);
-          }
-        }
-        
-        // Create the version action for this document
-        const versionId = `versions.${releaseId}.${baseDocId}`;
+        actions.push(action);
         versionIds.push(versionId);
         processedDocIds.push(baseDocId);
-        
-        actions.push({
-          actionType: 'sanity.action.document.version.create',
-          publishedId: baseDocId,
-          attributes: {
-            ...attributes,
-            _id: `versions.${releaseId}.${baseDocId}` // Fix: Correctly format the _id
-          }
-        });
       } catch (documentError: any) {
         // Log and collect errors for individual documents
         console.error(`Error processing document ${documentId}:`, documentError);
@@ -240,8 +236,7 @@ export async function addDocumentToRelease(
       result
     };
   } catch (error: any) {
-    console.error(`Error adding document(s) to release ${releaseId}:`, error);
-    throw new Error(`Failed to add document(s) to release: ${error.message}`);
+    throw createErrorResponse(`Failed to add document(s) to release ${releaseId}`, error);
   }
 }
 
@@ -270,80 +265,45 @@ export async function removeDocumentFromRelease(
     // Check API version first
     validateApiVersion();
     
-    // WORKAROUND: Handle the case where documentIds might be a JSON string representation of an array
-    // Due to an issue in the MCP SDK's transport layer, arrays of strings sometimes arrive as serialized JSON strings
-    // rather than being properly deserialized into actual arrays.
-    let parsedDocIds: string[];
-    
-    if (Array.isArray(documentIds)) {
-      // Already an array - use as is
-      parsedDocIds = documentIds;
-    } else if (typeof documentIds === 'string') {
-      // Check if this is a JSON string array
-      if (documentIds.startsWith('[') && documentIds.endsWith(']')) {
-        try {
-          // Attempt to parse as JSON
-          const parsed = JSON.parse(documentIds);
-          if (Array.isArray(parsed)) {
-            // Successfully parsed as array
-            parsedDocIds = parsed;
-          } else {
-            // Parsed as something else (object, number, etc.) - treat as single ID
-            parsedDocIds = [documentIds];
-          }
-        } catch (e) {
-          // If parsing fails, treat as a single string
-          parsedDocIds = [documentIds];
-        }
-      } else {
-        // Regular string - treat as single ID
-        parsedDocIds = [documentIds];
-      }
-    } else {
-      // Unexpected type - convert to string and use as single ID
-      parsedDocIds = [String(documentIds)];
-    }
-    
-    if (parsedDocIds.length === 0) {
-      throw new Error("No document IDs provided");
-    }
+    // Normalize document IDs
+    const parsedDocIds = normalizeDocumentIds(documentIds);
     
     const processedDocIds = [];
     const errors: string[] = [];
-    
-    // Create delete actions for all documents at once
     const actions = [];
     
     // Process each document ID individually
     for (const documentId of parsedDocIds) {
       try {
-        const baseDocId = documentId.replace(/^drafts\./, '');
+        const baseDocId = normalizeBaseDocId(documentId);
         
         // Use the version ID format directly: versions.{releaseId}.{documentId}
         const versionId = `versions.${releaseId}.${baseDocId}`;
         
-        // Create the delete action for this document version
+        // Add a document deletion action
         actions.push({
           actionType: 'sanity.action.document.delete',
-          id: versionId
+          documentId: versionId
         });
         
         processedDocIds.push(baseDocId);
       } catch (documentError: any) {
         // Log and collect errors for individual documents
-        console.error(`Error processing document removal ${documentId}:`, documentError);
+        console.error(`Error processing document ${documentId}:`, documentError);
         errors.push(`Document ID ${documentId}: ${documentError.message}`);
       }
     }
     
-    // Call the Actions API once with all delete actions
+    // If no documents were processed successfully, throw an error with all collected error messages
+    if (processedDocIds.length === 0) {
+      throw new Error(`Failed to remove any documents from release: ${errors.join('; ')}`);
+    }
+    
+    // Call the Actions API with all document actions
     const result = await sanityApi.performActions(projectId, dataset, actions);
     
     // If we have both successful and failed documents, include that in the message
-    let message = processedDocIds.length === 1 
-      ? `Document ${processedDocIds[0]} removed from release ${releaseId} successfully`
-      : `${processedDocIds.length} documents removed from release ${releaseId} successfully`;
-      
+    let message = `${processedDocIds.length} document(s) removed from release ${releaseId} successfully`;
     if (errors.length > 0) {
       message += `. Warning: ${errors.length} document(s) could not be removed`;
       console.warn(`Some documents could not be removed from release ${releaseId}:`, errors);
@@ -357,8 +317,7 @@ export async function removeDocumentFromRelease(
       result
     };
   } catch (error: any) {
-    console.error(`Error removing document(s) from release ${releaseId}:`, error);
-    throw new Error(`Failed to remove document(s) from release: ${error.message}`);
+    throw createErrorResponse(`Failed to remove document(s) from release ${releaseId}`, error);
   }
 }
 

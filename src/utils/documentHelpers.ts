@@ -102,3 +102,50 @@ export function createErrorResponse(message: string, error: any): Error {
   console.error(`${message}:`, error);
   return new Error(`${message}: ${error.message}`);
 }
+
+/**
+ * Normalizes document IDs from various input formats
+ * Handles single IDs, arrays, and JSON string representations
+ * 
+ * @param documentIds - Document IDs in various possible formats
+ * @returns Normalized array of document IDs
+ * @throws Error if no valid document IDs are provided
+ */
+export function normalizeDocumentIds(documentIds: string | string[]): string[] {
+  let parsedDocIds: string[];
+  
+  if (Array.isArray(documentIds)) {
+    // Already an array - use as is
+    parsedDocIds = documentIds;
+  } else if (typeof documentIds === 'string') {
+    // Check if this is a JSON string array
+    if (documentIds.startsWith('[') && documentIds.endsWith(']')) {
+      try {
+        // Attempt to parse as JSON
+        const parsed = JSON.parse(documentIds);
+        if (Array.isArray(parsed)) {
+          // Successfully parsed as array
+          parsedDocIds = parsed;
+        } else {
+          // Parsed as something else (object, number, etc.) - treat as single ID
+          parsedDocIds = [documentIds];
+        }
+      } catch (e) {
+        // If parsing fails, treat as a single string
+        parsedDocIds = [documentIds];
+      }
+    } else {
+      // Regular string - treat as single ID
+      parsedDocIds = [documentIds];
+    }
+  } else {
+    // Unexpected type - convert to string and use as single ID
+    parsedDocIds = [String(documentIds)];
+  }
+  
+  if (parsedDocIds.length === 0) {
+    throw new Error("No document IDs provided");
+  }
+  
+  return parsedDocIds;
+}
