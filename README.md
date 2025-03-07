@@ -255,6 +255,24 @@ The metrics tracked include:
 
 The generated chart provides a visual representation of these metrics over time, making it easy to track progress and identify areas that need improvement.
 
+#### GitHub Pages Quality Report
+
+The project now includes a GitHub Pages site that automatically generates and publishes quality reports. You can access the latest quality report at:
+
+[https://sanity-io.github.io/sanity-mcp-server/](https://sanity-io.github.io/sanity-mcp-server/)
+
+This report is automatically updated whenever:
+- Changes are pushed to the main branch
+- A new release tag is created
+
+The GitHub Pages report includes:
+- Code quality metrics (warnings, errors, duplications, complex functions)
+- Test coverage statistics
+- Prioritized improvement opportunities
+- Historical trends showing how code quality metrics change over time
+
+This provides an easy way to monitor the health of the codebase and identify areas for improvement.
+
 ### Type Checking
 
 Run the TypeScript type checker:

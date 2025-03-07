@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- TBD
+
+## [0.2.0] - 2025-03-07
+### Added
+- GitHub Pages workflow for quality reports
+  - Automated generation and publishing of quality metrics to GitHub Pages
+  - Interactive dashboard showing code quality trends over time
+  - Visualization of test coverage, complexity, and other metrics
+  - Automatic deployment triggered by pushes to main branch and new tags
 - Optimized test execution with parallel configuration using Vitest workspaces
   - Configured dedicated workspaces for unit and integration tests
   - Set up thread pool for optimal multi-core utilization
@@ -31,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced type safety by using validation utilities instead of inline checks
 - Updated mutate controller to use parameter validation and default values
 - Refactored tests to properly mock validation and default value utilities
+- Adopted Sanity's ESLint and TypeScript configurations for better code quality
 
 ## [0.1.5] - 2025-03-14
 ### Changed
