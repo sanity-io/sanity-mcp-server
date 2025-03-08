@@ -4,12 +4,11 @@
  * This file defines all the MCP tool definitions related to schema operations
  */
 import { z } from 'zod';
-import { ToolDefinition } from '../types/tools.js';
-import { ToolProvider } from '../types/toolProvider.js';
+import type { ToolDefinition } from '../types/tools.js';
+import type { ToolProvider } from '../types/toolProvider.js';
 import * as schemaController from '../controllers/schema.js';
-import config from '../config/config.js';
 import logger from '../utils/logger.js';
-import { 
+import type { 
   GetSchemaParams, 
   ListSchemaTypesParams, 
   GetTypeSchemaParams,
