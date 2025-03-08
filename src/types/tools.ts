@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ToolHandler, EmbeddingsIndex, SimpleSchemaType, SimpleRelease } from './sharedTypes.js';
+import type { ToolHandler, EmbeddingsIndex, SimpleSchemaType, SimpleRelease } from './sharedTypes.js';
 
 /**
  * Generic interface for tool definitions

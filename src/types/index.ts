@@ -4,7 +4,7 @@
 export * from './sanity.js';
 
 // Import SanityDocument from sanity.ts
-import { SanityDocument } from './sanity.js';
+import type { SanityDocument } from './sanity.js';
 
 // Sanity client configuration
 export interface SanityClientConfig {
