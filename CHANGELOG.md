@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - TBD
 
+## [0.2.6] - 2025-03-08
 ### Fixed
 - Improved developer workflow and test reliability:
   - Updated TypeScript configuration to improve developer experience
