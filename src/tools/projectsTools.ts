@@ -4,10 +4,10 @@
  * This file defines all the MCP tool definitions related to projects and organizations
  */
 import { z } from 'zod';
-import { ToolDefinition } from '../types/tools.js';
-import { ToolProvider } from '../types/toolProvider.js';
+import type { ToolDefinition } from '../types/tools.js';
+import type { ToolProvider } from '../types/toolProvider.js';
 import * as projectsController from '../controllers/projects.js';
-import { Organization, ListStudiosParams, StudiosResult } from '../types/sharedTypes.js';
+import type { ListStudiosParams } from '../types/sharedTypes.js';
 
 /**
  * Projects tools provider class
