@@ -17,6 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fixed workflow syntax issues for proper command execution in GitHub Actions
   - Enhanced error handling and visualization in the quality report
 
+### Fixed
+- TypeScript errors in multiple files:
+  - Fixed `src/controllers/embeddings.ts` - removed unused imports and variables, fixed index signature access
+  - Fixed `src/config/config.ts` - resolved module import issues and replaced `import.meta.url` with `path.resolve()`
+  - Fixed `src/types/tools.ts` and `src/types/index.ts` - resolved type-only import issues
+  - Added TypeScript checking to test scripts (`test:unit`, `test:all`, and `test:pre-commit`)
+
 ## [0.2.0] - 2025-03-07
 ### Added
 - GitHub Pages workflow for quality reports
