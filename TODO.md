@@ -58,6 +58,74 @@
    - Convert type imports to use the `type` keyword
    - Prioritize fixing errors in critical controllers like actions.ts, groq.ts, and mutate.ts
 
+   ### TypeScript Error Fix Plan
+
+   #### Overview
+   This plan outlines the approach for fixing TypeScript errors in the Sanity MCP Server codebase. The errors are primarily related to two issues:
+
+   1. **Type-only imports**: With `verbatimModuleSyntax` enabled, types must be imported using the `type` keyword.
+   2. **Index signature access**: Properties from index signatures must be accessed with bracket notation (`['prop']`) instead of dot notation (`.prop`).
+
+   #### Files to Fix
+
+   ##### High Priority Controllers
+   1. ✅ `src/controllers/actions.ts` - FIXED
+   2. ✅ `src/controllers/groq.ts` - FIXED
+   3. ✅ `src/controllers/mutate.ts` - FIXED
+   4. `src/controllers/embeddings.ts` - 14 errors
+   5. `src/controllers/releases.ts` - 12 errors
+
+   ##### Tools
+   1. `src/tools/mutateTools.ts` - 12 errors
+   2. `src/tools/contextTools.ts` - 9 errors
+   3. `src/tools/embeddingsTools.ts` - 9 errors
+   4. `src/tools/releasesTools.ts` - 11 errors
+   5. `src/tools/projectsTools.ts` - 7 errors
+   6. `src/tools/schemaTools.ts` - 7 errors
+   7. `src/tools/groqTools.ts` - 6 errors
+   8. `src/tools/actionsTools.ts` - 5 errors
+   9. `src/tools/index.ts` - 2 errors
+
+   ##### Types
+   1. `src/types/sharedTypes.ts` - 12 errors
+   2. `src/types/sanity.ts` - 4 errors
+   3. `src/types/tools.ts` - 4 errors
+   4. `src/types/index.ts` - 1 error
+   5. `src/types/toolProvider.ts` - 1 error
+
+   ##### Utils
+   1. `src/utils/documentHelpers.ts` - 8 errors
+   2. `src/utils/parameterValidation.ts` - 4 errors
+   3. `src/utils/sanityClient.ts` - 2 errors
+
+   ##### Other
+   1. `src/controllers/schema.ts` - 4 errors
+   2. `src/index.ts` - 1 error
+
+   #### Common Patterns to Fix
+
+   ##### Type-only Imports
+   ```typescript
+   // Before
+   import { SomeType } from './types.js';
+
+   // After
+   import type { SomeType } from './types.js';
+   ```
+
+   ##### Index Signature Access
+   ```typescript
+   // Before
+   if (obj.property) {
+     return obj.property;
+   }
+
+   // After
+   if (obj['property']) {
+     return obj['property'];
+   }
+   ```
+
 4. **Improve test coverage**
    - Add more tests for edge cases
    - Fix integration tests for the MCP server
