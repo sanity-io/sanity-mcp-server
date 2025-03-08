@@ -81,7 +81,7 @@
    3. ✅ `src/tools/embeddingsTools.ts` - FIXED
    4. ✅ `src/tools/releasesTools.ts` - FIXED
    5. ✅ `src/tools/projectsTools.ts` - FIXED
-   6. `src/tools/schemaTools.ts` - 7 errors
+   6. ✅ `src/tools/schemaTools.ts` - FIXED
    7. `src/tools/groqTools.ts` - 6 errors
    8. `src/tools/actionsTools.ts` - 5 errors
    9. `src/tools/index.ts` - 2 errors
@@ -125,30 +125,3 @@
      return obj['property'];
    }
    ```
-
-4. **Improve test coverage**
-   - Add more tests for edge cases
-   - Fix integration tests for the MCP server
-   - Increase coverage for low-coverage files, especially:
-     - src/controllers/projects.ts (1.47% covered)
-     - src/utils/portableText.ts (3.22% covered)  
-     - src/index.ts (0% covered)
-     - src/controllers/actions.ts (21.99% covered)
-     - src/controllers/contextTools.ts (23.61% covered)
-
-5. **Address code complexity and duplication**
-   - Refactor the applyPatchOperations function in documentHelpers.ts to reduce complexity (currently 25, limit is 15)
-   - Extract duplicate code patterns across files into shared utility functions
-   - ✅ Create shared parameter validation functions for common parameter patterns
-
-6. **Optimize test execution and performance** ✅
-   - Configured Vitest for parallel test execution using workspaces
-   - Set up thread pooling for optimal multi-core utilization
-   - Separated unit and integration tests for better resource management
-   - Reduced overall test execution time
-
-## Nice to Have
-
-1. **Documentation improvements**
-   - Add more examples for each tool
-   - Better describe parameters and return values
