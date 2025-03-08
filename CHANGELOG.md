@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - TBD
+
+## [0.2.3] - 2023-11-06
+### Added
 - GitHub Pages quality report workflow and visualization
   - Created automated GitHub Actions workflow for generating and publishing quality reports
   - Implemented HTML-based quality report with interactive charts and metrics
@@ -26,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fixed `src/controllers/releases.ts` - fixed unused parameter warning
   - Added TypeScript checking to test scripts (`test:unit`, `test:all`, and `test:pre-commit`)
   - Completed all high-priority controller fixes and identified remaining TypeScript errors in the codebase
+- Fixed GitHub Actions workflow for quality report generation with improved HTML generation process
 
 ## [0.2.0] - 2025-03-07
 ### Added
