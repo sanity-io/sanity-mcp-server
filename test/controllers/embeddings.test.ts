@@ -68,7 +68,7 @@ describe('Embeddings Controller', () => {
       expect(indices).toBeDefined();
       expect(Array.isArray(indices)).toBe(true);
       expect(indices).toHaveLength(1);
-      expect(indices[0].name).toBe('test-index');
+      expect(indices[0].indexName).toBe('test-index');
       expect(global.fetch).toHaveBeenCalledWith(
         'https://test-project.api.sanity.io/vX/embeddings-index/test-dataset',
         expect.objectContaining({

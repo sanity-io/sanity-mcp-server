@@ -13,16 +13,31 @@ describe('Search Tools Integration', () => {
     const searchTool = embeddingsTools.find(tool => tool.name === 'semanticSearch');
     
     expect(searchTool).toBeDefined();
+    if (!searchTool) {
+      // Early return if tool not found to satisfy TypeScript
+      return;
+    }
+    
     expect(searchTool.description).toContain('semantic search');
     
     // Check parameter schema
     const paramsSchema = searchTool.parameters.shape;
-    expect(paramsSchema.query).toBeDefined();
-    expect(paramsSchema.indexName).toBeDefined(); // Verify new required parameter
-    expect(paramsSchema.maxResults).toBeDefined();
-    expect(paramsSchema.types).toBeDefined();
-    expect(paramsSchema.projectId).toBeDefined();
-    expect(paramsSchema.dataset).toBeDefined();
+    // Using type assertion for the second pattern of the union type
+    const schema = paramsSchema as { 
+      query: any;
+      indexName: any;
+      maxResults: any;
+      types: any;
+      projectId: any;
+      dataset: any;
+    };
+    
+    expect(schema.query).toBeDefined();
+    expect(schema.indexName).toBeDefined(); // Verify new required parameter
+    expect(schema.maxResults).toBeDefined();
+    expect(schema.types).toBeDefined();
+    expect(schema.projectId).toBeDefined();
+    expect(schema.dataset).toBeDefined();
   });
   
   it('should have listEmbeddingsIndices tool registered with correct parameters', () => {
@@ -31,6 +46,11 @@ describe('Search Tools Integration', () => {
     const indicesListTool = embeddingsTools.find(tool => tool.name === 'listEmbeddingsIndices');
     
     expect(indicesListTool).toBeDefined();
+    if (!indicesListTool) {
+      // Early return if tool not found to satisfy TypeScript
+      return;
+    }
+    
     expect(indicesListTool.description).toContain('embeddings indices');
     
     // Check parameter schema

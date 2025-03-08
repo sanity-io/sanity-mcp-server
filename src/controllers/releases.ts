@@ -228,9 +228,20 @@ export async function addDocumentToRelease(
     });
     
     // Process each document and collect actions
-    const actions = [];
-    const processedIds = [];
-    const versionIds = [];
+    const actions: Array<{
+      actionType: string;
+      publishedId?: string;
+      attributes?: {
+        _id: string;
+        _type: string;
+        _rev?: string;
+        _createdAt?: string;
+        _updatedAt?: string;
+      };
+      documentId?: string;
+    }> = [];
+    const processedIds: string[] = [];
+    const versionIds: string[] = [];
     const errors: string[] = [];
     
     for (const docId of normalizedIds) {
@@ -305,8 +316,11 @@ export async function removeDocumentFromRelease(
     }
     
     // Process each document ID for removal
-    const actions = [];
-    const processedIds = [];
+    const actions: Array<{
+      actionType: string;
+      documentId: string;
+    }> = [];
+    const processedIds: string[] = [];
     
     for (const docId of normalizedIds) {
       try {
