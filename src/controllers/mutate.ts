@@ -320,11 +320,11 @@ async function retrieveDocumentsForMutations(
     try {
       // Type guard for different mutation types
       if ('create' in mutation && mutation['create']?._id) {
-        return await client.getDocument(mutation['create']._id);
+        return await client.getDocument(mutation['create']['_id']);
       } else if ('createOrReplace' in mutation && mutation['createOrReplace']?._id) {
-        return await client.getDocument(mutation['createOrReplace']._id);
+        return await client.getDocument(mutation['createOrReplace']['_id']);
       } else if ('createIfNotExists' in mutation && mutation['createIfNotExists']?._id) {
-        return await client.getDocument(mutation['createIfNotExists']._id);
+        return await client.getDocument(mutation['createIfNotExists']['_id']);
       } else if ('patch' in mutation) {
         // Need to handle both patch by ID and patch by query
         if ('id' in mutation['patch'] && mutation['patch']['id']) {
@@ -437,54 +437,6 @@ async function modifyDocuments(
     const errorMessage = error instanceof Error ? error.message : String(error);
     throw new Error(`Failed to modify documents: ${errorMessage}`);
   }
-}
-
-/**
- * Helper function to construct patch operations
- * 
- * @param patch - Raw patch object with operations
- * @returns Formatted patch operations
- */
-function constructPatchOperations(patch: Record<string, any>): PatchOperations {
-  // Extract operations from the patch object
-  const operations: PatchOperations = {};
-  
-  // Handle 'set' operations
-  if (patch['set']) {
-    operations.set = patch['set'];
-  }
-  
-  // Handle 'setIfMissing' operations
-  if (patch['setIfMissing']) {
-    operations.setIfMissing = patch['setIfMissing'];
-  }
-  
-  // Handle 'unset' operations
-  if (patch['unset']) {
-    operations.unset = Array.isArray(patch['unset']) ? patch['unset'] : [patch['unset']];
-  }
-  
-  // Handle 'inc' operations
-  if (patch['inc']) {
-    operations.inc = patch['inc'];
-  }
-  
-  // Handle 'dec' operations
-  if (patch['dec']) {
-    operations.dec = patch['dec'];
-  }
-  
-  // Handle 'insert' operations (for arrays)
-  if (patch['insert']) {
-    operations.insert = patch['insert'];
-  }
-  
-  // Handle 'diffMatchPatch' operations
-  if (patch['diffMatchPatch']) {
-    operations.diffMatchPatch = patch['diffMatchPatch'];
-  }
-  
-  return operations;
 }
 
 // Export the refactored function
