@@ -1,6 +1,7 @@
 import fs from 'fs';
 import { execSync } from 'child_process';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { collectTestResults } from './collect-test-results.js';
 
 // File paths
@@ -298,25 +299,13 @@ function getTestCoverageMetrics() {
   }
 }
 
-// If script is run directly, generate a checkpoint
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  // Check if this is a tagged checkpoint
+// Run if called directly from command line
+if (import.meta.url === `file://${process.argv[1]}`) {
   const isTagged = process.argv.includes('--tagged');
   const tagIndex = process.argv.indexOf('--tag');
-  const tagName = tagIndex >= 0 && process.argv.length > tagIndex + 1 
-    ? process.argv[tagIndex + 1] 
-    : '';
+  const tagName = tagIndex > -1 && tagIndex < process.argv.length - 1 ? process.argv[tagIndex + 1] : '';
   
   generateQualityCheckpoint(isTagged, tagName);
-}
-
-// Add fileURLToPath function for ES modules
-function fileURLToPath(url) {
-  if (typeof URL !== 'undefined') {
-    const urlObj = new URL(url);
-    return urlObj.pathname;
-  }
-  return url.replace(/^file:\/\//, '');
 }
 
 export { generateQualityCheckpoint }; 

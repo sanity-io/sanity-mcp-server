@@ -36,13 +36,32 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Generate quality report
-        run: npm run quality:report
+      - name: Generate quality report with test results
+        run: |
+          # First run the regular quality report
+          npm run quality:report
+          
+          # Then generate the test dashboard
+          # This will skip test runs if they fail but will still generate the dashboard
+          npm run quality:test-dashboard || true
+          
+          # Copy test results to output if they exist
+          if [ -f "scripts/quality/output/test-results.json" ]; then
+            echo "Test results found, including in report"
+          else
+            echo "::warning::Test results not found, dashboard may not include test data"
+          fi
 
       - name: Create report directory
         run: |
           mkdir -p quality-report
-          cp -r scripts/quality/output/* quality-report/
+          
+          # Copy all output files
+          cp -r scripts/quality/output/* quality-report/ || true
+          
+          # Copy the quality checkpoint file
+          cp scripts/quality/quality-tag-checkpoint.ndjson quality-report/ || true
+          
           # Get current date in proper format
           CURRENT_DATE=$(date '+%Y-%m-%d %H:%M:%S')
           

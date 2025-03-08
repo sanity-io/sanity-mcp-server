@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
+import { fileURLToPath } from 'url';
 
 // File paths
 const CHECKPOINT_FILE = './scripts/quality/quality-tag-checkpoint.ndjson';
@@ -798,18 +799,9 @@ function getTrendClass(values, lowerIsBetter = false) {
   return isImproving ? 'trend-positive' : 'trend-negative';
 }
 
-// If script is run directly, generate a chart
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+// Run if called directly
+if (import.meta.url === `file://${process.argv[1]}`) {
   generateQualityChart();
-}
-
-// Add fileURLToPath function for ES modules
-function fileURLToPath(url) {
-  if (typeof URL !== 'undefined') {
-    const urlObj = new URL(url);
-    return urlObj.pathname;
-  }
-  return url.replace(/^file:\/\//, '');
 }
 
 export { generateQualityChart }; 

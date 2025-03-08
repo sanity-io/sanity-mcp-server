@@ -3,6 +3,7 @@
 import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 const TEST_RESULTS_FILE = './scripts/quality/output/test-results.json';
 const TEST_RESULTS_DIR = path.dirname(TEST_RESULTS_FILE);
@@ -111,16 +112,8 @@ function collectTestResults() {
 }
 
 // Run if called directly
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   collectTestResults();
-}
-
-// Helper function to convert URL to path (for ES modules)
-function fileURLToPath(url) {
-  if (url.startsWith('file://')) {
-    return new URL(url).pathname;
-  }
-  return url;
 }
 
 export { collectTestResults }; 
