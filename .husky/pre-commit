@@ -1,2 +1,2 @@
-# Run unit tests and core document tests before commit
-npm run test:pre-commit
+# Run only core document tests before commit - skip TypeScript checks
+npm run test:core

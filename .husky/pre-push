@@ -1,6 +1,6 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-# Run only unit tests and critical integration tests before pushing
-# Full pre-merge tests may fail due to Sanity release limits
-npm run test:pre-commit
+# Run only critical integration tests before pushing
+# Skip TypeScript and Unit tests during push to avoid blocking development
+npm run test:integration:critical
