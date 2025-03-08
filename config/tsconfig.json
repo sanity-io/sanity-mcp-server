@@ -9,7 +9,10 @@
     "sourceMap": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
-    "rootDir": "../src"
+    "rootDir": "../src",
+    "noPropertyAccessFromIndexSignature": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
   },
   "include": ["../src/**/*"],
   "exclude": ["../node_modules", "../dist", "../test"]
