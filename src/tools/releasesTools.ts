@@ -4,16 +4,14 @@
  * This file defines all the MCP tool definitions related to content releases
  */
 import { z } from 'zod';
-import { ToolDefinition } from '../types/tools.js';
-import { ToolProvider } from '../types/toolProvider.js';
+import type { ToolDefinition } from '../types/tools.js';
+import type { ToolProvider } from '../types/toolProvider.js';
 import * as releasesController from '../controllers/releases.js';
-import { 
+import type { 
   CreateReleaseParams, 
   UpdateReleaseParams, 
   ReleaseIdParam, 
   AddDocumentToReleaseParams,
-  RemoveDocumentFromReleaseParams,
-  PublishReleaseParams,
   ListReleasesParams
 } from '../types/sharedTypes.js';
 import config from '../config/config.js';
