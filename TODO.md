@@ -87,7 +87,7 @@
    9. ✅ `src/tools/index.ts` - FIXED
 
    ##### Types
-   1. `src/types/sharedTypes.ts` - 12 errors
+   1. ✅ `src/types/sharedTypes.ts` - FIXED
    2. `src/types/sanity.ts` - 4 errors
    3. `src/types/tools.ts` - 4 errors
    4. `src/types/index.ts` - 1 error
