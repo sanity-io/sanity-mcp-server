@@ -31,7 +31,7 @@ function parseCommandLineArgs() {
 const cmdArgs = parseCommandLineArgs();
 
 // Ensure schemas directory exists
-const schemasDir = process.env['SCHEMAS_DIR'] || path.resolve(__dirname, '../../schemas');
+const schemasDir = process.env['SCHEMAS_DIR'] || path.join(__dirname, 'schemas');
 if (!fs.existsSync(schemasDir)) {
   fs.mkdirSync(schemasDir, { recursive: true });
 }
