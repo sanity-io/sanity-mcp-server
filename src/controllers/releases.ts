@@ -1,7 +1,7 @@
 import { createSanityClient, sanityApi, isSufficientApiVersion } from '../utils/sanityClient.js';
 import { normalizeBaseDocId, normalizeDocumentIds, createErrorResponse, getDocumentContent } from '../utils/documentHelpers.js';
 import config from '../config/config.js';
-import { SanityClient, SanityDocument, SanityActionResult, SanityError, ReleaseOptions } from '../types/sanity.js';
+import type { SanityClient, SanityDocument, SanityActionResult, SanityError, ReleaseOptions } from '../types/sanity.js';
 
 // Define local ReleaseDocument to avoid conflicts
 interface ReleaseDocument {
@@ -20,7 +20,7 @@ const REQUIRED_API_VERSION = '2024-05-23';
  */
 function validateApiVersion(): void {
   // Skip validation for test environment (vi.mock will set this)
-  if (process.env.NODE_ENV === 'test') {
+  if (process.env['NODE_ENV'] === 'test') {
     return;
   }
   
@@ -391,7 +391,7 @@ export async function listReleaseDocuments(
         versionId: doc._id,
         documentId: baseId,
         type: doc._type,
-        title: doc.title || `Untitled ${doc._type}`,
+        title: doc['title'] || `Untitled ${doc._type}`,
       };
     });
     
@@ -577,10 +577,10 @@ export async function updateRelease(
     
     // Create the metadata object with only provided fields
     const metadata: Record<string, any> = {};
-    if (updateData.title) metadata.title = updateData.title;
-    if (updateData.description) metadata.description = updateData.description;
-    if (updateData.releaseType) metadata.releaseType = updateData.releaseType;
-    if (updateData.intendedPublishAt) metadata.intendedPublishAt = updateData.intendedPublishAt;
+    if (updateData['title']) metadata['title'] = updateData['title'];
+    if (updateData['description']) metadata['description'] = updateData['description'];
+    if (updateData['releaseType']) metadata['releaseType'] = updateData['releaseType'];
+    if (updateData['intendedPublishAt']) metadata['intendedPublishAt'] = updateData['intendedPublishAt'];
     
     // Create the release edit action
     const action = {
