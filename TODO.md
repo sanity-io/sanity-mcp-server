@@ -94,3 +94,16 @@
 
    ##### Integration
    1. Add TypeScript checks to test scripts - FIXED
+
+   ##### Remaining Files to Fix
+   1. `src/controllers/actions.ts` - 17 errors
+   2. `src/controllers/groq.ts` - 25 errors (already marked as fixed, but still has errors)
+   3. `src/controllers/mutate.ts` - 3 errors (already marked as fixed, but still has errors)
+   4. `src/controllers/schema.ts` - 4 errors
+   5. `src/index.ts` - 1 error
+   6. `src/tools/contextTools.ts` - 1 error
+   7. `src/tools/embeddingsTools.ts` - 1 error
+   8. `src/types/toolProvider.ts` - 1 error
+   9. `src/utils/documentHelpers.ts` - 8 errors
+   10. `src/utils/parameterValidation.ts` - 4 errors
+   11. `src/utils/sanityClient.ts` - 2 errors
