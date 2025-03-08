@@ -225,24 +225,36 @@ describe('Release and Document Workflow Integration', () => {
     // Direct client update instead of patch to ensure success
     const client = createSanityClient(projectId, dataset);
     
-    // Fetch the current document
-    const currentDocument = await client.getDocument(documentId);
-    expect(currentDocument).toBeTruthy();
-    
-    // Update fields
-    const updatedDocument = {
-      updatedAt: new Date().toISOString(),
-      status: 'updated',
-      _id: documentId, // Ensure _id is explicitly set
-      _type: 'test-document' // Add required _type field
-    };
-    
-    // Replace the document
-    const result = await client.createOrReplace(updatedDocument);
-    
-    // Verify the document was updated
-    expect(result._id).toBe(documentId);
-    expect(result.status).toBe('updated');
+    try {
+      // Fetch the current document
+      const currentDocument = await client.getDocument(documentId);
+      expect(currentDocument).toBeTruthy();
+      console.log('Current document:', JSON.stringify(currentDocument));
+      
+      // Make sure we have the _type from the current document
+      if (!currentDocument || !currentDocument._type) {
+        throw new Error('Current document missing or has no _type field');
+      }
+      
+      // Update fields while preserving _type
+      const updatedDocument = {
+        ...currentDocument,
+        updatedAt: new Date().toISOString(),
+        status: 'updated',
+        _id: documentId, // Ensure _id is explicitly set
+        _type: currentDocument._type // Explicitly preserve the original type
+      };
+      
+      // Replace the document
+      const result = await client.createOrReplace(updatedDocument);
+      
+      // Verify the document was updated
+      expect(result._id).toBe(documentId);
+      expect(result.status).toBe('updated');
+    } catch (error) {
+      console.error('Error updating document:', error);
+      throw error;
+    }
   }, INTEGRATION_TIMEOUT);
 
   it('should create a document version with updated content', async () => {

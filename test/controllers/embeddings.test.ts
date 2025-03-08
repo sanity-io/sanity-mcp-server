@@ -31,7 +31,7 @@ describe('Embeddings Controller', () => {
       ok: true,
       json: vi.fn().mockResolvedValue([
         {
-          name: 'test-index',
+          indexName: 'test-index',
           status: 'ready',
           documentCount: 100,
           dimensions: 1536,
@@ -46,7 +46,7 @@ describe('Embeddings Controller', () => {
     it('should list embeddings indices for a dataset', async () => {
       const mockResponseJson = [
         {
-          name: 'test-index',
+          indexName: 'test-index',
           status: 'ready',
           documentCount: 100,
           dimensions: 1536,
