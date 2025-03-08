@@ -1,12 +1,14 @@
 import fs from 'fs';
 import { execSync } from 'child_process';
 import path from 'path';
+import { collectTestResults } from './collect-test-results.js';
 
 // File paths
 const CHECKPOINT_FILE = './scripts/quality/quality-tag-checkpoint.ndjson';
 const COMPLEXITY_REPORT = './scripts/quality/output/complexity-report.json';
 const JSCPD_REPORT = './scripts/quality/output/html/jscpd-report.json';
 const COMPLEXITY_RESULTS = './scripts/quality/output/complexity-results.txt';
+const TEST_RESULTS_FILE = './scripts/quality/output/test-results.json';
 
 /**
  * Generates a quality metrics checkpoint and appends it to the NDJSON file
@@ -15,6 +17,25 @@ const COMPLEXITY_RESULTS = './scripts/quality/output/complexity-results.txt';
  */
 function generateQualityCheckpoint(isTagged = false, tagName = '') {
   console.log('Generating quality metrics checkpoint...');
+  
+  // Run tests and collect results
+  let testResults = [];
+  try {
+    // Try to run tests and collect results
+    testResults = collectTestResults();
+  } catch (error) {
+    console.error(`Error collecting test results: ${error.message}`);
+    
+    // Try to load previously saved results if available
+    if (fs.existsSync(TEST_RESULTS_FILE)) {
+      try {
+        const savedResults = JSON.parse(fs.readFileSync(TEST_RESULTS_FILE, 'utf8'));
+        testResults = savedResults.results || [];
+      } catch (readError) {
+        console.error(`Error reading saved test results: ${readError.message}`);
+      }
+    }
+  }
   
   // Create checkpoint object
   const checkpoint = {
@@ -26,7 +47,8 @@ function generateQualityCheckpoint(isTagged = false, tagName = '') {
       eslint: countEslintIssues(),
       complexity: getComplexityMetrics(),
       duplication: getDuplicationMetrics(),
-      testCoverage: getTestCoverageMetrics()
+      testCoverage: getTestCoverageMetrics(),
+      testResults: testResults
     }
   };
   
@@ -49,8 +71,8 @@ function generateQualityCheckpoint(isTagged = false, tagName = '') {
     
     return checkpoint;
   } catch (error) {
-    console.error('Failed to save quality checkpoint:', error);
-    throw error;
+    console.error(`Error saving checkpoint: ${error.message}`);
+    return checkpoint;
   }
 }
 

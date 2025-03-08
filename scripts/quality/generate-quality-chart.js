@@ -98,10 +98,22 @@ function generateHtml(checkpoints) {
   const complexLow = checkpoints.map(c => c.metrics.complexity.complexFunctions.low);
   
   // Coverage counts by level
-  const coverageLow = checkpoints.map(c => c.metrics.testCoverage.filesByCoverage.low);
-  const coverageMedium = checkpoints.map(c => c.metrics.testCoverage.filesByCoverage.medium);
-  const coverageHigh = checkpoints.map(c => c.metrics.testCoverage.filesByCoverage.high);
+  const coverageHigh = checkpoints.map(c => c.metrics.testCoverage.high);
+  const coverageMedium = checkpoints.map(c => c.metrics.testCoverage.medium);
+  const coverageLow = checkpoints.map(c => c.metrics.testCoverage.low);
   
+  // Get the latest test results
+  const latestTestResults = checkpoints.length > 0 && 
+    checkpoints[checkpoints.length - 1].metrics.testResults ? 
+    checkpoints[checkpoints.length - 1].metrics.testResults : [];
+    
+  // Calculate total pass/fail numbers
+  const totalTests = latestTestResults.reduce((sum, suite) => sum + suite.total, 0);
+  const passedTests = latestTestResults.reduce((sum, suite) => sum + suite.passed, 0);
+  const failedTests = latestTestResults.reduce((sum, suite) => sum + suite.failed, 0);
+  const passRate = totalTests > 0 ? Math.round((passedTests / totalTests) * 100) : 0;
+  
+  // Generate the HTML
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -177,6 +189,63 @@ function generateHtml(checkpoints) {
     .trend-neutral {
       color: #FF9800;
     }
+    .test-results-container {
+      margin-top: 30px;
+      padding: 20px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    .test-results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .test-summary {
+      display: flex;
+      gap: 20px;
+    }
+    .test-metric {
+      text-align: center;
+    }
+    .test-metric-value {
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .test-metric-label {
+      font-size: 14px;
+      color: #777;
+    }
+    .test-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    .test-table th {
+      background-color: #f2f2f2;
+      padding: 10px;
+      text-align: left;
+      border-bottom: 2px solid #ddd;
+    }
+    .test-table td {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+    .status-passed {
+      color: #4CAF50;
+      font-weight: bold;
+    }
+    .status-failed {
+      color: #F44336;
+      font-weight: bold;
+    }
+    .importance-critical {
+      background-color: #FFEBEE;
+    }
+    .importance-high {
+      background-color: #FFF8E1;
+    }
   </style>
 </head>
 <body>
@@ -203,10 +272,83 @@ function generateHtml(checkpoints) {
     </div>
     
     <div class="stat-card">
+      <div class="stat-value">${complexHigh[complexHigh.length - 1]}</div>
+      <div class="stat-label">Complex Functions</div>
+      <div class="stat-trend ${getTrendClass(complexHigh, true)}">${getTrendIndicator(complexHigh, true)}</div>
+    </div>
+    
+    <div class="stat-card">
       <div class="stat-value">${duplicationPercentage[duplicationPercentage.length - 1]}%</div>
       <div class="stat-label">Code Duplication</div>
       <div class="stat-trend ${getTrendClass(duplicationPercentage, true)}">${getTrendIndicator(duplicationPercentage, true)}</div>
     </div>
+    
+    <div class="stat-card">
+      <div class="stat-value">${passRate}%</div>
+      <div class="stat-label">Test Pass Rate</div>
+    </div>
+  </div>
+  
+  <!-- Test Results Section -->
+  <div class="test-results-container">
+    <div class="test-results-header">
+      <h2>Test Results</h2>
+      <div class="test-summary">
+        <div class="test-metric">
+          <div class="test-metric-value">${totalTests}</div>
+          <div class="test-metric-label">Total Tests</div>
+        </div>
+        <div class="test-metric">
+          <div class="test-metric-value status-passed">${passedTests}</div>
+          <div class="test-metric-label">Passed</div>
+        </div>
+        <div class="test-metric">
+          <div class="test-metric-value status-failed">${failedTests}</div>
+          <div class="test-metric-label">Failed</div>
+        </div>
+      </div>
+    </div>
+    
+    <table class="test-table">
+      <thead>
+        <tr>
+          <th>Test Suite</th>
+          <th>Status</th>
+          <th>Passed</th>
+          <th>Failed</th>
+          <th>Total</th>
+          <th>Files</th>
+          <th>Duration</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${latestTestResults
+          .sort((a, b) => {
+            // Sort by importance first
+            const importanceOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+            if (importanceOrder[a.importance] !== importanceOrder[b.importance]) {
+              return importanceOrder[a.importance] - importanceOrder[b.importance];
+            }
+            // Then by success status
+            if (a.success !== b.success) {
+              return a.success ? 1 : -1;
+            }
+            // Then by name
+            return a.name.localeCompare(b.name);
+          })
+          .map(suite => `
+            <tr class="importance-${suite.importance}">
+              <td>${suite.name}</td>
+              <td class="status-${suite.success ? 'passed' : 'failed'}">${suite.success ? 'PASSED' : 'FAILED'}</td>
+              <td>${suite.passed}</td>
+              <td>${suite.failed}</td>
+              <td>${suite.total}</td>
+              <td>${suite.files}</td>
+              <td>${suite.duration}s</td>
+            </tr>
+          `).join('')}
+      </tbody>
+    </table>
   </div>
   
   <div class="metrics-grid">

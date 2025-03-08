@@ -35,6 +35,8 @@
     "quality:chart": "node scripts/quality/generate-quality-chart.js",
     "quality:update-readme": "node scripts/quality/update-readme-metrics.js",
     "quality:report": "node scripts/quality/generate-report.js",
+    "quality:collect-tests": "node scripts/quality/collect-test-results.js",
+    "quality:test-dashboard": "npm run quality:collect-tests && npm run quality:checkpoint && npm run quality:chart",
     "prerelease": "npm run test:integration",
     "release": "npm run build && npm version patch && npm run quality:report && git add README.md && git commit -m \"Update quality metrics in README\" && git push",
     "prepare": "husky install"
