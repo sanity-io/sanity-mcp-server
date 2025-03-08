@@ -2,22 +2,7 @@
  * Embeddings controller for semantic search functionality
  */
 import config from '../config/config.js';
-import { SanityClient, SanityDocument } from '../types/sanity.js';
-import { createSanityClient } from '../utils/sanityClient.js';
-import { EmbeddingIndex, SearchOptions, SearchResponse, SearchResult } from '../types/index.js';
-
-// Initialize Sanity client only if project ID is available
-const projectId = config.projectId || process.env.SANITY_PROJECT_ID;
-const dataset = config.dataset || process.env.SANITY_DATASET;
-
-let sanityClient: SanityClient | undefined;
-if (projectId && dataset) {
-  sanityClient = createSanityClient(projectId, dataset, {
-    apiVersion: config.apiVersion,
-    token: config.sanityToken,
-    useCdn: false
-  });
-}
+import type { EmbeddingIndex, SearchOptions, SearchResponse, SearchResult } from '../types/index.js';
 
 /**
  * Lists all embeddings indices for a dataset
@@ -26,8 +11,8 @@ if (projectId && dataset) {
  * @returns Promise with array of embeddings indices
  */
 export async function listEmbeddingsIndices({
-  projectId = config.projectId || process.env.SANITY_PROJECT_ID,
-  dataset = config.dataset || process.env.SANITY_DATASET
+  projectId = config['projectId'] || process.env['SANITY_PROJECT_ID'],
+  dataset = config['dataset'] || process.env['SANITY_DATASET']
 } = {}): Promise<EmbeddingIndex[]> {
   try {
     // Ensure we have the necessary info
@@ -36,7 +21,7 @@ export async function listEmbeddingsIndices({
     }
 
     // Validate token exists
-    if (!config.sanityToken) {
+    if (!config['sanityToken']) {
       throw new Error("SANITY_TOKEN is missing. Please set a valid token in your .env file.");
     }
 
@@ -51,7 +36,7 @@ export async function listEmbeddingsIndices({
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'Authorization': `Bearer ${config.sanityToken}`
+        'Authorization': `Bearer ${config['sanityToken']}`
       }
     });
 
@@ -83,8 +68,8 @@ export async function semanticSearch(query: string, {
   indexName,
   maxResults = 10, 
   types = [],
-  projectId = config.projectId || process.env.SANITY_PROJECT_ID,
-  dataset = config.dataset || process.env.SANITY_DATASET
+  projectId = config['projectId'] || process.env['SANITY_PROJECT_ID'],
+  dataset = config['dataset'] || process.env['SANITY_DATASET']
 }: SearchOptions = {} as SearchOptions): Promise<SearchResponse> {
   try {
     // Ensure we have the necessary info
@@ -101,7 +86,7 @@ export async function semanticSearch(query: string, {
     }
 
     // Validate token exists
-    if (!config.sanityToken) {
+    if (!config['sanityToken']) {
       throw new Error("SANITY_TOKEN is missing. Please set a valid token in your .env file.");
     }
 
@@ -123,7 +108,7 @@ export async function semanticSearch(query: string, {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'Authorization': `Bearer ${config.sanityToken}`
+        'Authorization': `Bearer ${config['sanityToken']}`
       },
       body: JSON.stringify(requestPayload)
     });
@@ -148,15 +133,15 @@ export async function semanticSearch(query: string, {
       return {
         hits: rawResults.map(doc => ({
           ...doc,
-          score: doc.score || 0,
-          value: doc.value || doc
+          score: doc['score'] || 0,
+          value: doc['value'] || doc
         })) as SearchResult[],
         total: rawResults.length
       };
     }
     
     // If for some reason we get an object with hits already, just return it
-    if (rawResults.hits) {
+    if (rawResults['hits']) {
       return rawResults as SearchResponse;
     }
     

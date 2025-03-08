@@ -1,15 +1,14 @@
-import dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-import fs from 'fs';
-import path from 'path';
+import * as dotenv from 'dotenv';
+import * as fs from 'fs';
+import * as path from 'path';
 
 // Load environment variables
 dotenv.config();
 
-// Get the directory path for this file
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// We need to handle both ESM and CommonJS
+// Since we can't rely on import.meta.url in all TS configurations,
+// we'll use the dirname of the current module
+const __dirname = path.resolve();
 
 // Parse command line arguments
 function parseCommandLineArgs() {

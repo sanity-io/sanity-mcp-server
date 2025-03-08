@@ -4,11 +4,10 @@
  * This file defines all the MCP tool definitions related to embeddings and semantic search
  */
 import { z } from 'zod';
-import { ToolDefinition } from '../types/tools.js';
-import { ToolProvider } from '../types/toolProvider.js';
-import { SanityDocument } from '../types/index.js';
+import type { ToolDefinition } from '../types/tools.js';
+import type { ToolProvider } from '../types/toolProvider.js';
 import * as embeddingsController from '../controllers/embeddings.js';
-import { ListEmbeddingsIndicesParams, EmbeddingsIndex, SemanticSearchParams } from '../types/sharedTypes.js';
+import type { ListEmbeddingsIndicesParams, SemanticSearchParams } from '../types/sharedTypes.js';
 
 /**
  * Provider for embeddings-related tool definitions

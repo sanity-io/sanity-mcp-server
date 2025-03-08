@@ -6,7 +6,7 @@ import {
   normalizeDocumentIds,
   createErrorResponse
 } from '../utils/documentHelpers.js';
-import { 
+import type { 
   SanityClient, 
   SanityDocument, 
   SanityTransaction, 
@@ -171,13 +171,13 @@ export async function unpublishDocument(
  */
 function prepareDocumentForCreation(document: Record<string, any>): Record<string, any> {
   // Ensure document has _type
-  if (!document._type) {
+  if (!document['_type']) {
     throw new Error('Document must have a _type field');
   }
   
   // If document has _id, make sure it's properly formatted
-  if (document._id && !document._id.startsWith('drafts.')) {
-    return { ...document, _id: `drafts.${document._id}` };
+  if (document['_id'] && !document['_id'].startsWith('drafts.')) {
+    return { ...document, _id: `drafts.${document['_id']}` };
   }
   
   return document;
@@ -451,7 +451,7 @@ function setupDeleteTransaction(
   documentIds: string[],
   additionalDrafts?: string[]
 ): { transaction: any, processedIds: string[] } {
-  const processedIds = [];
+  const processedIds: string[] = [];
   
   // Process each document ID
   for (const id of documentIds) {
@@ -692,14 +692,14 @@ function patchObjToSpec(patchObj: any): Record<string, any> {
   const patchSpec: Record<string, any> = {};
   
   // Check if patch has these properties and add them to the spec
-  if (patchObj._set) patchSpec.set = patchObj._set;
-  if (patchObj._setIfMissing) patchSpec.setIfMissing = patchObj._setIfMissing;
-  if (patchObj._unset) patchSpec.unset = patchObj._unset;
-  if (patchObj._inc) patchSpec.inc = patchObj._inc;
-  if (patchObj._dec) patchSpec.dec = patchObj._dec;
-  if (patchObj._insert) patchSpec.insert = patchObj._insert;
-  if (patchObj._diffMatchPatch) patchSpec.diffMatchPatch = patchObj._diffMatchPatch;
-  if (patchObj._ifRevisionId) patchSpec.ifRevisionId = patchObj._ifRevisionId;
+  if (patchObj._set) patchSpec['set'] = patchObj._set;
+  if (patchObj._setIfMissing) patchSpec['setIfMissing'] = patchObj._setIfMissing;
+  if (patchObj._unset) patchSpec['unset'] = patchObj._unset;
+  if (patchObj._inc) patchSpec['inc'] = patchObj._inc;
+  if (patchObj._dec) patchSpec['dec'] = patchObj._dec;
+  if (patchObj._insert) patchSpec['insert'] = patchObj._insert;
+  if (patchObj._diffMatchPatch) patchSpec['diffMatchPatch'] = patchObj._diffMatchPatch;
+  if (patchObj._ifRevisionId) patchSpec['ifRevisionId'] = patchObj._ifRevisionId;
   
   return patchSpec;
 }
@@ -769,8 +769,8 @@ export async function createDocumentVersion(
         throw new Error('Empty array of document IDs provided');
       }
       
-      const versionIds = [];
-      const results = [];
+      const versionIds: string[] = [];
+      const results: SanityDocument[] = [];
       
       // Process each document ID
       for (const id of documentId) {
@@ -902,8 +902,8 @@ export async function unpublishDocumentWithRelease(
         throw new Error('Empty array of document IDs provided');
       }
       
-      const unpublishDocs = [];
-      const results = [];
+      const unpublishDocs: string[] = [];
+      const results: SanityDocument[] = [];
       
       // Process each document ID
       for (const id of documentId) {

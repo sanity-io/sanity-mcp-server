@@ -4,10 +4,10 @@
  * This file defines all the MCP tool definitions related to document mutations
  */
 import { z } from 'zod';
-import { ToolDefinition } from '../types/tools.js';
-import { ToolProvider } from '../types/toolProvider.js';
+import type { ToolDefinition } from '../types/tools.js';
+import type { ToolProvider } from '../types/toolProvider.js';
 import * as mutateController from '../controllers/mutate.js';
-import { 
+import type { 
   CreateDocumentParams, 
   MutateDocumentsParams,
   UpdateDocumentParams, 
@@ -41,15 +41,15 @@ export class MutateToolProvider implements ToolProvider {
           }).optional().describe('Options for the create operation')
         }) as z.ZodType<CreateDocumentParams>,
         handler: async (args: CreateDocumentParams): Promise<MutateDocumentsResult> => {
-          // Ensure the document has _type which is required by Sanity
-          if (!args.document._type) {
-            throw new Error('Document must have a _type property');
+          // Ensure document has a _type field
+          if (!args.document['_type']) {
+            throw new Error('Document must have a _type field');
           }
           
           // Create the mutation with proper typing
           const mutations = [{ 
             create: {
-              _type: args.document._type,
+              _type: args.document['_type'],
               ...args.document
             } 
           }];
@@ -114,15 +114,15 @@ export class MutateToolProvider implements ToolProvider {
           }).optional().describe('Options for the update operation')
         }) as z.ZodType<UpdateDocumentParams>,
         handler: async (args: UpdateDocumentParams): Promise<MutateDocumentsResult> => {
-          // Ensure the document has _type which is required by Sanity
-          if (!args.document._type) {
-            throw new Error('Document must have a _type property');
+          // Ensure document has a _type field
+          if (!args.document['_type']) {
+            throw new Error('Document must have a _type field');
           }
           
           // Make sure _id is included in the document
           const documentWithId = {
             _id: args.documentId,
-            _type: args.document._type,
+            _type: args.document['_type'],
             ...args.document
           };
           

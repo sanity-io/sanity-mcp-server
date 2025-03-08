@@ -58,29 +58,52 @@
    - Convert type imports to use the `type` keyword
    - Prioritize fixing errors in critical controllers like actions.ts, groq.ts, and mutate.ts
 
-4. **Improve test coverage**
-   - Add more tests for edge cases
-   - Fix integration tests for the MCP server
-   - Increase coverage for low-coverage files, especially:
-     - src/controllers/projects.ts (1.47% covered)
-     - src/utils/portableText.ts (3.22% covered)  
-     - src/index.ts (0% covered)
-     - src/controllers/actions.ts (21.99% covered)
-     - src/controllers/contextTools.ts (23.61% covered)
+   ### TypeScript Error Fix Plan
 
-5. **Address code complexity and duplication**
-   - Refactor the applyPatchOperations function in documentHelpers.ts to reduce complexity (currently 25, limit is 15)
-   - Extract duplicate code patterns across files into shared utility functions
-   - ✅ Create shared parameter validation functions for common parameter patterns
+   #### Overview
+   This plan outlines the approach for fixing TypeScript errors in the Sanity MCP Server codebase. The errors are primarily related to two issues:
 
-6. **Optimize test execution and performance** ✅
-   - Configured Vitest for parallel test execution using workspaces
-   - Set up thread pooling for optimal multi-core utilization
-   - Separated unit and integration tests for better resource management
-   - Reduced overall test execution time
+   1. **Type-only imports**: With `verbatimModuleSyntax` enabled, types must be imported using the `type` keyword.
+   2. **Index signature access**: Properties from index signatures must be accessed with bracket notation (`['prop']`) instead of dot notation (`.prop`).
 
-## Nice to Have
+   #### Files to Fix
 
-1. **Documentation improvements**
-   - Add more examples for each tool
-   - Better describe parameters and return values
+   ##### High Priority Controllers
+   1. ✅ `src/controllers/actions.ts` - FIXED
+   2. ✅ `src/controllers/groq.ts` - FIXED
+   3. ✅ `src/controllers/embeddings.ts` - FIXED
+   4. ✅ `src/controllers/mutate.ts` - FIXED
+   5. ✅ `src/controllers/releases.ts` - FIXED
+
+   ##### Tools
+   1. ✅ `src/tools/mutateTools.ts` - FIXED
+   2. ✅ `src/tools/contextTools.ts` - FIXED
+   3. ✅ `src/tools/embeddingsTools.ts` - FIXED
+   4. ✅ `src/tools/releasesTools.ts` - FIXED
+   5. ✅ `src/tools/projectsTools.ts` - FIXED
+   6. ✅ `src/tools/schemaTools.ts` - FIXED
+   7. ✅ `src/tools/groqTools.ts` - FIXED
+   8. ✅ `src/tools/actionsTools.ts` - FIXED
+   9. ✅ `src/tools/index.ts` - FIXED
+
+   ##### Types
+   1. ✅ `src/types/sharedTypes.ts` - FIXED
+   2. ✅ `src/types/tools.ts` - FIXED
+   3. ✅ `src/types/index.ts` - FIXED
+   4. ✅ `src/config/config.ts` - FIXED
+
+   ##### Integration
+   1. Add TypeScript checks to test scripts - FIXED
+
+   ##### Remaining Files to Fix
+   1. `src/controllers/actions.ts` - 17 errors
+   2. `src/controllers/groq.ts` - 25 errors (already marked as fixed, but still has errors)
+   3. `src/controllers/mutate.ts` - 3 errors (already marked as fixed, but still has errors)
+   4. `src/controllers/schema.ts` - 4 errors
+   5. `src/index.ts` - 1 error
+   6. `src/tools/contextTools.ts` - 1 error
+   7. `src/tools/embeddingsTools.ts` - 1 error
+   8. `src/types/toolProvider.ts` - 1 error
+   9. `src/utils/documentHelpers.ts` - 8 errors
+   10. `src/utils/parameterValidation.ts` - 4 errors
+   11. `src/utils/sanityClient.ts` - 2 errors

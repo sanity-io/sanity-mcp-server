@@ -6,9 +6,9 @@
  */
 
 import { z } from 'zod';
-import { Mutation } from '../controllers/mutate.js';
-import { SanityDocument, PatchOperations, SanityMutationResult, SanityActionResult } from './sanity.js';
-import { SchemaType, SchemaField, SearchOptions, SearchResponse, EmbeddingIndex } from './index.js';
+import type { Mutation } from '../controllers/mutate.js';
+import type { SanityDocument, PatchOperations, SanityMutationResult, SanityActionResult } from './sanity.js';
+import type { SchemaType, SchemaField, SearchOptions } from './index.js';
 
 /**
  * Interface for the result of document mutations

@@ -1,5 +1,5 @@
 import { createSanityClient } from '../utils/sanityClient.js';
-import { SanityClient, SanityError, SanityDocument, InsertOperation, PatchOperations } from '../types/sanity.js';
+import type { SanityClient, SanityError, SanityDocument, InsertOperation, PatchOperations } from '../types/sanity.js';
 import { validateMutations, validateDocument } from '../utils/parameterValidation.js';
 import { applyMutationDefaults } from '../utils/defaultValues.js';
 
@@ -98,7 +98,7 @@ function addCreateMutation(
   transaction: SanityTransaction, 
   mutation: CreateMutation
 ): void {
-  transaction.create(mutation.create);
+  transaction.create(mutation['create']);
 }
 
 /**
@@ -111,7 +111,7 @@ function addCreateOrReplaceMutation(
   transaction: SanityTransaction, 
   mutation: CreateOrReplaceMutation
 ): void {
-  transaction.createOrReplace(mutation.createOrReplace);
+  transaction.createOrReplace(mutation['createOrReplace']);
 }
 
 /**
@@ -124,7 +124,7 @@ function addCreateIfNotExistsMutation(
   transaction: SanityTransaction, 
   mutation: CreateIfNotExistsMutation
 ): void {
-  transaction.createIfNotExists(mutation.createIfNotExists);
+  transaction.createIfNotExists(mutation['createIfNotExists']);
 }
 
 /**
@@ -137,7 +137,7 @@ function addDeleteMutation(
   transaction: SanityTransaction, 
   mutation: DeleteMutation
 ): void {
-  transaction.delete(mutation.delete.id);
+  transaction.delete(mutation['delete']['id']);
 }
 
 /**
@@ -205,28 +205,28 @@ function applyPatchOperationsToClient(
   patchOperations: PatchOperations
 ): void {
   // Apply patch operations in the correct order: set, setIfMissing, unset, inc, dec, insert
-  if (patchOperations.set) {
-    patch.set(patchOperations.set);
+  if (patchOperations['set']) {
+    patch.set(patchOperations['set']);
   }
   
-  if (patchOperations.setIfMissing) {
-    patch.setIfMissing(patchOperations.setIfMissing);
+  if (patchOperations['setIfMissing']) {
+    patch.setIfMissing(patchOperations['setIfMissing']);
   }
   
-  if (patchOperations.unset) {
-    patch.unset(Array.isArray(patchOperations.unset) ? patchOperations.unset : [patchOperations.unset]);
+  if (patchOperations['unset']) {
+    patch.unset(Array.isArray(patchOperations['unset']) ? patchOperations['unset'] : [patchOperations['unset']]);
   }
   
-  if (patchOperations.inc) {
-    patch.inc(patchOperations.inc);
+  if (patchOperations['inc']) {
+    patch.inc(patchOperations['inc']);
   }
   
-  if (patchOperations.dec) {
-    patch.dec(patchOperations.dec);
+  if (patchOperations['dec']) {
+    patch.dec(patchOperations['dec']);
   }
   
-  if (patchOperations.insert) {
-    applyInsertOperation(patch, patchOperations.insert);
+  if (patchOperations['insert']) {
+    applyInsertOperation(patch, patchOperations['insert']);
   }
 }
 
@@ -241,14 +241,14 @@ function applyInsertOperation(patch: SanityPatch, insertOp: InsertOperation): vo
   
   // Get the appropriate selector
   let selector = '';
-  if (insertOp.at) {
-    selector = insertOp.at;
-  } else if (insertOp.before) {
-    selector = insertOp.before;
-  } else if (insertOp.after) {
-    selector = insertOp.after;
-  } else if (insertOp.replace) {
-    selector = insertOp.replace;
+  if (insertOp['at']) {
+    selector = insertOp['at'];
+  } else if (insertOp['before']) {
+    selector = insertOp['before'];
+  } else if (insertOp['after']) {
+    selector = insertOp['after'];
+  } else if (insertOp['replace']) {
+    selector = insertOp['replace'];
   }
   
   if (position === 'before' || position === 'after' || position === 'replace') {
@@ -293,7 +293,7 @@ function processMutation(
   
   // Handle patch mutation
   if ('patch' in mutation) {
-    const { id, query, params, ifRevisionID, ...patchOperations } = mutation.patch as PatchOperations & { id?: string; query?: string; params?: Record<string, any>; ifRevisionID?: string };
+    const { id, query, params, ifRevisionID, ...patchOperations } = mutation['patch'] as PatchOperations & { id?: string; query?: string; params?: Record<string, any>; ifRevisionID?: string };
     
     if (query) {
       // Patch by query
@@ -319,16 +319,16 @@ async function retrieveDocumentsForMutations(
   const results = await Promise.all(mutations.map(async (mutation) => {
     try {
       // Type guard for different mutation types
-      if ('create' in mutation && mutation.create?._id) {
-        return await client.getDocument(mutation.create._id);
-      } else if ('createOrReplace' in mutation && mutation.createOrReplace?._id) {
-        return await client.getDocument(mutation.createOrReplace._id);
-      } else if ('createIfNotExists' in mutation && mutation.createIfNotExists?._id) {
-        return await client.getDocument(mutation.createIfNotExists._id);
+      if ('create' in mutation && mutation['create']?._id) {
+        return await client.getDocument(mutation['create']['_id']);
+      } else if ('createOrReplace' in mutation && mutation['createOrReplace']?._id) {
+        return await client.getDocument(mutation['createOrReplace']['_id']);
+      } else if ('createIfNotExists' in mutation && mutation['createIfNotExists']?._id) {
+        return await client.getDocument(mutation['createIfNotExists']['_id']);
       } else if ('patch' in mutation) {
         // Need to handle both patch by ID and patch by query
-        if ('id' in mutation.patch && mutation.patch.id) {
-          return await client.getDocument(mutation.patch.id);
+        if ('id' in mutation['patch'] && mutation['patch']['id']) {
+          return await client.getDocument(mutation['patch']['id']);
         } 
         // Query-based patches can't easily return documents
         return null;
@@ -394,18 +394,18 @@ async function modifyDocuments(
     // Process each mutation
     mutations.forEach(mutation => {
       // Validate create documents using the parameterValidation utility
-      if ('create' in mutation && mutation.create) {
-        validateDocument(mutation.create);
+      if ('create' in mutation && mutation['create']) {
+        validateDocument(mutation['create']);
       }
       
       // Validate createOrReplace documents
-      if ('createOrReplace' in mutation && mutation.createOrReplace) {
-        validateDocument(mutation.createOrReplace);
+      if ('createOrReplace' in mutation && mutation['createOrReplace']) {
+        validateDocument(mutation['createOrReplace']);
       }
       
       // Validate createIfNotExists documents
-      if ('createIfNotExists' in mutation && mutation.createIfNotExists) {
-        validateDocument(mutation.createIfNotExists);
+      if ('createIfNotExists' in mutation && mutation['createIfNotExists']) {
+        validateDocument(mutation['createIfNotExists']);
       }
       
       // Add proper type information to the document before passing to transaction
@@ -414,10 +414,10 @@ async function modifyDocuments(
     
     // Commit the transaction with visibility option
     const result = await transaction.commit({
-      visibility: mutationOptions.visibility
+      visibility: mutationOptions['visibility']
     });
     
-    if (mutationOptions.returnDocuments) {
+    if (mutationOptions['returnDocuments']) {
       const documents = await retrieveDocumentsForMutations(client, mutations);
       
       return {
@@ -437,54 +437,6 @@ async function modifyDocuments(
     const errorMessage = error instanceof Error ? error.message : String(error);
     throw new Error(`Failed to modify documents: ${errorMessage}`);
   }
-}
-
-/**
- * Helper function to construct patch operations
- * 
- * @param patch - Raw patch object with operations
- * @returns Formatted patch operations
- */
-function constructPatchOperations(patch: Record<string, any>): PatchOperations {
-  // Extract operations from the patch object
-  const operations: PatchOperations = {};
-  
-  // Handle 'set' operations
-  if (patch.set) {
-    operations.set = patch.set;
-  }
-  
-  // Handle 'setIfMissing' operations
-  if (patch.setIfMissing) {
-    operations.setIfMissing = patch.setIfMissing;
-  }
-  
-  // Handle 'unset' operations
-  if (patch.unset) {
-    operations.unset = Array.isArray(patch.unset) ? patch.unset : [patch.unset];
-  }
-  
-  // Handle 'inc' operations
-  if (patch.inc) {
-    operations.inc = patch.inc;
-  }
-  
-  // Handle 'dec' operations
-  if (patch.dec) {
-    operations.dec = patch.dec;
-  }
-  
-  // Handle 'insert' operations (for arrays)
-  if (patch.insert) {
-    operations.insert = patch.insert;
-  }
-  
-  // Handle 'diffMatchPatch' operations
-  if (patch.diffMatchPatch) {
-    operations.diffMatchPatch = patch.diffMatchPatch;
-  }
-  
-  return operations;
 }
 
 // Export the refactored function

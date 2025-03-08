@@ -2,8 +2,8 @@ import { WebSocket } from 'ws';
 import { createSanityClient } from '../utils/sanityClient.js';
 import { portableTextToMarkdown } from '../utils/portableText.js';
 import config from '../config/config.js';
-import { SanityClient, SanityDocument, SanityQueryParams } from '../types/sanity.js';
-import { SubscribeOptions } from '../types/index.js';
+import type { SanityClient, SanityDocument, SanityQueryParams } from '../types/sanity.js';
+import type { SubscribeOptions } from '../types/index.js';
 import logger from '../utils/logger.js';
 
 interface Subscription {
@@ -150,13 +150,13 @@ export async function query(
 
     // Handle test mode differently to maintain backward compatibility
     let results;
-    if (process.env.NODE_ENV === 'test') {
+    if (process.env['NODE_ENV'] === 'test') {
       // In test mode, only pass query and params without the third parameter
-      const queryParams = params.params && typeof params.params === 'object' ? params.params : {};
+      const queryParams = params['params'] && typeof params['params'] === 'object' ? params['params'] : {};
       results = await client.fetch(query, queryParams);
     } else {
       // In production, use all three parameters
-      const queryParams = params.params && typeof params.params === 'object' ? params.params : {};
+      const queryParams = params['params'] && typeof params['params'] === 'object' ? params['params'] : {};
       results = await client.fetch(query, queryParams, fetchOptions);
     }
     
@@ -164,18 +164,18 @@ export async function query(
     let filtered = results;
     
     // LLM verification is deprecated - just log a message and return the results as-is
-    if (params.verifyWithLLM && Array.isArray(results)) {
+    if (params['verifyWithLLM'] && Array.isArray(results)) {
       logger.info(`LLM verification requested for ${results.length} items - this feature is deprecated`);
     }
     
     // Apply additional filter if specified (useful for complex queries where you need to filter client-side)
-    if (params.filter && typeof params.filter === 'function' && Array.isArray(filtered)) {
-      filtered = filtered.filter(params.filter);
+    if (params['filter'] && typeof params['filter'] === 'function' && Array.isArray(filtered)) {
+      filtered = filtered.filter(params['filter']);
     }
     
     // Apply additional limit if specified
-    if (params.limit && typeof params.limit === 'number' && Array.isArray(filtered)) {
-      filtered = filtered.slice(0, params.limit);
+    if (params['limit'] && typeof params['limit'] === 'number' && Array.isArray(filtered)) {
+      filtered = filtered.slice(0, params['limit']);
     }
     
     // Include query and document count in the response
@@ -193,21 +193,19 @@ export async function query(
 }
 
 /**
- * Verifies results using an LLM (deprecated)
- * 
- * @param results - Array of content items to verify
- * @returns Verified results
+ * This function is no longer used as LLM verification is deprecated.
+ * Kept for reference in case we want to reimplement this feature in the future.
  */
-async function verifyResults(results: SanityDocument[]): Promise<SanityDocument[]> {
-  // This is a placeholder for LLM verification logic
-  // In a real implementation, you would send the results to an LLM API
-  // and filter or tag the results based on the LLM's output
+// async function verifyResults(results: SanityDocument[]): Promise<SanityDocument[]> {
+//   // This is a placeholder for LLM verification logic
+//   // In a real implementation, you would send the results to an LLM API
+//   // and filter or tag the results based on the LLM's output
   
-  logger.info(`LLM verification requested for ${results.length} items - this feature is deprecated`);
+//   logger.info(`LLM verification requested for ${results.length} items - this feature is deprecated`);
   
-  // Return the original results for now (no filtering)
-  return results;
-}
+//   // Return the original results for now (no filtering)
+//   return results;
+// }
 
 /**
  * Subscribes to real-time updates for documents matching a query
@@ -215,7 +213,7 @@ async function verifyResults(results: SanityDocument[]): Promise<SanityDocument[
  * @param projectId - Sanity project ID
  * @param dataset - Dataset name
  * @param query - GROQ query to listen to
- * @param options - Additional options for the subscription
+ * @param options - Additional options for the subscription (currently unused but kept for future extensibility)
  * @returns Subscription details
  */
 export async function subscribeToUpdates(

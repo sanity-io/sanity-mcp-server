@@ -4,11 +4,11 @@
  * This file defines all the MCP tool definitions related to GROQ querying
  */
 import { z } from 'zod';
-import { ToolDefinition } from '../types/tools.js';
-import { ToolProvider } from '../types/toolProvider.js';
+import type { ToolDefinition } from '../types/tools.js';
+import type { ToolProvider } from '../types/toolProvider.js';
 import * as groqController from '../controllers/groq.js';
 import config from '../config/config.js';
-import { 
+import type { 
   GroqQueryParams, 
   GetDocumentParams, 
   GroqQueryResult,

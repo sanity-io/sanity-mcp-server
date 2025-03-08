@@ -4,13 +4,13 @@
  * This file defines tool definitions related to MCP context and configuration
  */
 import { z } from 'zod';
-import { ToolDefinition, InitialContext } from '../types/tools.js';
-import { ToolProvider } from '../types/toolProvider.js';
+import type { ToolDefinition, InitialContext } from '../types/tools.js';
+import type { ToolProvider } from '../types/toolProvider.js';
 import config from '../config/config.js';
 import * as embeddingsController from '../controllers/embeddings.js';
 import * as schemaController from '../controllers/schema.js';
 import * as releasesController from '../controllers/releases.js';
-import { 
+import type { 
   EmbeddingsIndex, 
   ListEmbeddingsIndicesParams, 
   SimpleSchemaType, 
@@ -74,7 +74,12 @@ export class ContextToolProvider implements ToolProvider {
               instructions: "You can use this server to interact with Sanity content. Start by exploring the schema to understand the content model.",
               projectId: config.projectId,
               dataset: config.dataset || "production",
-              embeddingsIndices,
+              embeddingsIndices: embeddingsIndices.map((index: any) => ({
+                id: index.name,
+                name: index.name,
+                status: index.status || 'available',
+                documentCount: index.documentCount
+              })),
               documentTypes: documentTypes.map((type: any) => ({
                 name: type.name,
                 title: type.title,

@@ -1,11 +1,8 @@
 /**
  * Type definitions for Sanity-related objects and operations
  */
-import { 
-  SanityClient as OriginalSanityClient,
-  MutationSelection,
-  Patch as SanityPatchType,
-  Transaction as SanityTransactionType
+import type { 
+  SanityClient as OriginalSanityClient
 } from '@sanity/client';
 
 /**

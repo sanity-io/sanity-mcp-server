@@ -4,11 +4,11 @@
  * This file defines all the MCP tool definitions related to document actions
  */
 import { z } from 'zod';
-import { ToolDefinition } from '../types/tools.js';
-import { ToolProvider } from '../types/toolProvider.js';
+import type { ToolDefinition } from '../types/tools.js';
+import type { ToolProvider } from '../types/toolProvider.js';
 import * as actionsController from '../controllers/actions.js';
 import config from '../config/config.js';
-import { 
+import type { 
   DocumentIdParam,
   ReleaseDocumentIdParam,
   ActionResult
