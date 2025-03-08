@@ -92,7 +92,7 @@ describe('Array Parameter Deserialization Integration Test', () => {
     // Set up mock for addDocumentToRelease to spy on the parameters it receives
     mockAddDocumentToRelease = vi.spyOn(releases, 'addDocumentToRelease');
     // Let it pass through to the real implementation
-    mockAddDocumentToRelease.mockImplementation((...args) => {
+    mockAddDocumentToRelease.mockImplementation((...args: [string, string, string, string | string[], any?]) => {
       return originalAddDocToRelease(...args);
     });
   }, 30000); // Increase timeout to 30 seconds

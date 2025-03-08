@@ -231,10 +231,10 @@ describe('Release and Document Workflow Integration', () => {
     
     // Update fields
     const updatedDocument = {
-      ...currentDocument,
       updatedAt: new Date().toISOString(),
       status: 'updated',
-      _id: documentId // Ensure _id is explicitly set
+      _id: documentId, // Ensure _id is explicitly set
+      _type: 'test-document' // Add required _type field
     };
     
     // Replace the document

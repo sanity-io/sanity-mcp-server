@@ -78,7 +78,7 @@ describe('Document Helpers', () => {
       const patch = { 
         insert: { 
           items: ['item1', 'item2'], 
-          position: 'after', 
+          position: 'after' as const, 
           at: 'tags[-1]' 
         } 
       };
@@ -152,7 +152,7 @@ describe('Document Helpers', () => {
     });
 
     it('should return fallback content if document does not exist', async () => {
-      const fallbackContent = { _id: 'doc123', title: 'Fallback Title' };
+      const fallbackContent = { _id: 'doc123', title: 'Fallback Title', _type: 'document' };
       mockClient.getDocument.mockResolvedValue(null);
       
       const result = await getDocumentContent(mockClient, 'doc123', fallbackContent);

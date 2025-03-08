@@ -6,7 +6,7 @@
  * tool definitions match those expected by the controllers.
  */
 import { ZodType, z } from 'zod';
-import { ToolDefinition } from '../../../src/types/tools.js';
+import type { ToolDefinition } from '../../../src/types/tools.js';
 
 /**
  * Converts a Zod schema to a plain object representation for testing purposes
