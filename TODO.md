@@ -79,7 +79,7 @@
    1. ✅ `src/tools/mutateTools.ts` - FIXED
    2. ✅ `src/tools/contextTools.ts` - FIXED
    3. ✅ `src/tools/embeddingsTools.ts` - FIXED
-   4. `src/tools/releasesTools.ts` - 11 errors
+   4. ✅ `src/tools/releasesTools.ts` - FIXED
    5. `src/tools/projectsTools.ts` - 7 errors
    6. `src/tools/schemaTools.ts` - 7 errors
    7. `src/tools/groqTools.ts` - 6 errors
