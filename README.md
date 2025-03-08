@@ -1,6 +1,6 @@
 # Sanity MCP Server
 
-An implementation of the [Model Context Protocol (MCP)](https://modelcontextprotocol.ai/) server for Sanity.io.
+An implementation of the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server for Sanity.io.
 
 ## Overview
 
@@ -341,15 +341,15 @@ Since Anthropic (creator of Claude) is the maintainer of the MCP standard, the C
 
 This section provides links to the latest quality metrics for this project.
 
-### Latest Quality Metrics Summary - March 7, 2025
+### Latest Quality Metrics Summary - March 8, 2025
 
-**Version:** 0.1.4
+**Version:** 0.2.3
 
 Key metrics at a glance:
-- Test Coverage: 58.41%
-- ESLint Issues: 1 errors, 385 warnings
-- Complex Functions: 9
-- Code Duplication: 4.47%
+- Test Coverage: 56.45%
+- ESLint Issues: 2 errors, 37 warnings
+- Complex Functions: 0
+- Code Duplication: 4.26%
 
 #### Detailed Quality Information
 
