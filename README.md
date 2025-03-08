@@ -376,7 +376,7 @@ This document outlines the plan for fixing TypeScript errors in the Sanity MCP S
 ### High Priority Controllers
 1. ✅ `src/controllers/actions.ts` - FIXED
 2. ✅ `src/controllers/groq.ts` - FIXED
-3. `src/controllers/mutate.ts` - 26 errors
+3. ✅ `src/controllers/mutate.ts` - FIXED
 4. `src/controllers/embeddings.ts` - 14 errors
 5. `src/controllers/releases.ts` - 12 errors
 
