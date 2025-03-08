@@ -73,7 +73,7 @@
    2. ✅ `src/controllers/groq.ts` - FIXED
    3. ✅ `src/controllers/mutate.ts` - FIXED
    4. ✅ `src/controllers/embeddings.ts` - FIXED
-   5. `src/controllers/releases.ts` - 12 errors
+   5. ✅ `src/controllers/releases.ts` - FIXED
 
    ##### Tools
    1. `src/tools/mutateTools.ts` - 12 errors
