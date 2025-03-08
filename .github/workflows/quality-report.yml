@@ -43,7 +43,12 @@ jobs:
         run: |
           mkdir -p quality-report
           cp -r scripts/quality/output/* quality-report/
-          echo "<!DOCTYPE html>
+          # Get current date in proper format
+          CURRENT_DATE=$(date '+%Y-%m-%d %H:%M:%S')
+          
+          # Create the HTML file with date inserted
+          cat > quality-report/index.html << 'EOL'
+          <!DOCTYPE html>
           <html>
           <head>
             <meta charset='utf-8'>
@@ -62,8 +67,13 @@ jobs:
           <body>
             <div class='report-container'>
               <h1>Sanity MCP Server - Quality Report</h1>
-              <p class='timestamp'>Generated on: \$(date)</p>
-              
+EOL
+
+          # Add the timestamp line separately
+          echo "              <p class='timestamp'>Generated on: $CURRENT_DATE</p>" >> quality-report/index.html
+          
+          # Continue with the rest of the HTML
+          cat >> quality-report/index.html << 'EOL'              
               <div class='row'>
                 <div class='col-md-6'>
                   <div class='metric-card card'>
@@ -240,7 +250,8 @@ jobs:
                 });
             </script>
           </body>
-          </html>" > quality-report/index.html
+          </html>
+EOL
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
