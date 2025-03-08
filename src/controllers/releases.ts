@@ -37,7 +37,7 @@ function validateApiVersion(): void {
  * Validates release creation options and parameters
  */
 function validateReleaseParameters(
-  releaseId: string,
+  _releaseId: string,  // Prefix with underscore to indicate it's intentionally unused
   options?: ReleaseOptions
 ): void {
   // Validate that scheduled releases have intendedPublishAt
