@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - TBD
+- GitHub Pages quality report workflow and visualization
+  - Created automated GitHub Actions workflow for generating and publishing quality reports
+  - Implemented HTML-based quality report with interactive charts and metrics
+  - Added historical tracking of code quality metrics over time
+  - Configured GitHub Pages deployment for public access to quality reports
+  - Updated workflow to use latest GitHub Actions versions (v4)
+  - Fixed workflow syntax issues for proper command execution in GitHub Actions
+  - Enhanced error handling and visualization in the quality report
 
 ## [0.2.0] - 2025-03-07
 ### Added
@@ -103,6 +111,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed schema tools parameter requirements to match implementation
 - Fixed JSON response formatting for complex objects
 - Fixed issue with document updating and verification by ensuring draft documents are properly handled
+- Updated all GitHub Actions to latest versions (v4) to prevent deprecation warnings
+- Fixed TypeScript errors in configuration file to improve type safety
+- Fixed workflow syntax issues with command substitution in GitHub Actions
 
 ## [0.1.3] - 2025-03-07
 ### Fixed

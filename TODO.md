@@ -51,7 +51,14 @@
 2. **Update logger usage across all files**
    - Replace all remaining console.log/error calls with the central logger
 
-3. **Improve test coverage**
+3. **Fix TypeScript type errors related to verbatimModuleSyntax**
+   - Fix "Property comes from an index signature, so it must be accessed with ['prop']" errors
+   - Fix "is a type and must be imported using a type-only import when 'verbatimModuleSyntax' is enabled" errors
+   - Ensure proper usage of bracket notation for index signatures
+   - Convert type imports to use the `type` keyword
+   - Prioritize fixing errors in critical controllers like actions.ts, groq.ts, and mutate.ts
+
+4. **Improve test coverage**
    - Add more tests for edge cases
    - Fix integration tests for the MCP server
    - Increase coverage for low-coverage files, especially:
@@ -61,12 +68,12 @@
      - src/controllers/actions.ts (21.99% covered)
      - src/controllers/contextTools.ts (23.61% covered)
 
-4. **Address code complexity and duplication**
+5. **Address code complexity and duplication**
    - Refactor the applyPatchOperations function in documentHelpers.ts to reduce complexity (currently 25, limit is 15)
    - Extract duplicate code patterns across files into shared utility functions
    - ✅ Create shared parameter validation functions for common parameter patterns
 
-5. **Optimize test execution and performance** ✅
+6. **Optimize test execution and performance** ✅
    - Configured Vitest for parallel test execution using workspaces
    - Set up thread pooling for optimal multi-core utilization
    - Separated unit and integration tests for better resource management
