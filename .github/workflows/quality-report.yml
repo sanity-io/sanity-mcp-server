@@ -62,7 +62,7 @@ jobs:
           <body>
             <div class='report-container'>
               <h1>Sanity MCP Server - Quality Report</h1>
-              <p class='timestamp'>Generated on: $(date)</p>
+              <p class='timestamp'>Generated on: \$(date)</p>
               
               <div class='row'>
                 <div class='col-md-6'>

@@ -32,7 +32,7 @@ function parseCommandLineArgs() {
 const cmdArgs = parseCommandLineArgs();
 
 // Ensure schemas directory exists
-const schemasDir = process.env.SCHEMAS_DIR || path.resolve(__dirname, '../../schemas');
+const schemasDir = process.env['SCHEMAS_DIR'] || path.resolve(__dirname, '../../schemas');
 if (!fs.existsSync(schemasDir)) {
   fs.mkdirSync(schemasDir, { recursive: true });
 }
@@ -50,20 +50,20 @@ interface Config {
 
 const config: Config = {
   // Sanity token from environment variable or command line
-  sanityToken: cmdArgs.SANITY_TOKEN || process.env.SANITY_TOKEN,
+  sanityToken: cmdArgs['SANITY_TOKEN'] || process.env['SANITY_TOKEN'],
   
   // Sanity project ID and dataset from environment variables or command line
-  projectId: cmdArgs.SANITY_PROJECT_ID || process.env.SANITY_PROJECT_ID,
-  dataset: cmdArgs.SANITY_DATASET || process.env.SANITY_DATASET,
+  projectId: cmdArgs['SANITY_PROJECT_ID'] || process.env['SANITY_PROJECT_ID'],
+  dataset: cmdArgs['SANITY_DATASET'] || process.env['SANITY_DATASET'],
   
   // Sanity API version
-  apiVersion: cmdArgs.SANITY_API_VERSION || process.env.SANITY_API_VERSION || '2024-05-23',
+  apiVersion: cmdArgs['SANITY_API_VERSION'] || process.env['SANITY_API_VERSION'] || '2024-05-23',
   
   // OpenAI API key for optional LLM verification
-  openAiApiKey: cmdArgs.OPENAI_API_KEY || process.env.OPENAI_API_KEY,
+  openAiApiKey: cmdArgs['OPENAI_API_KEY'] || process.env['OPENAI_API_KEY'],
   
   // Server port
-  port: parseInt(cmdArgs.PORT || process.env.PORT || '3000', 10),
+  port: parseInt(cmdArgs['PORT'] || process.env['PORT'] || '3000', 10),
   
   // Path to schema files
   schemasDir,
@@ -81,7 +81,7 @@ const config: Config = {
 };
 
 // Validate required config - only exit in production mode
-const isTestMode = process.env.NODE_ENV === 'test' || process.argv.some(arg => arg.includes('jest'));
+const isTestMode = process.env['NODE_ENV'] === 'test' || process.argv.some(arg => arg.includes('jest'));
 
 if (!config.sanityToken && !isTestMode) {
   console.error('Error: SANITY_TOKEN environment variable is required');
