@@ -346,14 +346,14 @@ This section provides links to the latest quality metrics for this project.
 **Version:** 0.2.5 (v0.2.5)
 
 Key metrics at a glance:
-- Test Coverage: 56.45%
-- ESLint Issues: 2 errors, 37 warnings
-- Complex Functions: 0
-- Code Duplication: 4.26%
+- Test Coverage: 0%
+- ESLint Issues: 0 errors, 33 warnings
+- Complex Functions: 10
+- Code Duplication: 2.13%
 
 #### Detailed Quality Information
 
-- [📊 Interactive Quality Metrics Dashboard](https://sanity-io.github.io/sanity-mcp-server/quality-metrics-chart.html) - Visual trends of code quality over time
+- [📊 Interactive Quality Metrics Dashboard](https://sanity-io.github.io/sanity-mcp-server/) - Visual trends of code quality over time
 - [📝 Quality Improvement Recommendations](https://sanity-io.github.io/sanity-mcp-server/improvement-recommendations.md) - Prioritized list of suggested improvements
 - [📈 Raw Quality Data (NDJSON)](https://sanity-io.github.io/sanity-mcp-server/quality-tag-checkpoint.ndjson) - Historical quality metrics for all releases
 
