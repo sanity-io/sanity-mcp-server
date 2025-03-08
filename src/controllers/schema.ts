@@ -1,7 +1,7 @@
 import { readFile } from 'fs/promises';
 import config from '../config/config.js';
-import { SchemaType, SchemaField } from '../types/index.js';
-import { SanityDocument } from '../types/sanity.js';
+import type { SchemaType, SchemaField } from '../types/index.js';
+import type { SanityDocument } from '../types/sanity.js';
 import logger from '../utils/logger.js';
 
 interface SchemaTypeDetails extends SchemaType {

@@ -1,7 +1,7 @@
 import { createClient } from '@sanity/client';
 import fetch from 'node-fetch';
 import config from '../config/config.js';
-import { SanityClient, SanityActionResult } from '../types/sanity.js';
+import type { SanityClient, SanityActionResult } from '../types/sanity.js';
 
 interface SanityAction {
   create?: Record<string, any>;
