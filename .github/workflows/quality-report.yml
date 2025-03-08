@@ -20,6 +20,7 @@ concurrency:
 jobs:
   build-report:
     runs-on: ubuntu-latest
+    environment: Test
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
