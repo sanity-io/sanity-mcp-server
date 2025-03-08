@@ -343,7 +343,7 @@ This section provides links to the latest quality metrics for this project.
 
 ### Latest Quality Metrics Summary - March 8, 2025
 
-**Version:** 0.2.3
+**Version:** 0.2.5 (v0.2.5)
 
 Key metrics at a glance:
 - Test Coverage: 56.45%
