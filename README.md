@@ -357,6 +357,21 @@ Key metrics at a glance:
 - [📝 Quality Improvement Recommendations](https://sanity-io.github.io/sanity-mcp-server/improvement-recommendations.md) - Prioritized list of suggested improvements
 - [📈 Raw Quality Data (NDJSON)](https://sanity-io.github.io/sanity-mcp-server/quality-tag-checkpoint.ndjson) - Historical quality metrics for all releases
 
+#### GitHub Pages Quality Report Setup
+
+To view the quality report on GitHub Pages:
+
+1. Ensure GitHub Pages is enabled in the repository settings
+   - Go to repository Settings → Pages
+   - Under "Build and deployment" → "Source", select "GitHub Actions"
+   - Save the changes
+
+2. The quality report is automatically updated whenever:
+   - Changes are pushed to the main branch
+   - A new release tag is created
+
+3. Access the report at the URL shown in the workflow run summary
+
 Quality metrics are automatically updated on each release and can be manually generated with `npm run quality:report`.
 
 ## License
