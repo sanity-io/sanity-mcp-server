@@ -4,8 +4,8 @@
  * This file provides a central registry for all MCP tool definitions,
  * aggregating them from specialized tool providers.
  */
-import { ToolDefinition } from '../types/tools.js';
-import { ToolProvider } from '../types/toolProvider.js';
+import type { ToolDefinition } from '../types/tools.js';
+import type { ToolProvider } from '../types/toolProvider.js';
 import logger from '../utils/logger.js';
 
 // Import specialized tool providers
