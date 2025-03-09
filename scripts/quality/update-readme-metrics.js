@@ -108,7 +108,7 @@ Key metrics at a glance:
 - [📝 Quality Improvement Recommendations](./scripts/quality/output/improvement-recommendations.md) - Prioritized list of suggested improvements
 - [📈 Raw Quality Data (NDJSON)](./scripts/quality/quality-tag-checkpoint.ndjson) - Historical quality metrics for all releases
 
-Quality metrics are automatically updated on each release and can be manually generated with \`npm run quality:report\`.
+Quality metrics are automatically updated on each release and can be manually generated with \`npm run quality:analyze\`.
 `;
 
   return markdown;

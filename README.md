@@ -220,159 +220,42 @@ This generates a coverage report in the `coverage` directory, showing which part
 
 ```bash
 # Run all quality checks at once
-npm run quality:check
+npm run quality:analyze
 
 # Generate a prioritized report of quality improvements
-npm run quality:report
+npm run quality:save-snapshot
+
+npm run quality:visualize
 ```
 
-The `quality:report` command analyzes the output from all quality tools and generates a prioritized list of recommended improvements at `scripts/quality/output/improvement-recommendations.md`, sorted by impact/effort ratio.
+The `quality:analyze` command analyzes the output from all quality tools and generates a prioritized list of recommended improvements at `scripts/quality/output/improvement-recommendations.md`, sorted by impact/effort ratio.
 
 Additionally, it tracks key quality metrics over time by saving a checkpoint in NDJSON format at `scripts/quality/quality-tag-checkpoint.ndjson` and generates an interactive chart at `scripts/quality/output/quality-metrics-chart.html`.
 
 #### Quality Metrics Tracking
 
-The project automatically tracks quality metrics over time, generating historical data that can be used to monitor progress and improvements:
+The project automatically tracks quality metrics over time, generating a dashboard to visualize code health:
 
 ```bash
-# Generate a quality metrics checkpoint without running full checks
-npm run quality:checkpoint
-
-# Generate an interactive chart from checkpoint data
-npm run quality:chart
+# Generate the quality dashboard
+npm run quality:dashboard
 ```
+
+This command:
+1. Collects test results from different test suites
+2. Creates a snapshot of the current quality metrics
+3. Generates an interactive HTML chart showing trends over time
 
 Quality metrics are automatically captured when:
-- Running the full `quality:report` script
 - Creating a new release with `npm run release`
-- Checking out a tag with `git checkout v1.2.3`
+- Running the `quality:dashboard` script manually
 
 The metrics tracked include:
-- Test coverage percentages and distribution
-- ESLint errors and warnings
-- Cyclomatic and cognitive complexity
-- Code duplication percentages
+- Test results and pass rates
+- Complex functions
+- File coverage distribution
 
-The generated chart provides a visual representation of these metrics over time, making it easy to track progress and identify areas that need improvement.
-
-#### GitHub Pages Quality Report
-
-The project now includes a GitHub Pages site that automatically generates and publishes quality reports. You can access the latest quality report at:
-
-[https://sanity-io.github.io/sanity-mcp-server/](https://sanity-io.github.io/sanity-mcp-server/)
-
-This report is automatically updated whenever:
-- Changes are pushed to the main branch
-- A new release tag is created
-
-The GitHub Pages report includes:
-- Code quality metrics (warnings, errors, duplications, complex functions)
-- Test coverage statistics
-- Prioritized improvement opportunities
-- Historical trends showing how code quality metrics change over time
-
-This provides an easy way to monitor the health of the codebase and identify areas for improvement.
-
-### Type Checking
-
-Run the TypeScript type checker:
-
-```bash
-npm run typecheck
-```
-
-### Testing
-
-Run tests:
-
-```bash
-npm test
-```
-
-Or in watch mode:
-
-```bash
-npm run test:watch
-```
-
-## Schema Management
-
-Schema files for Sanity projects are stored in the `schemas/` directory but not tracked in version control. When working with a new Sanity project:
-
-1. Create a schema file named `{projectId}_{dataset}.json` in the `schemas/` directory
-2. The schema file should contain the exported schema from your Sanity project
-3. The MCP server will automatically load the appropriate schema based on the project ID and dataset specified in environment variables
-
-For example, for a project with ID `zwl9ofqf` and dataset `production`, create:
-```
-schemas/zwl9ofqf_production.json
-```
-
-## MCP Tool Invocation in Different Environments
-
-### Cursor
-In Cursor, MCP tools are invoked using the pattern:
-```javascript
-mcp__toolName({ param1: "value1", param2: "value2" })
-```
-
-For example, to use the echo tool:
-```javascript
-mcp__echo({ message: "Hello World" })
-```
-
-### Claude Desktop
-Note that this differs from Claude Desktop, where tools are invoked using:
-```javascript
-mcp__serverName__toolName({ param1: "value1", param2: "value2" })
-```
-
-For example:
-```javascript
-mcp__minimal__echo({ message: "Hello World" })
-```
-
-This difference in naming conventions can cause confusion when moving between environments. Cursor treats all MCP tools in a flat namespace without requiring the server name prefix.
-
-Since Anthropic (creator of Claude) is the maintainer of the MCP standard, the Claude Desktop pattern with server name included is the recommended approach for cross-platform compatibility.
-
-## Quality Metrics
-
-
-This section provides links to the latest quality metrics for this project.
-
-### Latest Quality Metrics Summary - March 8, 2025
-
-**Version:** 0.2.5 (v0.2.5)
-
-Key metrics at a glance:
-- Test Coverage: 0%
-- ESLint Issues: 0 errors, 33 warnings
-- Complex Functions: 10
-- Code Duplication: 2.13%
-
-#### Detailed Quality Information
-
-- [📊 Interactive Quality Metrics Dashboard](https://sanity-io.github.io/sanity-mcp-server/) - Visual trends of code quality over time
-- [📝 Quality Improvement Recommendations](https://sanity-io.github.io/sanity-mcp-server/improvement-recommendations.md) - Prioritized list of suggested improvements
-- [📈 Raw Quality Data (NDJSON)](https://sanity-io.github.io/sanity-mcp-server/quality-tag-checkpoint.ndjson) - Historical quality metrics for all releases
-
-#### GitHub Pages Quality Report Setup
-
-To view the quality report on GitHub Pages:
-
-1. Ensure GitHub Pages is enabled in the repository settings
-   - Go to repository Settings → Pages
-   - Under "Build and deployment" → "Source", select "GitHub Actions"
-   - Save the changes
-
-2. The quality report is automatically updated whenever:
-   - Changes are pushed to the main branch
-   - A new release tag is created
-
-3. Access the report at the URL shown in the workflow run summary
-
-Quality metrics are automatically updated on each release and can be manually generated with `npm run quality:report`.
+The generated dashboard provides a visual representation of these metrics over time, making it easy to track progress.
 
 ## License
 

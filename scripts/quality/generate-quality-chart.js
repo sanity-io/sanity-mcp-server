@@ -17,7 +17,7 @@ function generateQualityChart() {
   // Read the NDJSON file
   if (!fs.existsSync(CHECKPOINT_FILE)) {
     console.error(`Checkpoint file not found: ${CHECKPOINT_FILE}`);
-    console.error('Run quality:checkpoint first to generate data');
+    console.error('Run quality:save-snapshot first to generate data');
     return;
   }
   

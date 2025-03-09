@@ -192,7 +192,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `find:duplicates`: Find duplicate code blocks
   - `complexity`: Check for cyclomatic and cognitive complexity
   - `quality:check`: Run all quality checks
-  - `quality:report`: Generate prioritized improvement recommendations
+  - `quality:analyze`: Generate prioritized improvement recommendations
+  - `quality:save-snapshot`: Save a quality metrics snapshot
+  - `quality:visualize`: Generate interactive dashboard
+  - `quality:dashboard`: Generate dashboard with test results
+  - `quality:full-report`: Run analysis and generate dashboard
 
 ### Changed
 - Refactored `applyPatchOperations` function in `documentHelpers.ts` to improve type safety and preserve backward compatibility

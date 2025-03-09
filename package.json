@@ -32,14 +32,12 @@
     "find:duplicates": "jscpd src --reporters html --output scripts/quality/output",
     "complexity": "eslint . --ext .ts --config config/.eslintrc.json --rule 'complexity: [\"error\", 10]' --rule 'sonarjs/cognitive-complexity: [\"error\", 10]' -f json > scripts/quality/output/complexity-report.json || true",
     "quality:check": "npm run lint && npm run complexity && npm run find:duplicates && npm run test:coverage",
-    "quality:checkpoint": "node scripts/quality/generate-quality-checkpoint.js",
-    "quality:chart": "node scripts/quality/generate-quality-chart.js",
-    "quality:update-readme": "node scripts/quality/update-readme-metrics.js",
-    "quality:report": "node scripts/quality/generate-report.js",
+    "quality:dashboard": "npm run quality:collect-tests && npm run quality:save-snapshot && npm run quality:visualize",
     "quality:collect-tests": "node scripts/quality/collect-test-results.js",
-    "quality:test-dashboard": "npm run quality:collect-tests && npm run quality:checkpoint && npm run quality:chart",
+    "quality:save-snapshot": "node scripts/quality/generate-quality-checkpoint.js",
+    "quality:visualize": "node scripts/quality/generate-quality-chart.js",
     "prerelease": "npm run test:integration",
-    "release": "npm run build && npm version patch && npm run quality:report && git add README.md && git commit -m \"Update quality metrics in README\" && git push",
+    "release": "npm run build && npm version patch && npm run quality:dashboard && git add README.md && git commit -m \"Update quality metrics in README\" && git push",
     "prepare": "husky install"
   },
   "dependencies": {
