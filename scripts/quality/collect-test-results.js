@@ -10,39 +10,71 @@ const TEST_RESULTS_DIR = path.dirname(TEST_RESULTS_FILE);
 
 /**
  * Collects test results from different test suites
- * Returns a JSON structure with test results
+ * @param {Object} options - Collection options
+ * @param {boolean} options.useExisting - Use existing test results if available
+ * @param {boolean} options.skipIntegration - Skip integration tests (faster)
+ * @param {boolean} options.verbose - Show detailed output
+ * @returns {Array} A JSON structure with test results
  */
-function collectTestResults() {
+function collectTestResults(options = {}) {
+  const { useExisting = false, skipIntegration = false, verbose = false } = options;
+
   console.log('Collecting test results...');
   
+  // Check if we should use existing results
+  if (useExisting && fs.existsSync(TEST_RESULTS_FILE)) {
+    try {
+      console.log('Using existing test results...');
+      const savedResults = JSON.parse(fs.readFileSync(TEST_RESULTS_FILE, 'utf8'));
+      if (savedResults && savedResults.results && savedResults.results.length > 0) {
+        console.log(`Loaded ${savedResults.results.length} test suite results`);
+        return savedResults.results;
+      }
+    } catch (error) {
+      console.error(`Error reading existing test results: ${error.message}`);
+      console.log('Falling back to running tests...');
+    }
+  }
+  
   // Define test suites in order of importance
-  const testSuites = [
+  let testSuites = [
     { 
       name: 'Core Integration Tests', 
       command: 'npm run test:integration:critical -- --reporter json',
-      importance: 'critical'
+      importance: 'critical',
+      type: 'integration'
     },
     { 
       name: 'Standard Integration Tests', 
       command: 'npm run test:integration:standard -- --reporter json',
-      importance: 'high'
+      importance: 'high',
+      type: 'integration'
     },
     { 
       name: 'Extended Integration Tests', 
       command: 'npm run test:integration:extended -- --reporter json',
-      importance: 'medium'
+      importance: 'medium',
+      type: 'integration'
     },
     { 
       name: 'Unit Tests', 
       command: 'npm run test:unit -- --reporter json',
-      importance: 'high'
+      importance: 'high',
+      type: 'unit'
     },
     { 
       name: 'Controller Tests', 
       command: 'npm run test:controllers -- --reporter json',
-      importance: 'medium'
+      importance: 'medium',
+      type: 'unit'
     }
   ];
+  
+  // Apply filters if required
+  if (skipIntegration) {
+    console.log('Skipping integration tests for faster results...');
+    testSuites = testSuites.filter(suite => suite.type !== 'integration');
+  }
   
   const results = [];
   
@@ -50,7 +82,10 @@ function collectTestResults() {
   for (const suite of testSuites) {
     console.log(`Running ${suite.name}...`);
     try {
-      const output = execSync(suite.command, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+      const output = execSync(suite.command, { 
+        encoding: 'utf8', 
+        stdio: ['pipe', 'pipe', verbose ? 'inherit' : 'pipe'] 
+      });
       const jsonStart = output.indexOf('{');
       if (jsonStart >= 0) {
         const jsonOutput = output.substring(jsonStart);
@@ -111,9 +146,15 @@ function collectTestResults() {
   return results;
 }
 
+// Parse command line arguments
+const args = process.argv.slice(2);
+const useExisting = args.includes('--use-existing');
+const skipIntegration = args.includes('--skip-integration');
+const verbose = args.includes('--verbose');
+
 // Run if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  collectTestResults();
+  collectTestResults({ useExisting, skipIntegration, verbose });
 }
 
 export { collectTestResults }; 

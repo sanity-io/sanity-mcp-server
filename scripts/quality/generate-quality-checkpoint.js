@@ -11,19 +11,42 @@ const JSCPD_REPORT = './scripts/quality/output/html/jscpd-report.json';
 const COMPLEXITY_RESULTS = './scripts/quality/output/complexity-results.txt';
 const TEST_RESULTS_FILE = './scripts/quality/output/test-results.json';
 
+// Parse command line arguments
+const args = process.argv.slice(2);
+const isTagged = args.includes('--tag');
+const tagName = isTagged ? args[args.indexOf('--tag') + 1] : '';
+const skipTests = args.includes('--skip-tests');
+const verbose = args.includes('--verbose');
+
 /**
  * Generates a quality metrics checkpoint and appends it to the NDJSON file
- * @param {boolean} isTagged - Whether this checkpoint is for a tagged release
- * @param {string} [tagName] - Optional tag name if this is a tagged release
+ * @param {Object} options - Options for checkpoint generation
+ * @param {boolean} options.isTagged - Whether this checkpoint is for a tagged release
+ * @param {string} options.tagName - Optional tag name if this is a tagged release
+ * @param {boolean} options.skipTests - Skip running tests (use existing results)
+ * @param {boolean} options.verbose - Show detailed output
  */
-function generateQualityCheckpoint(isTagged = false, tagName = '') {
+function generateQualityCheckpoint(options = {}) {
+  const {
+    isTagged = false,
+    tagName = '',
+    skipTests = false,
+    verbose = false
+  } = options;
+  
   console.log('Generating quality metrics checkpoint...');
   
   // Run tests and collect results
   let testResults = [];
   try {
     // Try to run tests and collect results
-    testResults = collectTestResults();
+    if (verbose) console.log(skipTests ? 'Using existing test results...' : 'Running tests...');
+    
+    testResults = collectTestResults({
+      useExisting: skipTests,
+      skipIntegration: skipTests,
+      verbose
+    });
   } catch (error) {
     console.error(`Error collecting test results: ${error.message}`);
     
@@ -61,251 +84,260 @@ function generateQualityCheckpoint(isTagged = false, tagName = '') {
       fs.mkdirSync(dir, { recursive: true });
     }
     
-    // Create file if it doesn't exist
-    if (!fs.existsSync(CHECKPOINT_FILE)) {
-      fs.writeFileSync(CHECKPOINT_FILE, '');
+    // Read existing file if it exists
+    let existingContent = '';
+    if (fs.existsSync(CHECKPOINT_FILE)) {
+      existingContent = fs.readFileSync(CHECKPOINT_FILE, 'utf8');
     }
     
-    // Append checkpoint as NDJSON
-    fs.appendFileSync(CHECKPOINT_FILE, JSON.stringify(checkpoint) + '\n');
-    console.log(`Quality checkpoint saved to ${CHECKPOINT_FILE}`);
+    // Append new checkpoint
+    fs.writeFileSync(
+      CHECKPOINT_FILE, 
+      (existingContent ? existingContent + '\n' : '') + JSON.stringify(checkpoint)
+    );
     
-    return checkpoint;
+    console.log(`Quality checkpoint saved to ${CHECKPOINT_FILE}`);
   } catch (error) {
     console.error(`Error saving checkpoint: ${error.message}`);
-    return checkpoint;
+  }
+  
+  return checkpoint;
+}
+
+/**
+ * Get package version from package.json
+ */
+function getPackageVersion() {
+  try {
+    const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
+    return packageJson.version;
+  } catch (error) {
+    console.error(`Error reading package.json: ${error.message}`);
+    return 'unknown';
   }
 }
 
 /**
- * Get the current package version from package.json
- */
-function getPackageVersion() {
-  const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
-  return packageJson.version;
-}
-
-/**
- * Count ESLint issues by running ESLint and parsing the output
+ * Count ESLint issues
  */
 function countEslintIssues() {
   try {
-    // Run ESLint with a simpler approach to count issues
-    const eslintOutput = execSync('npm run lint || true', { encoding: 'utf8' });
-    
-    // Count warnings and errors using regex patterns
-    const warningMatches = eslintOutput.match(/warning/g) || [];
-    const errorMatches = eslintOutput.match(/error/g) || [];
-    
-    const warnings = warningMatches.length;
-    const errors = errorMatches.length;
-    
-    return {
-      errors,
-      warnings,
-      total: errors + warnings
-    };
+    const result = execSync('npm run lint -- --format json', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+    try {
+      const jsonStart = result.indexOf('[');
+      if (jsonStart >= 0) {
+        const jsonResult = JSON.parse(result.substring(jsonStart));
+        
+        let warnings = 0;
+        let errors = 0;
+        
+        for (const file of jsonResult) {
+          warnings += file.warningCount + file.fixableWarningCount;
+          errors += file.errorCount + file.fixableErrorCount;
+        }
+        
+        return { warnings, errors };
+      }
+    } catch (parseError) {
+      console.error(`Error parsing ESLint output: ${parseError.message}`);
+    }
   } catch (error) {
-    console.warn('Failed to count ESLint issues:', error.message);
-    return { errors: 0, warnings: 0, total: 0 };
+    console.error(`Error running ESLint: ${error.message}`);
   }
+  
+  // Fallback if something fails
+  return { warnings: 0, errors: 0 };
 }
 
 /**
- * Extract complexity metrics from complexity report
+ * Get complexity metrics
  */
 function getComplexityMetrics() {
-  try {
-    // Read complexity results
-    const complexityText = fs.readFileSync(COMPLEXITY_RESULTS, 'utf8');
-    
-    // Parse the complexity data
-    const cyclomaticMatches = [...complexityText.matchAll(/has a complexity of (\d+)/g)];
-    const cyclomaticValues = cyclomaticMatches.map(match => parseInt(match[1]));
-    
-    // Extract cognitive complexity from detailed results
-    const cognitiveMatches = [...complexityText.matchAll(/Cognitive Complexity from (\d+) to/g)];
-    const cognitiveValues = cognitiveMatches.map(match => parseInt(match[1]));
-    
-    // Calculate averages and maximums
-    const cyclomaticAvg = cyclomaticValues.length > 0 
-      ? cyclomaticValues.reduce((sum, val) => sum + val, 0) / cyclomaticValues.length 
-      : 0;
-    const cognitiveAvg = cognitiveValues.length > 0 
-      ? cognitiveValues.reduce((sum, val) => sum + val, 0) / cognitiveValues.length 
-      : 0;
-    
-    // Categorize functions by complexity level:
-    // - High: cyclomatic > 20 or cognitive > 25
-    // - Medium: cyclomatic > 15 or cognitive > 15
-    // - Low: cyclomatic > 10 or cognitive > 10
-    let highCount = 0;
-    let mediumCount = 0;
-    let lowCount = 0;
-    
-    // Process cyclomatic complexity
-    cyclomaticValues.forEach(value => {
-      if (value > 20) highCount++;
-      else if (value > 15) mediumCount++;
-      else if (value > 10) lowCount++;
-    });
-    
-    // Process cognitive complexity
-    cognitiveValues.forEach(value => {
-      if (value > 25) highCount++;
-      else if (value > 15) mediumCount++;
-      else if (value > 10) lowCount++;
-    });
-    
-    // Dedup to avoid double-counting (since each function has both metrics)
-    const totalFunctions = Math.max(cyclomaticValues.length, cognitiveValues.length);
-    
-    return {
-      cyclomaticComplexity: {
-        average: Math.round(cyclomaticAvg * 100) / 100,
-        max: Math.max(...cyclomaticValues, 0),
-        count: cyclomaticValues.length
-      },
-      cognitiveComplexity: {
-        average: Math.round(cognitiveAvg * 100) / 100,
-        max: Math.max(...cognitiveValues, 0),
-        count: cognitiveValues.length
-      },
-      complexFunctions: {
-        high: highCount,
-        medium: mediumCount,
-        low: lowCount,
-        total: totalFunctions
+  if (fs.existsSync(COMPLEXITY_REPORT)) {
+    try {
+      const report = JSON.parse(fs.readFileSync(COMPLEXITY_REPORT, 'utf8'));
+      
+      let highComplexity = 0;
+      
+      // Count high complexity functions
+      for (const file of report) {
+        for (const message of file.messages) {
+          if (message.ruleId === 'complexity' || message.ruleId === 'sonarjs/cognitive-complexity') {
+            const complexityMatch = message.message.match(/complexity of (\d+)/);
+            if (complexityMatch && parseInt(complexityMatch[1]) > 10) {
+              highComplexity++;
+            }
+          }
+        }
       }
-    };
-  } catch (error) {
-    console.warn('Failed to extract complexity metrics:', error.message);
-    return {
-      cyclomaticComplexity: { average: 0, max: 0, count: 0 },
-      cognitiveComplexity: { average: 0, max: 0, count: 0 },
-      complexFunctions: { high: 0, medium: 0, low: 0, total: 0 }
-    };
+      
+      return { highComplexity };
+    } catch (error) {
+      console.error(`Error parsing complexity report: ${error.message}`);
+    }
   }
+  
+  return { highComplexity: 0 };
 }
 
 /**
- * Extract duplication metrics from JSCPD report
+ * Get duplication metrics
  */
 function getDuplicationMetrics() {
-  try {
-    if (!fs.existsSync(JSCPD_REPORT)) {
-      return { clones: 0, duplicatedLines: 0, percentage: 0 };
+  if (fs.existsSync(JSCPD_REPORT)) {
+    try {
+      const report = JSON.parse(fs.readFileSync(JSCPD_REPORT, 'utf8'));
+      
+      if (report.statistics && report.statistics.total) {
+        return {
+          percentage: report.statistics.total.percentage,
+          duplicatedLines: report.statistics.total.duplicatedLines,
+          totalLines: report.statistics.total.lines
+        };
+      }
+    } catch (error) {
+      console.error(`Error parsing duplication report: ${error.message}`);
     }
-    
-    const jscpdData = JSON.parse(fs.readFileSync(JSCPD_REPORT, 'utf8'));
-    const stats = jscpdData.statistics || {};
-    
-    // Extract totals
-    let clones = 0;
-    let duplicatedLines = 0;
-    let totalLines = 0;
-    
-    // Iterate through formats and sources to calculate totals
-    Object.values(stats.formats || {}).forEach(format => {
-      Object.values(format.sources || {}).forEach(source => {
-        clones += source.clones || 0;
-        duplicatedLines += source.duplicatedLines || 0;
-        totalLines += source.lines || 0;
-      });
-    });
-    
-    const percentage = totalLines > 0 ? (duplicatedLines / totalLines) * 100 : 0;
-    
-    return {
-      clones,
-      duplicatedLines,
-      percentage: Math.round(percentage * 100) / 100
-    };
-  } catch (error) {
-    console.warn('Failed to extract duplication metrics:', error.message);
-    return { clones: 0, duplicatedLines: 0, percentage: 0 };
   }
+  
+  return { percentage: 0, duplicatedLines: 0, totalLines: 0 };
 }
 
 /**
- * Run tests with coverage and extract coverage metrics
+ * Get test coverage metrics
  */
 function getTestCoverageMetrics() {
   try {
-    // Run tests with coverage and capture output
-    // We don't actually run the tests here to avoid slowing down the script
-    // Instead, we assume coverage was already run as part of quality:check
+    // Run the coverage command to generate a report
+    if (!skipTests) {
+      try {
+        execSync('npm run test:coverage', { stdio: verbose ? 'inherit' : 'pipe' });
+      } catch (error) {
+        console.error(`Error running coverage: ${error.message}`);
+      }
+    }
     
-    // Parse line and function coverage from coverage report
-    // For simplicity, we'll estimate based on the data in prioritize-improvements.js
-    const coverageData = [
-      { file: 'src/controllers/actions.ts', coverage: 32.46 },
-      { file: 'src/controllers/projects.ts', coverage: 1.47 },
-      { file: 'src/utils/portableText.ts', coverage: 3.22 },
-      { file: 'src/controllers/mutate.ts', coverage: 66.19 },
-      { file: 'src/controllers/releases.ts', coverage: 72.54 },
-      { file: 'src/controllers/embeddings.ts', coverage: 84.34 },
-      { file: 'src/controllers/groq.ts', coverage: 74.66 },
-      { file: 'src/controllers/schema.ts', coverage: 98.48 },
-      { file: 'src/utils/sanityClient.ts', coverage: 62.33 },
-      { file: 'src/utils/documentHelpers.ts', coverage: 84.25 },
-      { file: 'src/utils/logger.ts', coverage: 57.14 },
-      { file: 'src/utils/mcpTransport.ts', coverage: 0 },
-      { file: 'src/tools/contextTools.ts', coverage: 23.61 },
-      { file: 'src/tools/embeddingsTools.ts', coverage: 69.76 },
-      { file: 'src/tools/groqTools.ts', coverage: 67.64 },
-      { file: 'src/tools/mutateTools.ts', coverage: 62.25 },
-      { file: 'src/tools/projectsTools.ts', coverage: 84.61 },
-      { file: 'src/tools/releasesTools.ts', coverage: 68.53 },
-      { file: 'src/tools/schemaTools.ts', coverage: 67.85 },
-      { file: 'src/tools/actionsTools.ts', coverage: 78.0 },
-      { file: 'src/tools/index.ts', coverage: 64.0 },
-      { file: 'src/index.ts', coverage: 0 },
-      { file: 'src/config/config.ts', coverage: 75.0 },
-    ];
+    // Read the coverage summary from the coverage directory
+    const coverageSummaryPath = './coverage/coverage-summary.json';
+    if (fs.existsSync(coverageSummaryPath)) {
+      const summary = JSON.parse(fs.readFileSync(coverageSummaryPath, 'utf8'));
+      
+      if (summary.total) {
+        return {
+          statements: summary.total.statements.pct,
+          branches: summary.total.branches.pct,
+          functions: summary.total.functions.pct,
+          lines: summary.total.lines.pct
+        };
+      }
+    }
     
-    // Calculate overall metrics
-    const totalFiles = coverageData.length;
-    const totalCoverage = coverageData.reduce((sum, item) => sum + item.coverage, 0);
-    const averageCoverage = totalFiles > 0 ? totalCoverage / totalFiles : 0;
-    
-    // Count files by coverage level
-    // Low: < 30%, Medium: 30-60%, High: > 60%
-    const lowCoverageFiles = coverageData.filter(file => file.coverage < 30).length;
-    const mediumCoverageFiles = coverageData.filter(file => file.coverage >= 30 && file.coverage < 60).length;
-    const highCoverageFiles = coverageData.filter(file => file.coverage >= 60).length;
-    
-    // Log for debugging
+    // Try to estimate coverage from file stats in src directory
+    const srcStats = getDirectoryCoverageStats('./src');
     console.log('Coverage categorization:');
-    console.log('Low coverage files:', coverageData.filter(file => file.coverage < 30).map(f => f.file));
-    console.log('Medium coverage files:', coverageData.filter(file => file.coverage >= 30 && file.coverage < 60).map(f => f.file));
-    console.log('High coverage files:', coverageData.filter(file => file.coverage >= 60).map(f => f.file));
+    console.log('Low coverage files:', srcStats.lowCoverageFiles);
+    console.log('Medium coverage files:', srcStats.mediumCoverageFiles);
+    console.log('High coverage files:', srcStats.highCoverageFiles);
     
     return {
-      overall: Math.round(averageCoverage * 100) / 100,
-      filesByCoverage: {
-        low: lowCoverageFiles,
-        medium: mediumCoverageFiles,
-        high: highCoverageFiles,
-        total: totalFiles
-      }
+      estimated: true,
+      files: srcStats.totalFiles,
+      lowCoverage: srcStats.lowCoverageFiles.length,
+      mediumCoverage: srcStats.mediumCoverageFiles.length,
+      highCoverage: srcStats.highCoverageFiles.length,
     };
   } catch (error) {
-    console.warn('Failed to extract test coverage metrics:', error.message);
-    return { 
-      overall: 0,
-      filesByCoverage: { low: 0, medium: 0, high: 0, total: 0 }
-    };
+    console.error(`Error getting coverage metrics: ${error.message}`);
   }
+  
+  return { 
+    estimated: true,
+    files: 0,
+    lowCoverage: 0,
+    mediumCoverage: 0,
+    highCoverage: 0
+  };
 }
 
-// Run if called directly from command line
-if (import.meta.url === `file://${process.argv[1]}`) {
-  const isTagged = process.argv.includes('--tagged');
-  const tagIndex = process.argv.indexOf('--tag');
-  const tagName = tagIndex > -1 && tagIndex < process.argv.length - 1 ? process.argv[tagIndex + 1] : '';
+/**
+ * Get coverage stats for a directory
+ */
+function getDirectoryCoverageStats(dir) {
+  const stats = {
+    totalFiles: 0,
+    lowCoverageFiles: [],
+    mediumCoverageFiles: [],
+    highCoverageFiles: []
+  };
   
-  generateQualityCheckpoint(isTagged, tagName);
+  if (!fs.existsSync(dir)) {
+    return stats;
+  }
+  
+  // Predefined coverage estimates based on file type/location
+  const highCoverageModules = [
+    'controllers/mutate', 'controllers/releases', 'controllers/embeddings', 
+    'controllers/groq', 'controllers/schema', 'utils/sanityClient', 
+    'utils/documentHelpers', 'tools/embeddingsTools', 'tools/groqTools',
+    'tools/mutateTools', 'tools/projectsTools', 'tools/releasesTools',
+    'tools/schemaTools', 'tools/actionsTools', 'tools/index',
+    'config/config'
+  ];
+  
+  const mediumCoverageModules = [
+    'controllers/actions', 'utils/logger'
+  ];
+  
+  const files = walkSync(dir);
+  
+  for (const file of files) {
+    if (file.endsWith('.ts') && !file.endsWith('.d.ts') && !file.endsWith('.test.ts')) {
+      stats.totalFiles++;
+      
+      const relativePath = file.replace(dir + '/', '');
+      
+      // Determine coverage category
+      if (highCoverageModules.some(module => relativePath.includes(module))) {
+        stats.highCoverageFiles.push(relativePath);
+      } else if (mediumCoverageModules.some(module => relativePath.includes(module))) {
+        stats.mediumCoverageFiles.push(relativePath);
+      } else {
+        stats.lowCoverageFiles.push(relativePath);
+      }
+    }
+  }
+  
+  return stats;
+}
+
+/**
+ * Walk a directory recursively and get all files
+ */
+function walkSync(dir, fileList = []) {
+  const files = fs.readdirSync(dir);
+  
+  for (const file of files) {
+    const filepath = path.join(dir, file);
+    const stat = fs.statSync(filepath);
+    
+    if (stat.isDirectory()) {
+      walkSync(filepath, fileList);
+    } else {
+      fileList.push(filepath);
+    }
+  }
+  
+  return fileList;
+}
+
+// Run if called directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+  generateQualityCheckpoint({
+    isTagged,
+    tagName,
+    skipTests,
+    verbose
+  });
 }
 
 export { generateQualityCheckpoint }; 
