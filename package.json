@@ -36,6 +36,10 @@
     "quality:collect-tests": "node scripts/quality/collect-test-results.js",
     "quality:save-snapshot": "node scripts/quality/generate-quality-checkpoint.js",
     "quality:visualize": "node scripts/quality/generate-quality-chart.js",
+    "quality:fast": "node scripts/quality/fast-dashboard.js",
+    "quality:diagnose": "node scripts/quality/diagnose-metrics.js",
+    "quality:diagnose:fix": "node scripts/quality/diagnose-metrics.js --verbose --fix",
+    "quality:complexity": "npm run complexity && node scripts/quality/analyze-complexity.js",
     "prerelease": "npm run test:integration",
     "release": "npm run build && npm version patch && npm run quality:dashboard && git add README.md && git commit -m \"Update quality metrics in README\" && git push",
     "prepare": "husky install"
