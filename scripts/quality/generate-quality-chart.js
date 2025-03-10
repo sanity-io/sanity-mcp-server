@@ -363,11 +363,24 @@ function generateHtml(checkpoints) {
       color: #F44336;
       font-weight: bold;
     }
+    .test-failed {
+      background-color: #FFEBEE !important;  /* Light red background for failed tests */
+    }
     .importance-critical {
-      background-color: #FFEBEE;
+      background-color: #F8F9FA;  /* Light gray instead of light red */
+      border-left: 4px solid #F44336;  /* Red indicator on the left only */
     }
     .importance-high {
-      background-color: #FFF8E1;
+      background-color: #F8F9FA;  /* Light gray instead of light yellow */
+      border-left: 4px solid #FF9800;  /* Orange indicator on the left only */
+    }
+    .importance-medium {
+      background-color: #F8F9FA;  /* Light gray */
+      border-left: 4px solid #2196F3;  /* Blue indicator on the left */
+    }
+    .importance-low {
+      background-color: #F8F9FA;  /* Light gray */
+      border-left: 4px solid #4CAF50;  /* Green indicator on the left */
     }
     .section-heading {
       font-size: 18px;
@@ -469,7 +482,7 @@ function generateHtml(checkpoints) {
               return a.name.localeCompare(b.name);
             })
             .map(suite => `
-              <tr class="importance-${suite.importance}">
+              <tr class="importance-${suite.importance}${!suite.success ? ' test-failed' : ''}">
                 <td>${suite.name}</td>
                 <td class="status-${suite.success ? 'passed' : 'failed'}">${suite.success ? 'PASSED' : 'FAILED'}</td>
                 <td>${suite.passed}</td>
