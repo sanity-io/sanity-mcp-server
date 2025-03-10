@@ -76,39 +76,12 @@ function execWithTiming(command, operation, options = {}) {
     try {
       return execSync(command, { stdio: 'inherit', ...options });
     } catch (err) {
-      // If the command fails but we're continuing anyway, don't rethrow
-      if (options.continueOnError) {
-        console.warn(`⚠️ Command failed but continuing: ${command}`);
-        return null;
-      }
-      throw err;
+      // HARD FAIL: If a command fails, the whole dashboard should fail
+      console.error(`Command failed: ${command}`);
+      console.error(err.message);
+      throw new Error(`${operation} failed - fix the underlying issues before generating metrics`);
     }
   });
-}
-
-/**
- * Checks if a file exists and is recent (within the last hour)
- */
-function isFileRecentAndValid(filePath) {
-  if (!fs.existsSync(filePath)) {
-    return false;
-  }
-  
-  try {
-    // Check if the file is readable and contains valid data
-    const content = fs.readFileSync(filePath, 'utf8');
-    if (!content || content.trim().length === 0) {
-      return false;
-    }
-    
-    // Check if the file is recent (less than 1 hour old)
-    const stats = fs.statSync(filePath);
-    const fileAge = Date.now() - stats.mtimeMs;
-    return fileAge < 3600000; // 1 hour in milliseconds
-  } catch (err) {
-    console.warn(`Error checking file ${filePath}: ${err.message}`);
-    return false;
-  }
 }
 
 /**
@@ -126,19 +99,15 @@ async function generateFastDashboard() {
     // OPTIMIZATION STRATEGY:
     // 1. Run only unit tests for faster execution
     // 2. Pass appropriate flags to scripts to avoid duplicate work
-    // 3. NEVER use stale data - always run the minimal set of tests needed
-    
-    // Step 1: Run only unit tests if needed
-    const testResultsExist = isFileRecentAndValid(TEST_RESULTS_FILE);
+    // 3. NEVER use stale data - always generate fresh data
     
     if (!skipTests && !skipAll) {
-      // We only need to run unit tests and collect them directly
-      // Skip the controller and integration tests for speed
-      execWithTiming('npm run test:unit', 'Unit Tests', { continueOnError: true });
+      // Run unit tests directly
+      execWithTiming('npm run test:unit', 'Unit Tests');
       
-      // Collect test results and any unit test results
+      // Collect test results
       // Skip TypeScript type checking for faster execution
-      // Skip running integration tests but use fresh unit test data
+      // Skip running integration tests for speed
       execWithTiming(
         'node scripts/quality/collect-test-results.js --skip-integration --skip-typecheck', 
         'Test Results Collection'
@@ -146,30 +115,29 @@ async function generateFastDashboard() {
     } else if (skipTests || skipAll) {
       console.log('⚠️ WARNING: Skipping tests as requested. Dashboard will NOT be accurate!');
       console.log('   This should ONLY be used for development purposes.');
-      console.log('   Run a full dashboard before committing or reviewing metrics.');
+      console.log('   For accurate metrics, re-run without skipping tests.');
       
-      // Even when skipping tests, we should make it clear they're being skipped
-      // rather than using stale data silently
+      // Even when skipping tests, make it clear that data will be incomplete
       execWithTiming(
-        'node scripts/quality/collect-test-results.js --skip-integration --skip-unit --skip-controllers', 
-        'Test Results Collection (SKIPPED - no test data will be available)'
+        'node scripts/quality/collect-test-results.js --skip-all', 
+        'Test Results Collection (SKIPPED - metrics will be incomplete)'
       );
     }
     
-    // Step 2: Run complexity analysis if needed
+    // Run complexity analysis if not explicitly skipped
     if (!skipComplexity && !skipAll) {
       // Break this down into smaller steps for more detailed profiling
       measureTime('Complexity Analysis', () => {
-        execWithTiming('npm run complexity', 'ESLint Complexity Check', { continueOnError: true });
+        execWithTiming('npm run complexity', 'ESLint Complexity Check');
         execWithTiming('node scripts/quality/analyze-complexity.js', 'Complexity Data Processing');
       });
     } else if (skipComplexity || skipAll) {
-      console.log('⚠️ WARNING: Skipping complexity analysis as requested. Dashboard will NOT be accurate!');
+      console.log('⚠️ WARNING: Skipping complexity analysis. Dashboard will NOT be accurate!');
       console.log('   This should ONLY be used for development purposes.');
-      console.log('   Run a full dashboard before committing or reviewing metrics.');
+      console.log('   For accurate metrics, re-run without skipping complexity analysis.');
     }
     
-    // Step 3: Generate quality snapshot
+    // Generate quality snapshot
     if (!skipAll) {
       // Pass the flags to indicate what data we are/aren't collecting
       const snapshotFlags = [];
@@ -181,12 +149,12 @@ async function generateFastDashboard() {
         'Quality Snapshot Generation'
       );
     } else {
-      console.log('⚠️ WARNING: Skipping snapshot generation as requested. Dashboard will NOT be accurate!');
+      console.log('⚠️ WARNING: Skipping snapshot generation. Dashboard will NOT be accurate!');
       console.log('   This should ONLY be used for development purposes.');
-      console.log('   Run a full dashboard before committing or reviewing metrics.');
+      console.log('   For accurate metrics, re-run without skipping steps.');
     }
     
-    // Step 4: Generate the dashboard
+    // Generate the dashboard
     execWithTiming('npm run quality:visualize', 'Chart Generation');
     
     // Calculate and display performance stats
@@ -219,6 +187,9 @@ async function generateFastDashboard() {
       console.log('\n⚠️ Some verification tests failed. Dashboard may be incomplete.');
       console.log('   Run the diagnostic tool for more information:');
       console.log('   node scripts/quality/diagnose-metrics.js --verbose');
+      
+      // HARD FAIL even if just verification tests fail
+      throw new Error('Dashboard verification tests failed - metrics may be incorrect or incomplete');
     }
     
     return { success: true, duration };
@@ -232,7 +203,8 @@ async function generateFastDashboard() {
       printTimingInfo(duration);
     }
     
-    return { success: false, error: err.message };
+    // Propagate the error to fail the process
+    throw err;
   }
 }
 

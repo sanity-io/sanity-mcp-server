@@ -17,7 +17,6 @@ const isTagged = args.includes('--tag');
 const tagName = isTagged ? args[args.indexOf('--tag') + 1] : '';
 const skipTests = args.includes('--skip-tests');
 const verbose = args.includes('--verbose');
-const forceRun = args.includes('--force');  // Add a force flag for CI environments that need to bypass failures
 
 /**
  * Generates a quality metrics checkpoint and appends it to the NDJSON file
@@ -26,15 +25,13 @@ const forceRun = args.includes('--force');  // Add a force flag for CI environme
  * @param {string} options.tagName - Optional tag name if this is a tagged release
  * @param {boolean} options.skipTests - Skip running tests (use existing results)
  * @param {boolean} options.verbose - Show detailed output
- * @param {boolean} options.force - Force checkpoint generation even if some metrics fail
  */
 function generateQualityCheckpoint(options = {}) {
   const {
     isTagged = false,
     tagName = '',
     skipTests = false,
-    verbose = false,
-    force = false
+    verbose = false
   } = options;
   
   console.log('Generating quality metrics checkpoint...');
@@ -45,11 +42,6 @@ function generateQualityCheckpoint(options = {}) {
     // Try to run tests and collect results
     if (verbose) console.log(skipTests ? 'Using existing test results...' : 'Running tests...');
     
-    // Set environment variable to allow test failures if force is true
-    if (force) {
-      process.env.ALLOW_TEST_FAILURES = 'true';
-    }
-    
     testResults = collectTestResults({
       useExisting: skipTests,
       skipIntegration: skipTests,
@@ -59,20 +51,8 @@ function generateQualityCheckpoint(options = {}) {
   } catch (error) {
     console.error(`Error collecting test results: ${error.message}`);
     
-    // NEVER use stale results - fail the process
-    if (!force) {
-      console.error('Quality checkpoint generation aborted - test collection failed');
-      console.error('Fix the failing tests before generating quality metrics');
-      console.error('Use --force flag only in emergencies to bypass this check (NOT RECOMMENDED)');
-      process.exit(1);
-    } else {
-      console.warn('WARNING: Proceeding despite test failures because --force flag was used');
-      console.warn('This is NOT RECOMMENDED and should only be used in emergency situations');
-      console.warn('The resulting metrics will be incomplete and potentially misleading');
-      
-      // Create empty test results as a last resort
-      testResults = [];
-    }
+    // HARD FAIL: No bypass for test failures
+    throw new Error(`Quality checkpoint generation aborted - test collection failed: ${error.message}`);
   }
   
   // Create checkpoint object
@@ -86,7 +66,7 @@ function generateQualityCheckpoint(options = {}) {
       complexity: getComplexityMetrics(),
       duplication: getDuplicationMetrics(),
       testCoverage: getTestCoverageMetrics(),
-      testResults: testResults.length > 0 ? testResults : undefined
+      testResults: testResults
     }
   };
   
@@ -406,14 +386,9 @@ function getTestCoverageMetrics() {
         console.log('Running test coverage collection...');
         execSync('npm run test:coverage', { stdio: verbose ? 'inherit' : 'pipe' });
       } catch (error) {
-        // If coverage command fails and we're not in force mode, we should fail
-        if (!forceRun) {
-          console.error(`Error running coverage: ${error.message}`);
-          throw new Error('Coverage collection failed - fix the tests before generating metrics');
-        } else {
-          console.warn('WARNING: Coverage collection failed, but continuing due to --force flag');
-          console.warn('The resulting coverage metrics will be incomplete');
-        }
+        // HARD FAIL: If coverage collection fails, the entire process should fail
+        console.error(`Error running coverage: ${error.message}`);
+        throw new Error('Coverage collection failed - fix the tests before generating metrics');
       }
     } else if (verbose) {
       console.log('Skipping coverage collection as requested with --skip-tests');
@@ -466,23 +441,20 @@ function getTestCoverageMetrics() {
       } catch (error) {
         console.error(`Error parsing coverage summary: ${error.message}`);
         
-        // If we can't parse the coverage summary and we're not in force mode, fail
-        if (!forceRun) {
-          throw new Error('Failed to parse coverage data - check coverage-final.json');
-        }
+        // HARD FAIL: If we can't parse the coverage summary
+        throw new Error('Failed to parse coverage data - check coverage-final.json');
       }
-    } else if (!skipTests && !forceRun) {
+    } else if (!skipTests) {
       // If we're not skipping tests and coverage file doesn't exist, that's an error
-      // unless we're in force mode
       throw new Error('Coverage data not found (coverage-final.json) - run tests with coverage before generating metrics');
-    }
-    
-    // If we get here and we're explicitly skipping tests, provide a placeholder structure
-    // but clearly mark it as containing no data
-    if (skipTests || forceRun) {
-      console.warn('WARNING: No coverage data available - metrics will be incomplete');
+    } else if (skipTests) {
+      // Only if we're explicitly skipping tests, make this clear
+      console.warn('WARNING: Coverage data not collected because tests were skipped');
+      console.warn('For accurate metrics, re-run without --skip-tests flag');
+      
+      // Return a clearly marked incomplete structure
       return {
-        notAvailable: true,
+        incomplete: true,
         overall: 0,
         filesByCoverage: {
           low: 0,
@@ -493,63 +465,14 @@ function getTestCoverageMetrics() {
       };
     }
     
-    // If we reach this point and we're not in force mode, we should not continue
-    if (!forceRun) {
-      throw new Error('No valid coverage data available - run tests with coverage first');
-    }
+    // If we reach this point, something is wrong with the test data collection
+    throw new Error('Coverage data collection failed - fix test coverage collection');
     
-    // Only as an absolute last resort when using --force, use directory stats to estimate
-    console.warn('WARNING: Using directory stats to estimate coverage - THIS IS NOT ACCURATE');
-    console.warn('Fix test coverage collection and regenerate metrics as soon as possible');
-    
-    const srcStats = getDirectoryCoverageStats('./src');
-    console.warn('Coverage categorization (ESTIMATED, NOT ACCURATE):');
-    console.warn('Low coverage files:', srcStats.lowCoverageFiles);
-    console.warn('Medium coverage files:', srcStats.mediumCoverageFiles);
-    console.warn('High coverage files:', srcStats.highCoverageFiles);
-    
-    // Calculate an estimated overall coverage based on file counts
-    const totalFiles = srcStats.totalFiles || 1; // Avoid division by zero
-    const weightedSum = 
-      srcStats.highCoverageFiles.length * 85 + 
-      srcStats.mediumCoverageFiles.length * 65 + 
-      srcStats.lowCoverageFiles.length * 30;
-    const estimatedOverall = Math.round(weightedSum / totalFiles);
-    
-    return {
-      estimated: true,
-      notRecommended: true,
-      overall: estimatedOverall,
-      files: srcStats.totalFiles,
-      filesByCoverage: {
-        low: srcStats.lowCoverageFiles.length,
-        medium: srcStats.mediumCoverageFiles.length,
-        high: srcStats.highCoverageFiles.length,
-        total: srcStats.totalFiles
-      }
-    };
   } catch (error) {
     console.error(`Error getting coverage metrics: ${error.message}`);
     
-    // If we're not in force mode, propagate the error to fail the process
-    if (!forceRun) {
-      throw error;
-    }
-    
-    // Only return this as a last resort with --force
-    console.warn('WARNING: Coverage metrics completely unavailable');
-    return { 
-      error: error.message,
-      notAvailable: true,
-      overall: 0,
-      files: 0,
-      filesByCoverage: {
-        low: 0,
-        medium: 0,
-        high: 0,
-        total: 0
-      }
-    };
+    // HARD FAIL: Propagate all errors
+    throw error;
   }
 }
 
@@ -630,8 +553,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     isTagged,
     tagName,
     skipTests,
-    verbose,
-    force: forceRun
+    verbose
   });
 }
 

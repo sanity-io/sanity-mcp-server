@@ -1,20 +1,28 @@
 # TODO
 
 ## Critical Priority
-1. [🔄] **NEVER USE STALE DATA IN QUALITY METRICS** (In Progress)
+1. [🔄] **NEVER USE STALE DATA IN QUALITY METRICS - HARD FAIL ONLY** (In Progress)
 
     - The quality dashboard must ALWAYS use fresh data, never cached results
     - Current issue: Some metrics are being reported with "estimated: true" and using cached test results
     - Cached metrics defeat the purpose of a quality dashboard and provide misleading information
-    - Fallback mechanisms should be removed entirely - stale data is NEVER acceptable under any circumstances
+    - ~~Fallback mechanisms should be removed entirely~~ → HARD FAIL when tests or metrics collection fails - no exceptions
+    - No environment variables or flags to bypass failures - fix the underlying issues instead
 
     ### Implementation plan
     1. [🔄] **Remove Stale Data Fallbacks**
-         - [ ] Identify all locations where stale data is being used as fallback
-         - [ ] Make all tests or metrics collection fail fast and explicitly rather than using old data
-         - [ ] Remove ALL fallback mechanisms to existing/cached data - stale data is not acceptable
-         - [ ] Enforce timestamp validation to prevent old data from being used unknowingly
-         - [ ] If tests fail, the dashboard generation should fail too - never display misleading metrics
+         - [✅] Identify all locations where stale data is being used as fallback
+         - [🔄] HARD FAIL with exceptions when tests or data collection fails - no bypass mechanisms
+         - [🔄] Remove ALL fallback mechanisms and environment variable workarounds
+         - [✅] Enforce timestamp validation to prevent old data from being used unknowingly
+         - [✅] If tests fail, the dashboard generation must fail - never display misleading metrics
+         
+    2. [ ] **Fix Core Data Collection Issues**
+         - [ ] Fix TypeScript errors in test files that cause collection to fail
+         - [ ] Debug and fix the test coverage collection process
+         - [ ] Make coverage generation robust and reliable
+         - [ ] Ensure all tests pass before generating quality metrics
+         - [ ] Create a CI check that fails if any metrics collection fails
 
 ## High Priority
 1. [ ] **Fix and Enhance Quality Dashboard**

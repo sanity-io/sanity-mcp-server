@@ -290,49 +290,16 @@ function collectTestResults(options = {}) {
       
       // Check specifically for TypeScript errors
       if (error.message.includes('TS2339')) {
-        errorDetail = 'TypeScript type errors found. Try running with --skip-typecheck option.';
+        errorDetail = 'TypeScript type errors found. Fix the TypeScript errors before proceeding.';
       } else if (error.stderr) {
         // Extract more useful error information if available
         errorDetail = `Exit code ${error.status}: ${error.stderr.toString()}`;
       }
       
-      // NEVER use existing results when tests fail - that would be misleading
-      // Instead, add a placeholder result with the error
-      results.push({
-        name: suite.name,
-        importance: suite.importance,
-        passed: 0,
-        failed: 1,  // Indicate a failure
-        total: 1,  // At least one test was attempted
-        success: false,
-        files: 0,
-        duration: 0,
-        error: errorDetail,
-        failedToRun: true  // Flag that this suite failed to run properly
-      });
-      
-      // Check if we're allowing test failures
-      const allowFailures = process.env.ALLOW_TEST_FAILURES === 'true';
-      
-      // If this is a critical or high importance test suite, fail the entire process
-      // unless we've explicitly set the environment variable to allow failures
-      if ((suite.importance === 'critical' || suite.importance === 'high') && !allowFailures) {
-        throw new Error(`Critical/high importance test suite failed: ${suite.name} - ${errorDetail}`);
-      } else if ((suite.importance === 'critical' || suite.importance === 'high') && allowFailures) {
-        console.warn(`⚠️ WARNING: Critical/high importance test suite failed: ${suite.name}`);
-        console.warn(`⚠️ Continuing only because ALLOW_TEST_FAILURES=true is set`);
-        console.warn(`⚠️ THE RESULTING METRICS WILL BE INCOMPLETE AND POTENTIALLY MISLEADING`);
-      }
+      // HARD FAIL: No fallbacks or environment variable workarounds
+      // Tests must pass for metrics to be meaningful
+      throw new Error(`Test suite failed: ${suite.name} - ${errorDetail} - Fix the failures before generating metrics.`);
     }
-  }
-  
-  // Verify results - if ANY suite has the failedToRun flag and we're not explicitly allowing failures,
-  // then throw an error to prevent generating dashboards with stale data
-  const allowFailures = process.env.ALLOW_TEST_FAILURES === 'true';
-  const failedSuites = results.filter(r => r.failedToRun);
-  
-  if (failedSuites.length > 0 && !allowFailures) {
-    throw new Error(`${failedSuites.length} test suites failed to run properly. Fix the tests or use ALLOW_TEST_FAILURES=true to bypass this check.`);
   }
   
   // Save results to file
@@ -395,18 +362,43 @@ const args = process.argv.slice(2);
 const useExisting = args.includes('--use-existing');
 const skipIntegration = args.includes('--skip-integration');
 const skipTypecheck = args.includes('--skip-typecheck');
+const skipAll = args.includes('--skip-all');
 const noPreserve = args.includes('--no-preserve');
 const verbose = args.includes('--verbose');
 
 // Run if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  collectTestResults({ 
-    useExisting, 
-    skipIntegration,
-    skipTypecheck,
-    preserveExistingResults: !noPreserve,
-    verbose 
-  });
+  // Handle skip-all flag to deliberately create empty results for development
+  if (skipAll) {
+    console.log('Skipping all test executions as requested with --skip-all');
+    console.log('Creating empty test results. THIS IS NOT VALID FOR METRICS EVALUATION.');
+    console.log('For accurate metrics, run without the --skip-all flag.');
+    
+    // Create empty results structure
+    const emptyResults = { 
+      timestamp: new Date().toISOString(),
+      results: [],
+      skippedAll: true
+    };
+    
+    // Ensure directory exists
+    if (!fs.existsSync(TEST_RESULTS_DIR)) {
+      fs.mkdirSync(TEST_RESULTS_DIR, { recursive: true });
+    }
+    
+    // Write empty results file
+    fs.writeFileSync(TEST_RESULTS_FILE, JSON.stringify(emptyResults, null, 2));
+    console.log(`Empty test results saved to ${TEST_RESULTS_FILE}`);
+  } else {
+    // Normal execution
+    collectTestResults({ 
+      useExisting, 
+      skipIntegration,
+      skipTypecheck,
+      preserveExistingResults: !noPreserve,
+      verbose 
+    });
+  }
 }
 
 export { collectTestResults }; 
