@@ -32,11 +32,12 @@
          - [ ] Add file-level and overall coverage metrics to the dashboard
          - [ ] Add tests to verify coverage data is correctly processed
 
-    5. [🔄] **Dashboard Improvements** (In Progress)
+    5. [✅] **Dashboard Improvements**
          - [✅] Fix chart generation to include all metrics consistently
-         - [ ] Improve dashboard with drill-down capabilities for detailed analysis
-         - [ ] Add quality score trending with visual indicators
+         - [✅] Improve dashboard with drill-down capabilities for detailed analysis
+         - [✅] Add quality score trending with visual indicators
          - [✅] Create tests for dashboard generation that verify all metrics are included
+         - [✅] Ensure integration tests are properly represented in the dashboard
 
     6. [ ] **Refactor High-Complexity Functions**
          - [ ] Analyze and refactor searchContent() in groq.ts (complexity: 25)
