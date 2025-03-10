@@ -283,6 +283,55 @@ export interface ListStudiosParams {
 }
 
 /**
+ * CORS-related shared interfaces
+ */
+
+export interface CorsOrigin {
+  id: number;
+  projectId: string;
+  origin: string;
+  allowCredentials: boolean;
+  updatedAt: string;
+  createdAt: string;
+  deletedAt: string | null;
+}
+
+export interface ListCorsOriginsParams {
+  projectId: string;
+}
+
+export interface AddCorsOriginParams {
+  projectId: string;
+  origin: string;
+  allowCredentials?: boolean;
+}
+
+/**
+ * API Token-related shared interfaces
+ */
+
+export interface ApiToken {
+  id: string;
+  key: string;
+  roles: Array<{
+    name: string;
+    title: string;
+  }>;
+  label: string;
+  projectUserId: string;
+}
+
+export interface CreateApiTokenParams {
+  projectId: string;
+  label: string;
+  roleName: "administrator" | "editor" | "developer" | "viewer";
+}
+
+export interface ListApiTokensParams {
+  projectId: string;
+}
+
+/**
  * Releases-related shared interfaces
  */
 

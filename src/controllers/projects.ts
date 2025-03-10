@@ -1,4 +1,5 @@
 import { sanityApi } from '../utils/sanityClient.js';
+import type { CorsOrigin, ApiToken } from '../types/sharedTypes.js';
 
 interface Project {
   id: string;
@@ -131,5 +132,112 @@ export async function listStudios(projectId: string): Promise<StudiosResult> {
   } catch (error: any) {
     console.error(`Error listing studios for project ${projectId}:`, error);
     throw new Error(`Failed to list studios: ${error.message}`);
+  }
+}
+
+/**
+ * List all CORS origins for a specific project
+ * 
+ * @param projectId - Sanity project ID
+ * @returns Promise with list of CORS origins
+ */
+export async function listCorsOrigins(projectId: string): Promise<CorsOrigin[]> {
+  try {
+    if (!projectId) {
+      throw new Error("Project ID is required");
+    }
+
+    return await sanityApi.listCorsOrigins(projectId);
+  } catch (error: any) {
+    console.error(`Error listing CORS origins for project ${projectId}:`, error);
+    throw new Error(`Failed to list CORS origins: ${error.message}`);
+  }
+}
+
+/**
+ * Add a new CORS origin to a specific project
+ * 
+ * @param projectId - Sanity project ID
+ * @param origin - URL origin to add (e.g., https://example.com)
+ * @param allowCredentials - Whether to allow credentials (default: true)
+ * @returns Promise with the created CORS origin
+ */
+export async function addCorsOrigin(
+  projectId: string, 
+  origin: string, 
+  allowCredentials: boolean = true
+): Promise<CorsOrigin> {
+  try {
+    if (!projectId) {
+      throw new Error("Project ID is required");
+    }
+
+    if (!origin) {
+      throw new Error("Origin URL is required");
+    }
+
+    // Validate URL format
+    try {
+      new URL(origin);
+    } catch (error) {
+      throw new Error("Invalid origin URL format. Must be a valid URL (e.g., https://example.com)");
+    }
+
+    return await sanityApi.addCorsOrigin(projectId, origin, allowCredentials);
+  } catch (error: any) {
+    console.error(`Error adding CORS origin for project ${projectId}:`, error);
+    throw new Error(`Failed to add CORS origin: ${error.message}`);
+  }
+}
+
+/**
+ * Create a new API token for a specific project
+ * 
+ * @param projectId - Sanity project ID
+ * @param label - Label for the new API token
+ * @param roleName - Role for the API token (administrator, editor, developer, viewer)
+ * @returns Promise with the created API token
+ */
+export async function createApiToken(
+  projectId: string, 
+  label: string, 
+  roleName: "administrator" | "editor" | "developer" | "viewer"
+): Promise<ApiToken> {
+  try {
+    if (!projectId) {
+      throw new Error("Project ID is required");
+    }
+
+    if (!label) {
+      throw new Error("Token label is required");
+    }
+
+    if (!roleName) {
+      throw new Error("Role name is required");
+    }
+
+    return await sanityApi.createApiToken(projectId, label, roleName);
+  } catch (error: any) {
+    console.error(`Error creating API token for project ${projectId}:`, error);
+    throw new Error(`Failed to create API token: ${error.message}`);
+  }
+}
+
+/**
+ * List all API tokens for a specific project
+ * 
+ * @param projectId - Sanity project ID
+ * @returns Promise with list of API tokens
+ */
+export async function listApiTokens(projectId: string): Promise<ApiToken[]> {
+  try {
+    if (!projectId) {
+      throw new Error("Project ID is required");
+    }
+
+    return await sanityApi.listApiTokens(projectId);
+  } catch (error: any) {
+    console.error(`Error listing API tokens for project ${projectId}:`, error);
+    throw new Error(`Failed to list API tokens: ${error.message}`);
   }
 }

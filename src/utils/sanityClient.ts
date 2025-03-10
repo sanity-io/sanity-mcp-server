@@ -2,6 +2,7 @@ import { createClient } from '@sanity/client';
 import fetch from 'node-fetch';
 import config from '../config/config.js';
 import type { SanityClient, SanityActionResult } from '../types/sanity.js';
+import type { CorsOrigin, ApiToken } from '../types/sharedTypes.js';
 
 interface SanityAction {
   create?: Record<string, any>;
@@ -167,5 +168,141 @@ export const sanityApi = {
     }
     
     return response.json() as Promise<SanityActionResult>;
+  },
+
+  /**
+   * List all CORS origins for a Sanity project
+   * 
+   * @param projectId - Sanity project ID
+   * @returns Promise with list of CORS origins
+   */
+  async listCorsOrigins(projectId: string): Promise<CorsOrigin[]> {
+    const url = `https://api.sanity.io/v1/projects/${projectId}/cors`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${config.sanityToken}`
+      }
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      
+      if (response.status === 401) {
+        throw new Error('Authentication failed: Your Sanity token is invalid or has expired.');
+      }
+      
+      throw new Error(`Failed to list CORS origins: ${response.status} ${response.statusText} - ${errorText}`);
+    }
+    
+    return response.json() as Promise<CorsOrigin[]>;
+  },
+  
+  /**
+   * Add a new CORS origin to a Sanity project
+   * 
+   * @param projectId - Sanity project ID
+   * @param origin - URL origin to add (e.g., https://example.com)
+   * @param allowCredentials - Whether to allow credentials (default: true)
+   * @returns Promise with the created CORS origin
+   */
+  async addCorsOrigin(projectId: string, origin: string, allowCredentials: boolean = true): Promise<CorsOrigin> {
+    const url = `https://api.sanity.io/v1/projects/${projectId}/cors`;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${config.sanityToken}`
+      },
+      body: JSON.stringify({
+        origin,
+        allowCredentials
+      })
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      
+      if (response.status === 401) {
+        throw new Error('Authentication failed: Your Sanity token is invalid or has expired.');
+      }
+      
+      throw new Error(`Failed to add CORS origin: ${response.status} ${response.statusText} - ${errorText}`);
+    }
+    
+    return response.json() as Promise<CorsOrigin>;
+  },
+  
+  /**
+   * Create a new API token for a Sanity project
+   * 
+   * @param projectId - Sanity project ID
+   * @param label - Label for the new API token
+   * @param roleName - Role for the API token (administrator, editor, developer, viewer)
+   * @returns Promise with the created API token
+   */
+  async createApiToken(
+    projectId: string, 
+    label: string, 
+    roleName: "administrator" | "editor" | "developer" | "viewer"
+  ): Promise<ApiToken> {
+    const url = `https://api.sanity.io/v2021-06-07/projects/${projectId}/tokens`;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${config.sanityToken}`
+      },
+      body: JSON.stringify({
+        label,
+        roleName
+      })
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      
+      if (response.status === 401) {
+        throw new Error('Authentication failed: Your Sanity token is invalid or has expired.');
+      }
+      
+      throw new Error(`Failed to create API token: ${response.status} ${response.statusText} - ${errorText}`);
+    }
+    
+    return response.json() as Promise<ApiToken>;
+  },
+  
+  /**
+   * List all API tokens for a Sanity project
+   * 
+   * @param projectId - Sanity project ID
+   * @returns Promise with list of API tokens
+   */
+  async listApiTokens(projectId: string): Promise<ApiToken[]> {
+    const url = `https://api.sanity.io/v2021-06-07/projects/${projectId}/tokens`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${config.sanityToken}`
+      }
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      
+      if (response.status === 401) {
+        throw new Error('Authentication failed: Your Sanity token is invalid or has expired.');
+      }
+      
+      throw new Error(`Failed to list API tokens: ${response.status} ${response.statusText} - ${errorText}`);
+    }
+    
+    return response.json() as Promise<ApiToken[]>;
   }
 };
