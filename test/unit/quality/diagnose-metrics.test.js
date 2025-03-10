@@ -3,9 +3,20 @@ import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
 
-// Mock modules
-vi.mock('fs');
-vi.mock('child_process');
+// Add proper TypeScript types for mocked functions
+// @ts-ignore - Mock implementation for tests only
+vi.mock('fs', () => ({
+  existsSync: vi.fn(),
+  readFileSync: vi.fn(),
+  statSync: vi.fn(),
+  writeFileSync: vi.fn(),
+  mkdirSync: vi.fn()
+}));
+
+// @ts-ignore - Mock implementation for tests only
+vi.mock('child_process', () => ({
+  execSync: vi.fn()
+}));
 
 // Path to the script file to test
 const SCRIPT_PATH = path.resolve('./scripts/quality/diagnose-metrics.js');
