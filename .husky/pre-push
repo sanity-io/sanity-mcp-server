@@ -1,6 +1,6 @@
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
 
-# Run only critical integration tests before pushing
-# Skip TypeScript and Unit tests during push to avoid blocking development
-npm run test:integration:critical
+# Run a comprehensive test suite before pushing to ensure quality
+# This includes unit tests and critical integration tests
+npm run test:pre-merge

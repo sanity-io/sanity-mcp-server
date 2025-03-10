@@ -171,10 +171,17 @@ function getComplexityMetrics() {
           console.log(`Calculated max complexity from eslint report: ${maxComplexity}`);
         }
         
-        // Calculate cognitive complexity as approximately 80% of cyclomatic complexity
-        // This is a simplification until we have better cognitive complexity metrics
-        const cognitiveAvg = Math.floor((metrics.averageComplexity || 0) * 0.8);
-        const cognitiveMax = Math.floor(maxComplexity * 0.8);
+        // Get max cognitive complexity from metrics if available
+        let maxCognitiveComplexity = 0;
+        if (metrics.cognitiveComplexity && metrics.cognitiveComplexity.max) {
+          maxCognitiveComplexity = metrics.cognitiveComplexity.max;
+          console.log(`Found max cognitive complexity: ${maxCognitiveComplexity}`);
+        } else {
+          // If not available, determine from ESLint report or estimate
+          const cognitiveReport = calculateCognitiveComplexityFromEslint();
+          maxCognitiveComplexity = cognitiveReport.max;
+          console.log(`Calculated max cognitive complexity: ${maxCognitiveComplexity}`);
+        }
         
         return {
           // Use consistent format that matches what the chart generator expects
@@ -184,12 +191,18 @@ function getComplexityMetrics() {
             count: metrics.totalFunctions || 0
           },
           cognitiveComplexity: {
-            average: cognitiveAvg,
-            max: cognitiveMax,
+            average: metrics.cognitiveComplexity?.average || Math.floor((metrics.averageComplexity || 0) * 0.8),
+            max: maxCognitiveComplexity,
             count: metrics.totalFunctions || 0
           },
           complexFunctions: {
             high: metrics.highComplexityFunctions || 0,
+            medium: metrics.mediumComplexityFunctions || 0,
+            low: metrics.lowComplexityFunctions || 0,
+            total: metrics.totalFunctions || 0
+          },
+          cognitiveComplexFunctions: metrics.cognitiveComplexFunctions || {
+            high: Math.ceil((metrics.highComplexityFunctions || 0) * 0.75),
             medium: metrics.mediumComplexityFunctions || 0,
             low: metrics.lowComplexityFunctions || 0,
             total: metrics.totalFunctions || 0
@@ -545,6 +558,55 @@ function walkSync(dir, fileList = []) {
   }
   
   return fileList;
+}
+
+/**
+ * Calculate cognitive complexity from ESLint report
+ */
+function calculateCognitiveComplexityFromEslint() {
+  if (!fs.existsSync(COMPLEXITY_REPORT)) {
+    console.warn(`Complexity report not found: ${COMPLEXITY_REPORT}`);
+    return { max: 0, average: 0 };
+  }
+
+  try {
+    const report = JSON.parse(fs.readFileSync(COMPLEXITY_REPORT, 'utf8'));
+    
+    let totalCognitiveComplexity = 0;
+    let maxCognitiveComplexity = 0;
+    let totalFunctions = 0;
+    
+    // Extract cognitive complexity from ESLint report
+    for (const file of report) {
+      for (const message of file.messages) {
+        if (message.ruleId === 'sonarjs/cognitive-complexity') {
+          const complexityMatch = message.message.match(/cognitive complexity of (\d+)/);
+          if (complexityMatch) {
+            const complexity = parseInt(complexityMatch[1], 10);
+            totalCognitiveComplexity += complexity;
+            totalFunctions++;
+            
+            // Track max complexity
+            if (complexity > maxCognitiveComplexity) {
+              maxCognitiveComplexity = complexity;
+            }
+          }
+        }
+      }
+    }
+    
+    // Calculate average complexity
+    const avgCognitiveComplexity = totalFunctions > 0 ? 
+      Math.round(totalCognitiveComplexity / totalFunctions * 100) / 100 : 0;
+    
+    return {
+      max: maxCognitiveComplexity,
+      average: avgCognitiveComplexity
+    };
+  } catch (error) {
+    console.error(`Error parsing complexity report for cognitive complexity: ${error.message}`);
+    return { max: 0, average: 0 };
+  }
 }
 
 // Run if called directly

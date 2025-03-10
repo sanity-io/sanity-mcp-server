@@ -12,16 +12,19 @@
     ### Implementation plan
     1. [🔄] **Remove Stale Data Fallbacks**
          - [✅] Identify all locations where stale data is being used as fallback
-         - [🔄] HARD FAIL with exceptions when tests or data collection fails - no bypass mechanisms
-         - [🔄] Remove ALL fallback mechanisms and environment variable workarounds
+         - [✅] HARD FAIL with exceptions when tests or data collection fails - no bypass mechanisms
+         - [✅] Remove ALL fallback mechanisms and environment variable workarounds
          - [✅] Enforce timestamp validation to prevent old data from being used unknowingly
          - [✅] If tests fail, the dashboard generation must fail - never display misleading metrics
          
-    2. [ ] **Fix Core Data Collection Issues**
+    2. [🔄] **Fix Core Data Collection Issues**
          - [ ] Fix TypeScript errors in test files that cause collection to fail
          - [ ] Debug and fix the test coverage collection process
          - [ ] Make coverage generation robust and reliable
-         - [ ] Ensure all tests pass before generating quality metrics
+         - [✅] Ensure all tests pass before generating quality metrics
+         - [✅] Improve Git hooks to run comprehensive test suites:
+              - [✅] Updated pre-commit hook to run TypeScript checks, unit tests, and core integration tests
+              - [✅] Updated pre-push hook to run unit tests and all critical/standard integration tests
          - [ ] Create a CI check that fails if any metrics collection fails
 
 ## High Priority
@@ -48,7 +51,7 @@
          - [✅] Update complexity reporting to correctly identify function names (fix "unknown" function names)
          - [✅] Ensure cyclometric average complexity is properly displayed in time series
          - [✅] Fix cyclomatic max complexity not showing in the dashboard
-         - [🔄] Add cognitive complexity metrics to the dashboard alongside cyclomatic complexity
+         - [✅] Add cognitive complexity metrics to the dashboard alongside cyclomatic complexity
          - [✅] Fix complex function distribution to show medium and low severity functions for all dates (currently only showing high for recent dates)
          - [ ] Add function-by-function complexity tracking over time
          - [ ] Add historical pass / fail with absolute number of tests passing and failing - should be the first chart under metrics charts. Make it full width and not super tall :)

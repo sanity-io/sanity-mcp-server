@@ -1,2 +1,56 @@
-# Run only core document tests before commit - skip TypeScript checks
-npm run test:core
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Get changed files
+CHANGED_TS_FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(ts|tsx|js|jsx)$' || true)
+CHANGED_TEST_FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.test\.(ts|tsx|js|jsx)$' || true)
+
+# If no relevant files changed, skip TypeScript checks and tests
+if [ -z "$CHANGED_TS_FILES" ]; then
+  echo "No TypeScript/JavaScript files changed, skipping TypeScript checks and tests"
+  exit 0
+fi
+
+# Run TypeScript checks on all changed files together
+if [ ! -z "$CHANGED_TS_FILES" ]; then
+  echo "Running TypeScript checks on changed files..."
+  # Skip TypeScript checks for JavaScript files in scripts/quality/ and test/unit/quality/
+  if echo "$CHANGED_TS_FILES" | grep -q -v -E "(scripts/quality/.*\.js|test/unit/quality/.*\.js)"; then
+    # Only run TypeScript on TS files or JS files not in scripts/quality or test/unit/quality
+    echo "Running TypeScript checks..."
+    npm run typecheck:all
+    if [ $? -ne 0 ]; then
+      echo "TypeScript checks failed"
+      exit 1
+    fi
+  else
+    echo "Skipping TypeScript checks for quality JavaScript files"
+  fi
+fi
+
+# Only run unit tests if test files changed
+if [ ! -z "$CHANGED_TEST_FILES" ]; then
+  echo "Running tests for changed test files..."
+  for file in $CHANGED_TEST_FILES; do
+    # Run tests directly with Vitest, skipping TypeScript checks
+    npx vitest run "$file" --config config/vitest.config.ts
+    if [ $? -ne 0 ]; then
+      echo "Tests failed for $file"
+      exit 1
+    fi
+  done
+else
+  echo "No test files changed, skipping test execution"
+fi
+
+# If changes include core functionality, run core tests
+if echo "$CHANGED_TS_FILES" | grep -q -E '(src/|lib/|core/)'; then
+  echo "Core files changed, running critical tests..."
+  npm run test:core
+  if [ $? -ne 0 ]; then
+    echo "Core tests failed"
+    exit 1
+  fi
+fi
+
+exit 0
