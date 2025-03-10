@@ -3,7 +3,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     environment: 'node',
-    include: ['test/**/*.test.ts'],
+    include: ['test/**/*.test.{ts,js}'],
     globals: true,
     setupFiles: ['test/setup.ts'],
     testTimeout: 10000, // 10 seconds timeout for tests
@@ -33,7 +33,7 @@ export default defineConfig({
         extends: true, // Inherit from root config
         test: {
           name: 'unit-tests',
-          include: ['test/unit/**/*.test.ts'],
+          include: ['test/unit/**/*.test.{ts,js}'],
           isolate: false, // Run without isolation for speed
         }
       },
@@ -42,7 +42,7 @@ export default defineConfig({
         extends: true, 
         test: {
           name: 'integration-tests',
-          include: ['test/integration/**/*.test.ts'],
+          include: ['test/integration/**/*.test.{ts,js}'],
           pool: 'forks', // Use forks for integration tests that need process isolation
           isolate: true,
         }
