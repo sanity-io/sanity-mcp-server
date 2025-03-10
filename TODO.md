@@ -22,11 +22,15 @@
 
     3. [🔄] **Fix Missing Complexity Metrics** (In Progress)
          - [✅] Update complexity reporting to correctly identify function names (fix "unknown" function names)
-         - [🔄] Ensure complexity metrics are being properly aggregated in the quality history
+         - [✅] Ensure cyclometric average complexity is properly displayed in time series
+         - [🔄] Fix cyclomatic max complexity not showing in the dashboard
+         - [🔄] Add cognitive complexity metrics to the dashboard alongside cyclomatic complexity
+         - [🔄] Fix complex function distribution to show medium and low severity functions (currently only shows high)
          - [ ] Add function-by-function complexity tracking over time
          - [ ] Write tests that verify complexity metrics are correctly captured
 
-    4. [ ] **Fix Coverage Reporting**
+    4. [🔄] **Fix Coverage Reporting** (In Progress)
+         - [✅] Fix test coverage trend not showing in the dashboard
          - [ ] Debug coverage data collection process
          - [ ] Ensure coverage reports are being generated and parsed correctly
          - [ ] Add file-level and overall coverage metrics to the dashboard
@@ -40,6 +44,7 @@
          - [✅] Ensure integration tests are properly represented in the dashboard
          - [🔄] Fix time series data storage and parsing for complexity metrics and test coverage trends
          - [🔄] Address data gaps in the timeline charts for complexity and test coverage
+         - [🔄] Investigate potential double counting of test files (dashboard shows 62 unit test files and 66 controller test files when there are only 6 files in each directory)
 
     6. [ ] **Refactor High-Complexity Functions**
          - [ ] Analyze and refactor searchContent() in groq.ts (complexity: 25)
