@@ -74,6 +74,26 @@
             - ✅ Update documentation to explain the allow-fail approach
             - ✅ Ensure dashboard accurately reflects the current state without skipping data
 
+5. 🔄 **Consolidate Quality Dashboard Scripts**
+    - Consolidate dashboard generators into a single unified approach
+    - Clean up redundant npm scripts
+    - Organize test and typecheck scripts for clarity
+
+    ### Implementation plan
+    1. ⃞ **Dashboard Consolidation**
+         1. ⃞ Create a unified dashboard generator with configurable options:
+            - ⃞ Option for strict validation (CI mode)
+            - ⃞ Option for allowing failures (development mode)
+            - ⃞ Option for fast execution (skip certain tests)
+         2. ⃞ Deprecate redundant dashboard scripts
+         3. ⃞ Update documentation with the new approach
+         
+    2. ⃞ **Simplify npm Scripts**
+         1. ⃞ Reorganize quality scripts for clarity and reduced redundancy
+         2. ⃞ Streamline test scripts with clear naming conventions
+         3. ⃞ Group typecheck scripts for better organization
+         4. ⃞ Update README with simplified script usage
+
 ## Medium Priority
 1. ⃞ **Improve Documentation Quality**
     - Add JSDoc comments to all public APIs
