@@ -396,58 +396,49 @@ function getTestCoverageMetrics() {
     }
     
     // Read the coverage summary from the coverage directory
-    const coverageSummaryPath = './coverage/coverage-summary.json';
+    const coverageSummaryPath = './coverage/coverage-final.json';
     if (fs.existsSync(coverageSummaryPath)) {
       try {
         const summary = JSON.parse(fs.readFileSync(coverageSummaryPath, 'utf8'));
         
-        if (summary.total) {
-          const statements = summary.total.statements.pct || 0;
-          const branches = summary.total.branches.pct || 0;
-          const functions = summary.total.functions.pct || 0;
-          const lines = summary.total.lines.pct || 0;
+        // Process coverage data from coverage-final.json format
+        const fileKeys = Object.keys(summary).filter(key => key.startsWith('src/'));
+        const filesByCoverage = {
+          low: 0,
+          medium: 0,
+          high: 0,
+          total: 0
+        };
+
+        let totalCoverage = 0;
+        
+        fileKeys.forEach(file => {
+          filesByCoverage.total++;
           
-          // Calculate overall coverage as weighted average
-          const overall = Math.round((statements + branches + functions + lines) / 4);
+          // Calculate statement coverage percentage for this file
+          const fileData = summary[file];
+          const statementCoverage = fileData.s ? 
+            Object.values(fileData.s).filter(hit => hit > 0).length / Object.values(fileData.s).length * 100 : 0;
           
-          // Count files by coverage level
-          const filesByCoverage = {
-            low: 0,
-            medium: 0,
-            high: 0,
-            total: 0
-          };
+          totalCoverage += statementCoverage;
           
-          // Try to compute file-level statistics
-          if (summary) {
-            // Exclude total and empty entries
-            const fileKeys = Object.keys(summary).filter(key => 
-              key !== 'total' && summary[key].statements);
-              
-            filesByCoverage.total = fileKeys.length;
-            
-            // Count files by coverage level
-            for (const file of fileKeys) {
-              const fileCoverage = summary[file].statements.pct;
-              if (fileCoverage >= 80) {
-                filesByCoverage.high++;
-              } else if (fileCoverage >= 50) {
-                filesByCoverage.medium++;
-              } else {
-                filesByCoverage.low++;
-              }
-            }
+          // Categorize file based on coverage
+          if (statementCoverage >= 80) {
+            filesByCoverage.high++;
+          } else if (statementCoverage >= 50) {
+            filesByCoverage.medium++;
+          } else {
+            filesByCoverage.low++;
           }
-          
-          return {
-            overall,
-            statements,
-            branches,
-            functions,
-            lines,
-            filesByCoverage
-          };
-        }
+        });
+        
+        // Calculate overall coverage as weighted average
+        const overall = Math.round(totalCoverage / filesByCoverage.total);
+        
+        return {
+          overall,
+          filesByCoverage
+        };
       } catch (error) {
         console.error(`Error parsing coverage summary: ${error.message}`);
       }
