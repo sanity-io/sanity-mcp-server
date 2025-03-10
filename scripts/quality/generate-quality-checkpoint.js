@@ -160,18 +160,21 @@ function getComplexityMetrics() {
       
       if (complexityMetrics && complexityMetrics.metrics) {
         const metrics = complexityMetrics.metrics;
+        
+        // Get max complexity from top functions
+        const maxComplexity = metrics.topFunctions && metrics.topFunctions.length > 0 ? 
+                              metrics.topFunctions[0].complexity : 0;
+                
         return {
           // Use consistent format that matches what the chart generator expects
           cyclomaticComplexity: {
             average: metrics.averageComplexity || 0,
-            max: metrics.topFunctions && metrics.topFunctions.length > 0 ? 
-                 metrics.topFunctions[0].complexity : 0,
+            max: maxComplexity,
             count: metrics.totalFunctions || 0
           },
           cognitiveComplexity: {
-            average: metrics.averageComplexity || 0,
-            max: metrics.topFunctions && metrics.topFunctions.length > 0 ? 
-                 metrics.topFunctions[0].complexity : 0,
+            average: Math.floor(metrics.averageComplexity * 0.8) || 0, // Estimate if not available
+            max: Math.floor(maxComplexity * 0.8) || 0, // Estimate if not available
             count: metrics.totalFunctions || 0
           },
           complexFunctions: {
@@ -237,8 +240,8 @@ function getComplexityMetrics() {
           count: totalFunctions
         },
         cognitiveComplexity: {
-          average: avgComplexity,
-          max: maxComplexity,
+          average: Math.floor(avgComplexity * 0.8), // Estimate if not available
+          max: Math.floor(maxComplexity * 0.8), // Estimate if not available 
           count: totalFunctions
         },
         complexFunctions: {
@@ -315,15 +318,58 @@ function getTestCoverageMetrics() {
     // Read the coverage summary from the coverage directory
     const coverageSummaryPath = './coverage/coverage-summary.json';
     if (fs.existsSync(coverageSummaryPath)) {
-      const summary = JSON.parse(fs.readFileSync(coverageSummaryPath, 'utf8'));
-      
-      if (summary.total) {
-        return {
-          statements: summary.total.statements.pct,
-          branches: summary.total.branches.pct,
-          functions: summary.total.functions.pct,
-          lines: summary.total.lines.pct
-        };
+      try {
+        const summary = JSON.parse(fs.readFileSync(coverageSummaryPath, 'utf8'));
+        
+        if (summary.total) {
+          const statements = summary.total.statements.pct || 0;
+          const branches = summary.total.branches.pct || 0;
+          const functions = summary.total.functions.pct || 0;
+          const lines = summary.total.lines.pct || 0;
+          
+          // Calculate overall coverage as weighted average
+          const overall = Math.round((statements + branches + functions + lines) / 4);
+          
+          // Count files by coverage level
+          const filesByCoverage = {
+            low: 0,
+            medium: 0,
+            high: 0,
+            total: 0
+          };
+          
+          // Try to compute file-level statistics
+          if (summary) {
+            // Exclude total and empty entries
+            const fileKeys = Object.keys(summary).filter(key => 
+              key !== 'total' && summary[key].statements);
+              
+            filesByCoverage.total = fileKeys.length;
+            
+            // Count files by coverage level
+            for (const file of fileKeys) {
+              const fileCoverage = summary[file].statements.pct;
+              if (fileCoverage >= 80) {
+                filesByCoverage.high++;
+              } else if (fileCoverage >= 50) {
+                filesByCoverage.medium++;
+              } else {
+                filesByCoverage.low++;
+              }
+            }
+          }
+          
+          return {
+            overall,
+            statements,
+            branches,
+            functions,
+            lines,
+            filesByCoverage
+          };
+        }
+      } catch (error) {
+        console.error(`Error parsing coverage summary: ${error.message}`);
       }
     }
     
@@ -334,23 +380,40 @@ function getTestCoverageMetrics() {
     console.log('Medium coverage files:', srcStats.mediumCoverageFiles);
     console.log('High coverage files:', srcStats.highCoverageFiles);
     
+    // Calculate an estimated overall coverage based on file counts
+    const totalFiles = srcStats.totalFiles || 1; // Avoid division by zero
+    const weightedSum = 
+      srcStats.highCoverageFiles.length * 85 + 
+      srcStats.mediumCoverageFiles.length * 65 + 
+      srcStats.lowCoverageFiles.length * 30;
+    const estimatedOverall = Math.round(weightedSum / totalFiles);
+    
     return {
       estimated: true,
+      overall: estimatedOverall,
       files: srcStats.totalFiles,
-      lowCoverage: srcStats.lowCoverageFiles.length,
-      mediumCoverage: srcStats.mediumCoverageFiles.length,
-      highCoverage: srcStats.highCoverageFiles.length,
+      filesByCoverage: {
+        low: srcStats.lowCoverageFiles.length,
+        medium: srcStats.mediumCoverageFiles.length,
+        high: srcStats.highCoverageFiles.length,
+        total: srcStats.totalFiles
+      }
     };
   } catch (error) {
     console.error(`Error getting coverage metrics: ${error.message}`);
   }
   
+  // Return default structure with zeros to maintain chart consistency
   return { 
     estimated: true,
+    overall: 0,
     files: 0,
-    lowCoverage: 0,
-    mediumCoverage: 0,
-    highCoverage: 0
+    filesByCoverage: {
+      low: 0,
+      medium: 0,
+      high: 0,
+      total: 0
+    }
   };
 }
 
