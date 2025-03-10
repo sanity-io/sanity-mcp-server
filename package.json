@@ -38,6 +38,7 @@
     "quality:full-report": "npm run quality:check && npm run quality:analyze && npm run quality:dashboard",
     "quality:validate-file-counts": "node scripts/quality/validate-file-counts.js",
     "quality:report": "npm run quality:dashboard && npm run quality:validate-file-counts",
+    "quality:allow-fail": "node scripts/quality/allow-fail-dashboard.js",
     "quality:collect-tests": "node scripts/quality/collect-test-results.js",
     "quality:visualize": "node scripts/quality/generate-quality-chart.js",
     "quality:fast": "node scripts/quality/fast-dashboard.js",

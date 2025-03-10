@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added comprehensive unit tests for complexity checker
   - Updated TODO.md to focus on upcoming quality improvements
 - Cleaned up completed tasks and created fresh priority list in TODO.md
+- Improved quality dashboard flexibility:
+  - Added `quality:allow-fail` script that generates quality metrics even when tests fail
+  - Created `scripts/quality/allow-fail-dashboard.js` to run tests but continue on failures
+  - Ensured actual test results are captured in metrics rather than skipping or using stale data
+  - Updated documentation to explain the allow-fail approach
 
 ### Fixed
 - Code quality improvements:

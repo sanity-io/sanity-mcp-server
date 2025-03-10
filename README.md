@@ -246,9 +246,21 @@ This command:
 2. Creates a snapshot of the current quality metrics
 3. Generates an interactive HTML chart showing trends over time
 
+For cases where tests are failing but you still want to generate the quality dashboard:
+
+```bash
+# Generate quality dashboard while allowing test failures
+npm run quality:allow-fail
+```
+
+This alternative dashboard generation:
+1. Runs tests but continues even when tests fail
+2. Captures metrics from all available sources
+3. Generates a complete quality dashboard that shows the actual state of the project
+4. Ensures no data is omitted from failing code paths
+
 Quality metrics are automatically captured when:
 - Creating a new release with `npm run release`
-- Running the `quality:dashboard` script manually
 
 The metrics tracked include:
 - Test results and pass rates
