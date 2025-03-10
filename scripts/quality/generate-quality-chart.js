@@ -403,6 +403,11 @@ function generateHtml(checkpoints) {
         <div class="${getTrendClass(cyclomaticAvg, true)}">${getTrendIndicator(cyclomaticAvg, true)}</div>
       </div>
       <div class="stat-card">
+        <h2>${checkpoints.length > 0 ? cyclomaticMax[cyclomaticMax.length-1] : 'N/A'}</h2>
+        <p>Max Complexity</p>
+        <div class="${getTrendClass(cyclomaticMax, true)}">${getTrendIndicator(cyclomaticMax, true)}</div>
+      </div>
+      <div class="stat-card">
         <h2>${eslintWarnings[eslintWarnings.length - 1]}</h2>
         <p>ESLint Warnings</p>
         <div class="${getTrendClass(eslintWarnings, true)}">${getTrendIndicator(eslintWarnings, true)}</div>

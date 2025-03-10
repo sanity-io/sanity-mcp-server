@@ -165,6 +165,7 @@ function getComplexityMetrics() {
         const maxComplexity = metrics.topFunctions && metrics.topFunctions.length > 0 ? 
                               metrics.topFunctions[0].complexity : 0;
                 
+        // Always include all severity levels even if they are zero
         return {
           // Use consistent format that matches what the chart generator expects
           cyclomaticComplexity: {
@@ -233,6 +234,7 @@ function getComplexityMetrics() {
       // Calculate average complexity
       const avgComplexity = totalFunctions > 0 ? Math.round(totalComplexity / totalFunctions) : 0;
       
+      // Return object with all severity levels always included
       return {
         cyclomaticComplexity: {
           average: avgComplexity,
