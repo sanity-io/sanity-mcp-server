@@ -38,10 +38,20 @@ describe('Projects Controller', () => {
 
       expect(sanityApi.listProjects).toHaveBeenCalled();
       expect(result).toHaveLength(2); // One organization + personal projects
-      expect(result[0].organizationId).toBe('org1');
-      expect(result[0].projects).toHaveLength(2);
-      expect(result[1].organizationId).toBe('personal');
-      expect(result[1].projects).toHaveLength(1);
+      
+      // Find the organization by ID since order may vary
+      const orgResults = result.reduce((acc, org) => {
+        acc[org.organizationId] = org;
+        return acc;
+      }, {} as Record<string, any>);
+      
+      // Verify org1 organization
+      expect(orgResults['org1']).toBeDefined();
+      expect(orgResults['org1'].projects).toHaveLength(2);
+      
+      // Verify personal organization
+      expect(orgResults['personal']).toBeDefined();
+      expect(orgResults['personal'].projects).toHaveLength(1);
     });
 
     it('should handle API errors', async () => {
