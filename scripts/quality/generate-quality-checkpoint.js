@@ -162,10 +162,26 @@ function getComplexityMetrics() {
         const metrics = complexityMetrics.metrics;
         
         // Get max complexity from top functions
-        const maxComplexity = metrics.topFunctions && metrics.topFunctions.length > 0 ? 
-                              metrics.topFunctions[0].complexity : 0;
-                
-        // Always include all severity levels even if they are zero
+        let maxComplexity = 0;
+        if (metrics.topFunctions && metrics.topFunctions.length > 0) {
+          // Find the highest complexity value in the top functions array
+          maxComplexity = metrics.topFunctions.reduce((max, func) => 
+            Math.max(max, func.complexity || 0), 0);
+          
+          console.log(`Found max complexity from topFunctions: ${maxComplexity}`);
+        }
+        
+        // Fallback to calculating max complexity from eslint report if not found
+        if (maxComplexity === 0 && fs.existsSync(COMPLEXITY_REPORT)) {
+          maxComplexity = findMaxComplexityFromEslint();
+          console.log(`Calculated max complexity from eslint report: ${maxComplexity}`);
+        }
+        
+        // Calculate cognitive complexity as approximately 80% of cyclomatic complexity
+        // This is a simplification until we have better cognitive complexity metrics
+        const cognitiveAvg = Math.floor((metrics.averageComplexity || 0) * 0.8);
+        const cognitiveMax = Math.floor(maxComplexity * 0.8);
+        
         return {
           // Use consistent format that matches what the chart generator expects
           cyclomaticComplexity: {
@@ -174,8 +190,8 @@ function getComplexityMetrics() {
             count: metrics.totalFunctions || 0
           },
           cognitiveComplexity: {
-            average: Math.floor(metrics.averageComplexity * 0.8) || 0, // Estimate if not available
-            max: Math.floor(maxComplexity * 0.8) || 0, // Estimate if not available
+            average: cognitiveAvg,
+            max: cognitiveMax,
             count: metrics.totalFunctions || 0
           },
           complexFunctions: {
@@ -192,92 +208,124 @@ function getComplexityMetrics() {
   }
   
   // Fallback to parsing the complexity report directly
-  if (fs.existsSync(COMPLEXITY_REPORT)) {
-    try {
-      const report = JSON.parse(fs.readFileSync(COMPLEXITY_REPORT, 'utf8'));
-      
-      let highComplexity = 0;
-      let mediumComplexity = 0;
-      let lowComplexity = 0;
-      let totalComplexity = 0;
-      let maxComplexity = 0;
-      let totalFunctions = 0;
-      
-      // Count functions by complexity level
-      for (const file of report) {
-        for (const message of file.messages) {
-          if (message.ruleId === 'complexity' || message.ruleId === 'sonarjs/cognitive-complexity') {
-            const complexityMatch = message.message.match(/complexity of (\d+)/);
-            if (complexityMatch) {
-              const complexity = parseInt(complexityMatch[1], 10);
-              totalComplexity += complexity;
-              totalFunctions++;
-              
-              // Track max complexity
-              if (complexity > maxComplexity) {
-                maxComplexity = complexity;
-              }
-              
-              // Categorize by severity
-              if (complexity > 15) {
-                highComplexity++;
-              } else if (complexity > 10) {
-                mediumComplexity++;
-              } else {
-                lowComplexity++;
-              }
+  return calculateComplexityFromEslintReport();
+}
+
+/**
+ * Calculate complexity metrics by parsing the ESLint complexity report
+ */
+function calculateComplexityFromEslintReport() {
+  if (!fs.existsSync(COMPLEXITY_REPORT)) {
+    console.warn(`Complexity report not found: ${COMPLEXITY_REPORT}`);
+    return {
+      cyclomaticComplexity: { average: 0, max: 0, count: 0 },
+      cognitiveComplexity: { average: 0, max: 0, count: 0 },
+      complexFunctions: { high: 0, medium: 0, low: 0, total: 0 }
+    };
+  }
+
+  try {
+    const report = JSON.parse(fs.readFileSync(COMPLEXITY_REPORT, 'utf8'));
+    
+    let highComplexity = 0;
+    let mediumComplexity = 0;
+    let lowComplexity = 0;
+    let totalComplexity = 0;
+    let maxComplexity = 0;
+    let totalFunctions = 0;
+    
+    // Count functions by complexity level
+    for (const file of report) {
+      for (const message of file.messages) {
+        if (message.ruleId === 'complexity' || message.ruleId === 'sonarjs/cognitive-complexity') {
+          const complexityMatch = message.message.match(/complexity of (\d+)/);
+          if (complexityMatch) {
+            const complexity = parseInt(complexityMatch[1], 10);
+            totalComplexity += complexity;
+            totalFunctions++;
+            
+            // Track max complexity
+            if (complexity > maxComplexity) {
+              maxComplexity = complexity;
+            }
+            
+            // Categorize by severity
+            if (complexity > 15) {
+              highComplexity++;
+            } else if (complexity > 10) {
+              mediumComplexity++;
+            } else {
+              lowComplexity++;
             }
           }
         }
       }
-      
-      // Calculate average complexity
-      const avgComplexity = totalFunctions > 0 ? Math.round(totalComplexity / totalFunctions) : 0;
-      
-      // Return object with all severity levels always included
-      return {
-        cyclomaticComplexity: {
-          average: avgComplexity,
-          max: maxComplexity,
-          count: totalFunctions
-        },
-        cognitiveComplexity: {
-          average: Math.floor(avgComplexity * 0.8), // Estimate if not available
-          max: Math.floor(maxComplexity * 0.8), // Estimate if not available 
-          count: totalFunctions
-        },
-        complexFunctions: {
-          high: highComplexity,
-          medium: mediumComplexity,
-          low: lowComplexity,
-          total: totalFunctions
-        }
-      };
-    } catch (error) {
-      console.error(`Error parsing complexity report: ${error.message}`);
     }
+    
+    // Calculate average complexity
+    const avgComplexity = totalFunctions > 0 ? Math.round(totalComplexity / totalFunctions * 100) / 100 : 0;
+    
+    console.log(`Calculated from ESLint report - avg: ${avgComplexity}, max: ${maxComplexity}, total functions: ${totalFunctions}`);
+    
+    return {
+      cyclomaticComplexity: {
+        average: avgComplexity,
+        max: maxComplexity,
+        count: totalFunctions
+      },
+      cognitiveComplexity: {
+        average: Math.floor(avgComplexity * 0.8), 
+        max: Math.floor(maxComplexity * 0.8),
+        count: totalFunctions
+      },
+      complexFunctions: {
+        high: highComplexity,
+        medium: mediumComplexity,
+        low: lowComplexity,
+        total: totalFunctions
+      }
+    };
+  } catch (error) {
+    console.error(`Error parsing complexity report: ${error.message}`);
+    return {
+      cyclomaticComplexity: { average: 0, max: 0, count: 0 },
+      cognitiveComplexity: { average: 0, max: 0, count: 0 },
+      complexFunctions: { high: 0, medium: 0, low: 0, total: 0 }
+    };
+  }
+}
+
+/**
+ * Find the maximum complexity value from the ESLint report
+ */
+function findMaxComplexityFromEslint() {
+  if (!fs.existsSync(COMPLEXITY_REPORT)) {
+    return 0;
   }
   
-  // Return a consistent structure even when no data is available
-  // This prevents gaps in charts due to missing or differently structured data
-  return {
-    cyclomaticComplexity: {
-      average: 0,
-      max: 0,
-      count: 0
-    },
-    cognitiveComplexity: {
-      average: 0,
-      max: 0,
-      count: 0
-    },
-    complexFunctions: {
-      high: 0,
-      medium: 0,
-      low: 0,
-      total: 0
+  try {
+    const report = JSON.parse(fs.readFileSync(COMPLEXITY_REPORT, 'utf8'));
+    let maxComplexity = 0;
+    
+    for (const file of report) {
+      for (const message of file.messages) {
+        if (message.ruleId === 'complexity') {
+          const complexityMatch = message.message.match(/complexity of (\d+)/);
+          if (complexityMatch) {
+            const complexity = parseInt(complexityMatch[1], 10);
+            if (complexity > maxComplexity) {
+              maxComplexity = complexity;
+            }
+          }
+        }
+      }
     }
-  };
+    
+    return maxComplexity;
+  } catch (error) {
+    console.error(`Error finding max complexity: ${error.message}`);
+    return 0;
+  }
 }
 
 /**

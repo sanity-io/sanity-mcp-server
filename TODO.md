@@ -23,7 +23,7 @@
     3. [🔄] **Fix Missing Complexity Metrics** (In Progress)
          - [✅] Update complexity reporting to correctly identify function names (fix "unknown" function names)
          - [✅] Ensure cyclometric average complexity is properly displayed in time series
-         - [✅] Fix cyclomatic max complexity not showing in the dashboard
+         - [🔄] Fix cyclomatic max complexity not showing in the dashboard
          - [🔄] Add cognitive complexity metrics to the dashboard alongside cyclomatic complexity
          - [✅] Fix complex function distribution to show medium and low severity functions (currently only shows high)
          - [ ] Add function-by-function complexity tracking over time
