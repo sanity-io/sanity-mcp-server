@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - TBD
+- CORS origin management for Sanity projects:
+  - Added capability to list CORS origins for a project
+  - Added capability to add new CORS origins to a project
+- API token management for Sanity projects:
+  - Added capability to create new API tokens with specific roles
+  - Added proper error handling and validation for token operations
 
 ## [0.2.6] - 2025-03-08
 ### Fixed

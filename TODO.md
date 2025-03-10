@@ -137,6 +137,70 @@
       - Optimize chart generation for local development
       - Add configuration options for different levels of detail
 
+5. **Migrate CORS and API Token Functionality from admin-POC** (NEW)
+   - Current issue: Need to integrate CORS origin management and API token creation from admin-POC
+   - Need to adapt token authentication to use this project's approach
+   - Follow existing code style, conventions, and error handling patterns
+   
+   ### Implementation Plan
+   1. **Extend Projects Controller with CORS Management** (HIGH PRIORITY)
+      - Extend `src/controllers/projects.ts` with the following functions:
+        - `listCorsOrigins(projectId: string): Promise<CorsOrigin[]>` - List all CORS origins for a project
+        - `addCorsOrigin(projectId: string, origin: string, allowCredentials?: boolean): Promise<CorsOrigin>` - Add a new CORS origin
+      - Create proper TypeScript interfaces for CORS data structures in appropriate type files
+      - Implement error handling consistent with existing pattern in the projects controller
+      - Use project's authentication method instead of POC method
+      - Add JSDoc documentation for all functions and interfaces
+   
+   2. **Extend Projects Controller with API Token Management** (HIGH PRIORITY)
+      - Extend `src/controllers/projects.ts` with the following functions:
+        - `createApiToken(projectId: string, label: string, roleName: string): Promise<ApiToken>` - Create a new API token
+        - `listApiTokens(projectId: string): Promise<ApiToken[]>` - List all API tokens for a project (optional)
+      - Create proper TypeScript interfaces for API token data structures in appropriate type files
+      - Implement error handling consistent with existing pattern in the projects controller
+      - Use project's authentication method instead of POC method
+      - Add JSDoc documentation for all functions and interfaces
+   
+   3. **Extend Projects Tool Provider** (HIGH PRIORITY)
+      - Extend `src/tools/projectsTools.ts` with new tools:
+        - `list-cors-origins`: List all CORS origins for a project
+        - `add-cors-origin`: Add a new CORS origin to a project
+        - `create-api-token`: Create a new API token for a project
+        - `list-api-tokens`: List all API tokens for a project (optional)
+      - Ensure proper type definitions and parameter validation
+      - Follow the existing pattern for tool definitions in the project tools provider
+      - Use shared parameter interfaces between controller functions and tools
+   
+   4. **Update Sanity Client Utilities** (MEDIUM PRIORITY)
+      - Extend `src/utils/sanityClient.ts` with new API methods:
+        - Add CORS management methods to `sanityApi` object
+        - Add token management methods to `sanityApi` object
+      - Follow existing error handling patterns and response processing
+      - Ensure compatibility with the existing authentication approach
+   
+   5. **Add Unit Tests** (HIGH PRIORITY)
+      - Extend `test/controllers/projects.test.ts` to test new CORS and token functionality
+      - Create unit tests for new sanityClient methods
+      - Mock API responses for testing error conditions
+      - Ensure high test coverage for new functionality
+   
+   6. **Add Integration Tests** (MEDIUM PRIORITY)
+      - Extend existing integration tests to cover new functionality
+      - Add tests for CORS origin listing and addition
+      - Add tests for API token creation
+      - Test error handling and edge cases
+   
+   7. **Update Documentation** (MEDIUM PRIORITY)
+      - Update README.md with information about new functionality
+      - Add example usage for new tools in documentation
+      - Document environment variables or configuration needed
+      - Add notes about authentication requirements
+   
+   8. **Update Type Definitions** (MEDIUM PRIORITY)
+      - Add new interfaces to appropriate type files (likely `src/types/index.ts` or create a specific file)
+      - Update existing interfaces if needed
+      - Ensure type consistency across the codebase
+
 ## Medium Priority
 
 1. **Improve error handling**
