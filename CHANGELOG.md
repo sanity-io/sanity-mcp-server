@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- New complexity analysis system:
+  - Created standalone complexity check script with detailed analysis
+  - Added automatic generation of COMPLEXITY_TODO.md file for easy tracking
+  - Implemented ESLint configuration to enforce complexity standards
+  - Added comprehensive unit tests for complexity checker
+  - Updated TODO.md to focus on upcoming quality improvements
+- Cleaned up completed tasks and created fresh priority list in TODO.md
+
+### Fixed
+- Code quality improvements:
+  - Enforced cyclomatic complexity limit of 10 across the codebase
+  - Enforced cognitive complexity limit of 10 across the codebase
+  - Updated ESLint configuration to prevent complexity issues in new code
+
+## [0.3.0] - 2025-03-12
+### Added
 - Comprehensive Quality Metrics Dashboard with "Hard Fail" system
   - Implemented strict validation to prevent stale or estimated data in quality metrics
   - Added multiple data visualization charts for test results, complexity metrics, and code quality
