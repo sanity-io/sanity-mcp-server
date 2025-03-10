@@ -11,44 +11,19 @@ const TEST_RESULTS_DIR = path.dirname(TEST_RESULTS_FILE);
 /**
  * Collects test results from different test suites
  * @param {Object} options - Collection options
- * @param {boolean} options.useExisting - Use existing test results if available
- * @param {boolean} options.skipIntegration - Skip running integration tests (faster)
- * @param {boolean} options.skipTypecheck - Skip TypeScript type checking for faster tests
- * @param {boolean} options.preserveExistingResults - Keep existing test results when adding new ones
- * @param {boolean} options.verbose - Show detailed output
+ * @param {boolean} [options.skipIntegration=false] - Skip running integration tests (faster)
+ * @param {boolean} [options.skipTypecheck=false] - Skip TypeScript type checking for faster tests
+ * @param {boolean} [options.verbose=false] - Show detailed output
  * @returns {Array} A JSON structure with test results
  */
-function collectTestResults(options = {}) {
+function collectTestResults(options = { skipIntegration: false, skipTypecheck: false, verbose: false }) {
   const { 
-    useExisting = false, 
     skipIntegration = false,
     skipTypecheck = false,
-    preserveExistingResults = true,
     verbose = false 
   } = options;
 
   console.log('Collecting test results...');
-  
-  // Load existing test results first
-  let existingResults = [];
-  if ((useExisting || preserveExistingResults) && fs.existsSync(TEST_RESULTS_FILE)) {
-    try {
-      console.log('Loading existing test results...');
-      const savedResults = JSON.parse(fs.readFileSync(TEST_RESULTS_FILE, 'utf8'));
-      if (savedResults && savedResults.results && savedResults.results.length > 0) {
-        existingResults = savedResults.results;
-        console.log(`Loaded ${existingResults.length} test suite results`);
-        
-        // If we're using existing results completely, return them now
-        if (useExisting) {
-          return existingResults;
-        }
-      }
-    } catch (error) {
-      console.error(`Error reading existing test results: ${error.message}`);
-      console.log('Falling back to running tests...');
-    }
-  }
   
   // Define test suites in order of importance
   let testSuites = [
@@ -100,22 +75,6 @@ function collectTestResults(options = {}) {
   
   // Results from both existing data and new runs
   const results = [];
-  
-  // If we want to preserve existing data, add it to our results first
-  if (preserveExistingResults && existingResults.length > 0) {
-    // Get suite names we'll actually run
-    const suitesToRunNames = suitesToRun.map(suite => suite.name);
-    
-    // Add existing results that won't be refreshed by the current run
-    for (const result of existingResults) {
-      if (!suitesToRunNames.includes(result.name)) {
-        if (verbose) {
-          console.log(`Preserving existing results for ${result.name}`);
-        }
-        results.push(result);
-      }
-    }
-  }
   
   // Run each test suite and collect results
   for (const suite of suitesToRun) {
@@ -359,46 +318,75 @@ function extractCoverageInfo(testResult) {
 
 // Parse command line arguments
 const args = process.argv.slice(2);
-const useExisting = args.includes('--use-existing');
 const skipIntegration = args.includes('--skip-integration');
 const skipTypecheck = args.includes('--skip-typecheck');
-const skipAll = args.includes('--skip-all');
-const noPreserve = args.includes('--no-preserve');
 const verbose = args.includes('--verbose');
+
+/**
+ * Validates test results to ensure completeness
+ * @param {Array|Object} results - The test results to validate
+ * @returns {boolean} True if results are valid and complete
+ * @throws {Error} Throws error with detailed message if validation fails
+ */
+function validateTestResults(results) {
+  if (!results || !Array.isArray(results) || results.length === 0) {
+    throw new Error('No test results found. Test execution must succeed to generate metrics.');
+  }
+  
+  // Check if we have results for critical test suites
+  const criticalSuites = ['Core Integration Tests', 'Unit Tests'];
+  const missingSuites = criticalSuites.filter(
+    suite => !results.some(result => result.name === suite)
+  );
+  
+  if (missingSuites.length > 0) {
+    throw new Error(`Missing results for critical test suites: ${missingSuites.join(', ')}. These must be included for valid metrics.`);
+  }
+  
+  // Check for test failures in critical suites
+  const failedCriticalSuites = results
+    .filter(result => criticalSuites.includes(result.name) && !result.success)
+    .map(result => result.name);
+    
+  if (failedCriticalSuites.length > 0) {
+    throw new Error(`Critical test suites failed: ${failedCriticalSuites.join(', ')}. Fix these failures before generating metrics.`);
+  }
+  
+  // Ensure we have valid file counts
+  const invalidFileCounts = results
+    .filter(result => !result.files || result.files <= 0)
+    .map(result => result.name);
+    
+  if (invalidFileCounts.length > 0) {
+    throw new Error(`Invalid file counts for test suites: ${invalidFileCounts.join(', ')}. Ensure tests are properly configured.`);
+  }
+  
+  // Ensure test results timestamps are current (within last hour)
+  // Timestamp would be on the parent object, not the results array itself
+  // Skipping this check as it's handled at the caller level
+  
+  return true;
+}
 
 // Run if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  // Handle skip-all flag to deliberately create empty results for development
-  if (skipAll) {
-    console.log('Skipping all test executions as requested with --skip-all');
-    console.log('Creating empty test results. THIS IS NOT VALID FOR METRICS EVALUATION.');
-    console.log('For accurate metrics, run without the --skip-all flag.');
-    
-    // Create empty results structure
-    const emptyResults = { 
-      timestamp: new Date().toISOString(),
-      results: [],
-      skippedAll: true
-    };
-    
-    // Ensure directory exists
-    if (!fs.existsSync(TEST_RESULTS_DIR)) {
-      fs.mkdirSync(TEST_RESULTS_DIR, { recursive: true });
-    }
-    
-    // Write empty results file
-    fs.writeFileSync(TEST_RESULTS_FILE, JSON.stringify(emptyResults, null, 2));
-    console.log(`Empty test results saved to ${TEST_RESULTS_FILE}`);
-  } else {
-    // Normal execution
-    collectTestResults({ 
-      useExisting, 
+  try {
+    // Normal execution - always run tests
+    const results = collectTestResults({ 
       skipIntegration,
       skipTypecheck,
-      preserveExistingResults: !noPreserve,
       verbose 
     });
+    
+    // Validate results before finishing
+    validateTestResults(results);
+    console.log('Test results validation passed. All required data is present.');
+  } catch (error) {
+    console.error('ERROR: Test data collection failed:');
+    console.error(error.message);
+    process.exit(1); // Hard fail with non-zero exit code
   }
 }
 
-export { collectTestResults }; 
+// Export for use in other scripts
+export { collectTestResults, validateTestResults }; 

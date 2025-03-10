@@ -336,8 +336,8 @@ function getDefaultCoverageMetrics() {
 }
 
 /**
- * Get test results
- * @returns {Array} Array with test results
+ * Gets test results or creates default values if no results exist.
+ * @returns {Array} Array of test results data objects
  */
 function getTestResults() {
   console.log('Getting test results...');
@@ -444,7 +444,10 @@ function getTestResults() {
     // Force update with accurate counts
     const updatedResults = defaultResults.map(newResult => {
       // Try to find matching result in existing data
-      const existingResult = existingData.results?.find?.(r => r.name === newResult.name);
+      const existingResult = existingData.results && Array.isArray(existingData.results) 
+        ? existingData.results.find(r => r.name === newResult.name)
+        : null;
+        
       if (existingResult) {
         // Preserve any existing data but ensure file count is accurate
         return {
@@ -1304,4 +1307,7 @@ function generateHTML(historyData) {
 buildQualityDashboard().catch(error => {
   console.error('Error in buildQualityDashboard:', error);
   process.exit(1);
-}); 
+});
+
+// Export the function for testing
+export { getTestResults, buildQualityDashboard }; 
