@@ -54,7 +54,8 @@ describe('Projects Integration Tests', () => {
         key: 'mock-token-key',
         roles: [{ name: 'developer', title: 'Developer' }],
         label: 'Test Token',
-        projectUserId: 'mock-user-id'
+        projectUserId: 'mock-user-id',
+        createdAt: '2024-03-21T12:00:00.000Z'
       });
     });
 

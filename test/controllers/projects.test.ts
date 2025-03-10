@@ -234,7 +234,8 @@ describe('Projects Controller', () => {
         key: 'api-key-value',
         roles: [{ name: 'developer', title: 'Developer' }],
         label: 'Test Token',
-        projectUserId: '123'
+        projectUserId: '123',
+        createdAt: '2024-03-21T12:00:00.000Z'
       };
       
       (sanityApi.createApiToken as any).mockResolvedValueOnce(mockApiToken);
@@ -293,17 +294,17 @@ describe('Projects Controller', () => {
       const mockApiTokens = [
         {
           id: 'token1',
-          key: 'api-key-value-1',
           roles: [{ name: 'developer', title: 'Developer' }],
           label: 'Test Token 1',
-          projectUserId: '123'
+          projectUserId: '123',
+          createdAt: '2024-03-21T12:00:00.000Z'
         },
         {
           id: 'token2',
-          key: 'api-key-value-2',
           roles: [{ name: 'editor', title: 'Editor' }],
           label: 'Test Token 2',
-          projectUserId: '123'
+          projectUserId: '123',
+          createdAt: '2024-03-21T12:00:00.000Z'
         }
       ];
       

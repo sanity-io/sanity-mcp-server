@@ -2,7 +2,7 @@ import { createClient } from '@sanity/client';
 import fetch from 'node-fetch';
 import config from '../config/config.js';
 import type { SanityClient, SanityActionResult } from '../types/sanity.js';
-import type { CorsOrigin, ApiToken } from '../types/sharedTypes.js';
+import type { CorsOrigin, ApiTokenResponse, CreateApiTokenResponse } from '../types/sharedTypes.js';
 
 interface SanityAction {
   create?: Record<string, any>;
@@ -248,7 +248,7 @@ export const sanityApi = {
     projectId: string, 
     label: string, 
     roleName: "administrator" | "editor" | "developer" | "viewer"
-  ): Promise<ApiToken> {
+  ): Promise<CreateApiTokenResponse> {
     const url = `https://api.sanity.io/v2021-06-07/projects/${projectId}/tokens`;
     
     const response = await fetch(url, {
@@ -273,7 +273,7 @@ export const sanityApi = {
       throw new Error(`Failed to create API token: ${response.status} ${response.statusText} - ${errorText}`);
     }
     
-    return response.json() as Promise<ApiToken>;
+    return response.json() as Promise<CreateApiTokenResponse>;
   },
   
   /**
@@ -282,7 +282,7 @@ export const sanityApi = {
    * @param projectId - Sanity project ID
    * @returns Promise with list of API tokens
    */
-  async listApiTokens(projectId: string): Promise<ApiToken[]> {
+  async listApiTokens(projectId: string): Promise<ApiTokenResponse[]> {
     const url = `https://api.sanity.io/v2021-06-07/projects/${projectId}/tokens`;
     
     const response = await fetch(url, {
@@ -303,6 +303,6 @@ export const sanityApi = {
       throw new Error(`Failed to list API tokens: ${response.status} ${response.statusText} - ${errorText}`);
     }
     
-    return response.json() as Promise<ApiToken[]>;
+    return response.json() as Promise<ApiTokenResponse[]>;
   }
 };

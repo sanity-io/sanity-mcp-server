@@ -310,15 +310,19 @@ export interface AddCorsOriginParams {
  * API Token-related shared interfaces
  */
 
-export interface ApiToken {
+export interface ApiTokenResponse {
   id: string;
-  key: string;
+  label: string;
+  projectUserId: string;
+  createdAt: string;
   roles: Array<{
     name: string;
     title: string;
   }>;
-  label: string;
-  projectUserId: string;
+}
+
+export interface CreateApiTokenResponse extends ApiTokenResponse {
+  key: string;
 }
 
 export interface CreateApiTokenParams {

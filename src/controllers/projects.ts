@@ -1,5 +1,5 @@
 import { sanityApi } from '../utils/sanityClient.js';
-import type { CorsOrigin, ApiToken } from '../types/sharedTypes.js';
+import type { CorsOrigin, ApiTokenResponse, CreateApiTokenResponse } from '../types/sharedTypes.js';
 
 interface Project {
   id: string;
@@ -202,7 +202,7 @@ export async function createApiToken(
   projectId: string, 
   label: string, 
   roleName: "administrator" | "editor" | "developer" | "viewer"
-): Promise<ApiToken> {
+): Promise<CreateApiTokenResponse> {
   try {
     if (!projectId) {
       throw new Error("Project ID is required");
@@ -229,7 +229,7 @@ export async function createApiToken(
  * @param projectId - Sanity project ID
  * @returns Promise with list of API tokens
  */
-export async function listApiTokens(projectId: string): Promise<ApiToken[]> {
+export async function listApiTokens(projectId: string): Promise<ApiTokenResponse[]> {
   try {
     if (!projectId) {
       throw new Error("Project ID is required");
