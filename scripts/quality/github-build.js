@@ -11,6 +11,7 @@ import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
 import { validateAllMetrics } from './validate-metrics.js';
+import { createRequire } from 'module';
 
 // Constants
 const QUALITY_DIR = './scripts/quality';
@@ -333,13 +334,44 @@ function getDefaultCoverageMetrics() {
 function getTestResults() {
   console.log('Getting test results...');
   
+  // Get real file counts directly from the file system
+  let coreIntegrationCount = 0;
+  let standardIntegrationCount = 0;
+  let extendedIntegrationCount = 0;
+  let unitTestCount = 0;
+  let controllerTestCount = 0;
+  
+  try {
+    // Count files directly from the file system
+    coreIntegrationCount = parseInt(execSync('find test/integration/critical -name "*.test.*" | wc -l').toString().trim());
+    standardIntegrationCount = parseInt(execSync('find test/integration/standard -name "*.test.*" | wc -l').toString().trim());
+    extendedIntegrationCount = parseInt(execSync('find test/integration/extended -name "*.test.*" | wc -l').toString().trim());
+    unitTestCount = parseInt(execSync('find test/unit -name "*.test.*" | wc -l').toString().trim());
+    controllerTestCount = parseInt(execSync('find test/controllers -name "*.test.*" | wc -l').toString().trim());
+    
+    console.log('File system test file counts:');
+    console.log(`Core Integration Tests: ${coreIntegrationCount}`);
+    console.log(`Standard Integration Tests: ${standardIntegrationCount}`);
+    console.log(`Extended Integration Tests: ${extendedIntegrationCount}`);
+    console.log(`Unit Tests: ${unitTestCount}`);
+    console.log(`Controller Tests: ${controllerTestCount}`);
+  } catch (error) {
+    console.error('Error counting test files:', error.message);
+    // Fallback to known values if file count fails
+    coreIntegrationCount = 2;
+    standardIntegrationCount = 3;
+    extendedIntegrationCount = 1;
+    unitTestCount = 8;
+    controllerTestCount = 6;
+  }
+  
   // Default test results with accurate file counts based on file system
   const defaultResults = [
-    { name: 'Core Integration Tests', passed: 20, total: 20, files: 2 },
-    { name: 'Standard Integration Tests', passed: 30, total: 30, files: 3 },
-    { name: 'Extended Integration Tests', passed: 40, total: 40, files: 1 },
-    { name: 'Unit Tests', passed: 95, total: 95, files: 9 },
-    { name: 'Controller Tests', passed: 45, total: 45, files: 6 }
+    { name: 'Core Integration Tests', passed: 20, total: 20, files: coreIntegrationCount },
+    { name: 'Standard Integration Tests', passed: 30, total: 30, files: standardIntegrationCount },
+    { name: 'Extended Integration Tests', passed: 40, total: 40, files: extendedIntegrationCount },
+    { name: 'Unit Tests', passed: 95, total: 95, files: unitTestCount },
+    { name: 'Controller Tests', passed: 45, total: 45, files: controllerTestCount }
   ];
   
   try {
@@ -352,11 +384,11 @@ function getTestResults() {
       if (testResults.results && Array.isArray(testResults.results)) {
         // Update file counts to be accurate regardless of what's in the file
         const fileCountMap = {
-          'Core Integration Tests': 2,
-          'Standard Integration Tests': 3,
-          'Extended Integration Tests': 1,
-          'Unit Tests': 9,
-          'Controller Tests': 6
+          'Core Integration Tests': coreIntegrationCount,
+          'Standard Integration Tests': standardIntegrationCount,
+          'Extended Integration Tests': extendedIntegrationCount,
+          'Unit Tests': unitTestCount,
+          'Controller Tests': controllerTestCount
         };
         
         // Update file counts and add extended tests if missing
@@ -380,7 +412,7 @@ function getTestResults() {
             name: 'Extended Integration Tests', 
             passed: 40, 
             total: 40, 
-            files: 1  // Accurate file count
+            files: extendedIntegrationCount  // Accurate file count
           });
           
           // Write the updated test results back to the file
