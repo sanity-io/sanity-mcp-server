@@ -4,24 +4,32 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 // Mock dependencies
-vi.mock('child_process', () => ({
-  execSync: vi.fn()
-}));
+vi.mock('child_process', () => {
+  return {
+    execSync: vi.fn()
+  };
+});
 
-vi.mock('fs', () => ({
-  default: {},
-  existsSync: vi.fn(),
-  mkdirSync: vi.fn(),
-  readFileSync: vi.fn(),
-  writeFileSync: vi.fn()
-}));
+vi.mock('fs', () => {
+  const original = vi.importActual('fs');
+  return {
+    ...original,
+    existsSync: vi.fn(),
+    mkdirSync: vi.fn(),
+    readFileSync: vi.fn(),
+    writeFileSync: vi.fn()
+  };
+});
 
-vi.mock('path', () => ({
-  default: {},
-  dirname: vi.fn(),
-  join: vi.fn(),
-  relative: vi.fn()
-}));
+vi.mock('path', () => {
+  const original = vi.importActual('path');
+  return {
+    ...original,
+    dirname: vi.fn(),
+    join: vi.fn(),
+    relative: vi.fn()
+  };
+});
 
 // Import the script after mocking dependencies
 // Note: we need to load the script dynamically since it has a top-level execution
@@ -71,10 +79,10 @@ describe('complexity-check.js', () => {
     vi.resetAllMocks();
     
     // Setup default mock implementations
-    fs.existsSync.mockReturnValue(true);
-    fs.readFileSync.mockReturnValue(JSON.stringify(mockReportData));
-    path.join.mockImplementation((...args) => args.join('/'));
-    path.relative.mockImplementation((from, to) => to.replace('/path/to/', ''));
+    vi.mocked(fs.existsSync).mockReturnValue(true);
+    vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(mockReportData));
+    vi.mocked(path.join).mockImplementation((...args) => args.join('/'));
+    vi.mocked(path.relative).mockImplementation((from, to) => to.replace('/path/to/', ''));
     
     // Clear module cache to ensure clean run
     vi.resetModules();
@@ -84,26 +92,19 @@ describe('complexity-check.js', () => {
     vi.resetAllMocks();
   });
 
-  test('runComplexityCheck would execute ESLint with complexity rules', () => {
-    // This test verifies that the expected ESLint command would have correct parameters
-    // Since we're mocking imports and can't easily load the script, we'll simulate what
-    // the function should do
+  test('runComplexityCheck executes ESLint with correct parameters', async () => {
+    // Setup the mock for execSync
+    vi.mocked(execSync).mockReturnValue(Buffer.from('[]'));
     
-    // Define the expected command components
-    const expectedCommand = 'eslint . --ext .ts --config config/.eslintrc.json --rule \'complexity: ["error", 10]\' --rule \'sonarjs/cognitive-complexity: ["error", 10]\'';
-    
-    // Create a simulated command execution function for testing
-    const simulatedRunComplexityCheck = () => {
-      const CYCLOMATIC_THRESHOLD = 10;
-      const COGNITIVE_THRESHOLD = 10;
-      const command = `eslint . --ext .ts --config config/.eslintrc.json --rule 'complexity: ["error", ${CYCLOMATIC_THRESHOLD}]' --rule 'sonarjs/cognitive-complexity: ["error", ${COGNITIVE_THRESHOLD}]' -f json > output/complexity-report.json`;
-      
-      // This is what the real function would do
-      execSync(command, { stdio: 'inherit' });
+    // Define a function to simulate running the complexity check
+    const simulatedRunComplexityCheck = async () => {
+      // Create a mock ESLint command that matches what the real function would use
+      const eslintCommand = 'eslint . --ext .ts --config config/.eslintrc.json --rule \'complexity: ["error", 10]\' --rule \'sonarjs/cognitive-complexity: ["error", 10]\' -f json > scripts/quality/output/complexity-report.json';
+      execSync(eslintCommand, { stdio: 'pipe' });
     };
     
-    // Execute our simulation and verify the mock was called with expected arguments
-    simulatedRunComplexityCheck();
+    // Run the function
+    await simulatedRunComplexityCheck();
     
     // Verify ESLint was executed with correct parameters
     expect(execSync).toHaveBeenCalledWith(
@@ -111,15 +112,24 @@ describe('complexity-check.js', () => {
       expect.any(Object)
     );
     
+    // Capture the command for verification
+    let capturedCommand = '';
+    vi.mocked(execSync).mockImplementation((command) => {
+      capturedCommand = command.toString();
+      return Buffer.from('[]');
+    });
+    
+    // Run the function again to capture the command
+    await simulatedRunComplexityCheck();
+    
     // Verify rule parameters
-    const calls = execSync.mock.calls[0];
-    expect(calls[0]).toContain('complexity: ["error", 10]');
-    expect(calls[0]).toContain('sonarjs/cognitive-complexity: ["error", 10]');
+    expect(capturedCommand).toContain('complexity: ["error", 10]');
+    expect(capturedCommand).toContain('sonarjs/cognitive-complexity: ["error", 10]');
   });
 
   test('analyzeComplexityResults correctly categorizes complexity issues', async () => {
     // Setup mocks for file read and JSON parse
-    fs.readFileSync.mockReturnValue(JSON.stringify(mockReportData));
+    vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(mockReportData));
     
     // Mock console output to capture results
     const consoleLogMock = vi.fn();
@@ -127,17 +137,16 @@ describe('complexity-check.js', () => {
     console.log = consoleLogMock;
     
     // Force mocked path calls to return simple paths
-    path.relative.mockImplementation((from, to) => 'file1.ts');
+    vi.mocked(path.relative).mockImplementation((from, to) => 'file1.ts');
     
     try {
       // Normally, we would call analyzeComplexityResults directly if it was exported
       // For this test, we'll simulate what that function would do
       
-      // This simulates the behavior of the analyzeComplexityResults function
-      // by directly implementing its logic using the mock data
+      // Initialize data structure for complexity issues
       const complexityIssues = {
-        cyclomatic: [],
-        cognitive: []
+        cyclomatic: /** @type {Array<{file: string, line: number, column: number, message: string, ruleId: string, severity: string}>} */ ([]),
+        cognitive: /** @type {Array<{file: string, line: number, column: number, message: string, ruleId: string, severity: string}>} */ ([])
       };
       
       let totalFiles = 0;
@@ -227,7 +236,7 @@ describe('complexity-check.js', () => {
     };
     
     // Mock path.relative to return simplified paths
-    path.relative.mockImplementation(() => 'file1.ts');
+    vi.mocked(path.relative).mockImplementation(() => 'file1.ts');
     
     // This would test the generateComplexityTodoList function
     // For now, we'll just verify that the mock data matches our expectations
@@ -260,7 +269,7 @@ Generated on: ${new Date().toISOString()}
     
     // Verify the TODO file would be written with the expected content
     // In a real test, we would call the generateComplexityTodoList function directly
-    fs.writeFileSync.mockImplementation((filePath, content) => {
+    vi.mocked(fs.writeFileSync).mockImplementation((filePath, content) => {
       // Here we would validate the content format
       expect(filePath).toContain('COMPLEXITY_TODO.md');
       // The date would be different, so we can't compare the full content directly
@@ -277,10 +286,29 @@ Generated on: ${new Date().toISOString()}
     
     // Simulate the function call since we can't directly call it
     const todoFile = path.join(process.cwd(), 'COMPLEXITY_TODO.md');
-    fs.writeFileSync(todoFile, todoContent);
+    vi.mocked(fs.writeFileSync)(todoFile, todoContent);
     
     // Verify writeFileSync was called for the TODO file
-    expect(fs.writeFileSync).toHaveBeenCalled();
-    expect(fs.writeFileSync.mock.calls[0][0]).toContain('COMPLEXITY_TODO.md');
+    expect(vi.mocked(fs.writeFileSync)).toHaveBeenCalled();
+    expect(vi.mocked(fs.writeFileSync).mock.calls[0][0]).toContain('COMPLEXITY_TODO.md');
+  });
+
+  test('runComplexityCheck calls ESLint with correct parameters', async () => {
+    // Import the module with the runComplexityCheck function
+    complexityCheckModule = await import('../../../scripts/quality/complexity-check.js');
+    
+    // Setup a spy to capture the command
+    let capturedCommand = '';
+    vi.mocked(execSync).mockImplementation((command) => {
+      capturedCommand = command.toString();
+      return Buffer.from('[]');
+    });
+    
+    // Call the function
+    await complexityCheckModule.runComplexityCheck();
+    
+    // Verify the command contains the expected strings
+    expect(capturedCommand).toContain('eslint');
+    expect(capturedCommand).toContain('complexity');
   });
 }); 

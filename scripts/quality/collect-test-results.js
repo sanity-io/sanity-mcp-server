@@ -82,11 +82,11 @@ function collectTestResults(options = { skipIntegration: false, skipTypecheck: f
     
     try {
       // Set a reasonable timeout for test execution (5 minutes)
-      const options = { 
+      const options = /** @type {import('child_process').ExecSyncOptions} */ ({ 
         encoding: 'utf8', 
-        stdio: ['pipe', 'pipe', verbose ? 'inherit' : 'pipe'],
+        stdio: 'pipe',
         timeout: 5 * 60 * 1000 // 5 minutes
-      };
+      });
       
       const output = execSync(suite.command, options);
       
@@ -95,9 +95,10 @@ function collectTestResults(options = { skipIntegration: false, skipTypecheck: f
       let result = null;
       
       // Look for JSON object starting with {
-      const jsonStart = output.indexOf('{');
+      const outputStr = output.toString('utf8');
+      const jsonStart = outputStr.indexOf('{');
       if (jsonStart >= 0) {
-        jsonOutput = output.substring(jsonStart);
+        jsonOutput = outputStr.substring(jsonStart);
         // Find where the JSON object ends - assuming no similarly formatted objects follow
         let braceCount = 0;
         let jsonEnd = jsonOutput.length;

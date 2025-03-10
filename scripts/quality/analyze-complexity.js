@@ -116,7 +116,7 @@ function processComplexityReport(eslintReport) {
   // Initialize data structure
   const complexityData = {
     files: {},
-    functions: [],
+    functions: /** @type {Array<{file: string, name: string, complexity: number, severity: string, line: number}>} */ ([]),
     totalFiles: 0,
     totalFunctions: 0,
     totalComplexity: 0

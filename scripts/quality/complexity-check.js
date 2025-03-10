@@ -31,7 +31,7 @@ const COGNITIVE_THRESHOLD = 10;
 const REPORT_FILE = path.join(OUTPUT_DIR, 'complexity-report.json');
 
 // Function to run ESLint with specific complexity rules
-function runComplexityCheck() {
+export function runComplexityCheck() {
   console.log('Running complexity checks...');
   
   try {
@@ -63,8 +63,8 @@ function analyzeComplexityResults() {
   
   // Extract complexity issues
   const complexityIssues = {
-    cyclomatic: [],
-    cognitive: []
+    cyclomatic: /** @type {Array<{file: string, line: number, column: number, message: string, ruleId: string, severity: string}>} */ ([]),
+    cognitive: /** @type {Array<{file: string, line: number, column: number, message: string, ruleId: string, severity: string}>} */ ([])
   };
   
   let totalFiles = 0;
@@ -225,5 +225,7 @@ function generateComplexityTodoList(complexityReport) {
   console.log(`\nComplexity TODO list generated at ${todoFile}`);
 }
 
-// Run the script
-runComplexityCheck(); 
+// Run the script if called directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+  runComplexityCheck();
+} 

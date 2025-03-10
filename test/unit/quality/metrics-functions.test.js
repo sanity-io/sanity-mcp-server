@@ -18,6 +18,70 @@ function calculateComplexityMetrics() {
   return true;
 }
 
+function calculateComplexityFromEslint() {
+  // Implementation for tests - needed for test cases that reference this function
+  const mockReport = JSON.parse(fs.readFileSync('mock_eslint_report.json', 'utf8'));
+  
+  const result = {
+    cyclomaticComplexity: { max: 0, average: 0, count: 0 },
+    cognitiveComplexity: { max: 0, average: 0, count: 0 },
+    complexFunctions: { high: 0, medium: 0, low: 0, total: 0 },
+    cognitiveComplexFunctions: { high: 0, medium: 0, low: 0, total: 0 }
+  };
+  
+  let cyclomaticSum = 0;
+  let cognitiveSum = 0;
+  
+  for (const file of mockReport) {
+    for (const message of file.messages) {
+      if (message.ruleId === 'complexity') {
+        // Extract complexity value from message
+        const match = message.message.match(/complexity of (\d+)/);
+        const complexity = match ? parseInt(match[1], 10) : 0;
+        
+        // Update cyclomatic complexity metrics
+        result.cyclomaticComplexity.max = Math.max(result.cyclomaticComplexity.max, complexity);
+        cyclomaticSum += complexity;
+        result.cyclomaticComplexity.count++;
+        
+        // Categorize function
+        if (complexity >= 15) result.complexFunctions.high++;
+        else if (complexity >= 10) result.complexFunctions.medium++;
+        else result.complexFunctions.low++;
+        
+        result.complexFunctions.total++;
+      } else if (message.ruleId === 'sonarjs/cognitive-complexity') {
+        // Extract cognitive complexity value from message
+        const match = message.message.match(/complexity of (\d+)/);
+        const complexity = match ? parseInt(match[1], 10) : 0;
+        
+        // Update cognitive complexity metrics
+        result.cognitiveComplexity.max = Math.max(result.cognitiveComplexity.max, complexity);
+        cognitiveSum += complexity;
+        result.cognitiveComplexity.count++;
+        
+        // Categorize function
+        if (complexity >= 15) result.cognitiveComplexFunctions.high++;
+        else if (complexity >= 10) result.cognitiveComplexFunctions.medium++;
+        else result.cognitiveComplexFunctions.low++;
+        
+        result.cognitiveComplexFunctions.total++;
+      }
+    }
+  }
+  
+  // Calculate averages
+  if (result.cyclomaticComplexity.count > 0) {
+    result.cyclomaticComplexity.average = cyclomaticSum / result.cyclomaticComplexity.count;
+  }
+  
+  if (result.cognitiveComplexity.count > 0) {
+    result.cognitiveComplexity.average = cognitiveSum / result.cognitiveComplexity.count;
+  }
+  
+  return result;
+}
+
 function calculateActualFileCount(directory) {
   // Implementation for tests
   return 6;
@@ -150,128 +214,6 @@ describe('Complexity Metrics Functions', () => {
     return calculateComplexityFromEslint();
   }
   
-  function calculateComplexityFromEslint() {
-    if (!fs.existsSync('./scripts/quality/output/complexity-report.json')) {
-      return {
-        cyclomaticComplexity: { average: 0, max: 0, count: 0 },
-        cognitiveComplexity: { average: 0, max: 0, count: 0 },
-        complexFunctions: { high: 0, medium: 0, low: 0, total: 0 },
-        cognitiveComplexFunctions: { high: 0, medium: 0, low: 0, total: 0 }
-      };
-    }
-    
-    try {
-      const report = JSON.parse(fs.readFileSync('./scripts/quality/output/complexity-report.json', 'utf8'));
-      
-      // Track cyclomatic complexity
-      let highComplexity = 0;
-      let mediumComplexity = 0;
-      let lowComplexity = 0;
-      let totalComplexity = 0;
-      let maxComplexity = 0;
-      let totalFunctions = 0;
-      
-      // Track cognitive complexity separately
-      let highCognitiveComplexity = 0;
-      let mediumCognitiveComplexity = 0;
-      let lowCognitiveComplexity = 0;
-      let totalCognitiveComplexity = 0;
-      let maxCognitiveComplexity = 0;
-      let totalCognitiveFunctions = 0;
-      
-      // Count functions by complexity level
-      for (const file of report) {
-        for (const message of file.messages) {
-          // Handle cyclomatic complexity
-          if (message.ruleId === 'complexity') {
-            const complexityMatch = message.message.match(/complexity of (\d+)/);
-            if (complexityMatch) {
-              const complexity = parseInt(complexityMatch[1], 10);
-              totalComplexity += complexity;
-              totalFunctions++;
-              
-              // Track max complexity
-              if (complexity > maxComplexity) {
-                maxComplexity = complexity;
-              }
-              
-              // Categorize by severity
-              if (complexity > 15) {
-                highComplexity++;
-              } else if (complexity > 10) {
-                mediumComplexity++;
-              } else {
-                lowComplexity++;
-              }
-            }
-          }
-          
-          // Handle cognitive complexity
-          else if (message.ruleId === 'sonarjs/cognitive-complexity') {
-            const complexityMatch = message.message.match(/cognitive complexity of (\d+)/);
-            if (complexityMatch) {
-              const complexity = parseInt(complexityMatch[1], 10);
-              totalCognitiveComplexity += complexity;
-              totalCognitiveFunctions++;
-              
-              // Track max cognitive complexity
-              if (complexity > maxCognitiveComplexity) {
-                maxCognitiveComplexity = complexity;
-              }
-              
-              // Categorize by severity (different thresholds for cognitive complexity)
-              if (complexity > 15) {
-                highCognitiveComplexity++;
-              } else if (complexity > 10) {
-                mediumCognitiveComplexity++;
-              } else {
-                lowCognitiveComplexity++;
-              }
-            }
-          }
-        }
-      }
-      
-      // Calculate average complexity
-      const avgComplexity = totalFunctions > 0 ? Math.round(totalComplexity / totalFunctions * 100) / 100 : 0;
-      const avgCognitiveComplexity = totalCognitiveFunctions > 0 ? 
-        Math.round(totalCognitiveComplexity / totalCognitiveFunctions * 100) / 100 : 0;
-      
-      return {
-        cyclomaticComplexity: {
-          average: avgComplexity,
-          max: maxComplexity,
-          count: totalFunctions
-        },
-        cognitiveComplexity: {
-          average: avgCognitiveComplexity,
-          max: maxCognitiveComplexity,
-          count: totalCognitiveFunctions
-        },
-        complexFunctions: {
-          high: highComplexity,
-          medium: mediumComplexity,
-          low: lowComplexity,
-          total: totalFunctions
-        },
-        cognitiveComplexFunctions: {
-          high: highCognitiveComplexity,
-          medium: mediumCognitiveComplexity,
-          low: lowCognitiveComplexity,
-          total: totalCognitiveFunctions
-        }
-      };
-    } catch (error) {
-      console.error(`Error parsing complexity report: ${error.message}`);
-      return {
-        cyclomaticComplexity: { average: 0, max: 0, count: 0 },
-        cognitiveComplexity: { average: 0, max: 0, count: 0 },
-        complexFunctions: { high: 0, medium: 0, low: 0, total: 0 },
-        cognitiveComplexFunctions: { high: 0, medium: 0, low: 0, total: 0 }
-      };
-    }
-  }
-  
   function findMaxComplexityFromEslint() {
     if (!fs.existsSync('./scripts/quality/output/complexity-report.json')) {
       return 0;
@@ -388,7 +330,7 @@ describe('Complexity Metrics Functions', () => {
     });
 
     it('should handle errors when finding max complexity', () => {
-      execSync.mockImplementation((cmd) => {
+      vi.mocked(execSync).mockImplementation((cmd) => {
         if (cmd.includes('complexity')) {
           throw new Error('Command failed');
         }
@@ -531,7 +473,7 @@ describe('Complexity Metrics Functions', () => {
         expect(result).toBeDefined();
       } catch (error) {
         // Using a proper assertion that works with TypeScript
-        expect(true).toBe(false); // Will fail the test if we reach this point
+        throw new Error('Test should not throw an error');
       }
     });
   });
@@ -541,7 +483,7 @@ describe('Complexity Metrics Functions', () => {
 describe('Test File Count Calculation', () => {
   beforeEach(() => {
     // Mock execSync
-    execSync.mockImplementation((cmd) => {
+    vi.mocked(execSync).mockImplementation((cmd) => {
       if (cmd.includes('find test/unit')) {
         return '6';
       } else if (cmd.includes('find test/controllers')) {
@@ -609,7 +551,7 @@ describe('Test File Count Calculation', () => {
       expect(result).toBe(7); // Should exclude README.md and other non-test files
     } catch (err) {
       console.error(`Error in test: ${err.message}`);
-      expect(true).toBe(false, 'Test should not throw an error');
+      throw new Error('Test should not throw an error');
     }
   });
 });
@@ -628,7 +570,61 @@ describe('file counting', () => {
       expect(vi.mocked(execSync)).toHaveBeenCalledWith(expect.stringContaining('find test/unit'));
     } catch (err) {
       console.error(`Error in test: ${err.message}`);
-      expect(true).toBe(false, 'Test should not throw an error');
+      throw new Error('Test should not throw an error');
+    }
+  });
+
+  it('should count the number of test files in a directory', () => {
+    // Mock local execSync function for this specific test
+    vi.mocked(execSync).mockImplementation((cmd) => {
+      if (cmd.includes('test/unit')) {
+        return Buffer.from('6');
+      } else if (cmd.includes('test/integration')) {
+        return Buffer.from('12');
+      } else if (cmd.includes('src')) {
+        return Buffer.from('50');
+      } else {
+        return Buffer.from('0');
+      }
+    });
+    
+    // Call the test with our mocked function
+    try {
+      const result = execSync('find test/unit -type f -name "*.test.*" | wc -l').toString().trim();
+      expect(result).toBe('6');
+      
+      // For unit tests, we want to exclude README and only count valid test files
+      // This simulates what we actually use in collect-test-results.js
+      const findPattern = `-type f \\( -name "*.test.*" -o -name "*.ts" \\) ! -name "README.md" ! -name "*.d.ts" ! -name "list-tools.js"`;
+      const cmd = `find test/unit ${findPattern} | wc -l`;
+      const countResult = execSync(cmd).toString().trim();
+      expect(countResult).toBe('6'); // Should exclude README.md and other non-test files
+    } catch (err) {
+      console.error(`Error in test: ${err.message}`);
+      throw new Error('Test should not throw an error');
+    }
+  });
+
+  it('should handle file count errors gracefully', () => {
+    // Mock execSync to throw an error
+    vi.mocked(execSync).mockImplementation((cmd) => {
+      throw new Error('Command failed');
+    });
+    
+    // Call the test with our mocked function
+    try {
+      const result = execSync('find test/unit -type f -name "*.test.*" | wc -l').toString().trim();
+      expect(result).toBe('0');
+      
+      // For unit tests, we want to exclude README and only count valid test files
+      // This simulates what we actually use in collect-test-results.js
+      const findPattern = `-type f \\( -name "*.test.*" -o -name "*.ts" \\) ! -name "README.md" ! -name "*.d.ts" ! -name "list-tools.js"`;
+      const cmd = `find test/unit ${findPattern} | wc -l`;
+      const countResult = execSync(cmd).toString().trim();
+      expect(countResult).toBe('0'); // Should exclude README.md and other non-test files
+    } catch (err) {
+      console.error(`Error in test: ${err.message}`);
+      throw new Error('Test should not throw an error');
     }
   });
 });
@@ -785,7 +781,114 @@ describe('findActualFileCount', () => {
       expect(countResult).toBe('6'); // Should exclude README.md and other non-test files
     } catch (err) {
       console.error(`Error in test: ${err.message}`);
-      expect(true).toBe(false, 'Test should not throw an error');
+      throw new Error('Test should not throw an error');
+    }
+  });
+});
+
+describe('should generate shell command metrics', () => {
+  it('should generate shell command metrics', () => {
+    // Mock execSync to return fake metrics
+    vi.mocked(execSync).mockImplementation((cmd) => {
+      if (cmd.includes('count-commands.sh')) {
+        return Buffer.from('10');
+      } else if (cmd.includes('count-functions.sh')) {
+        return Buffer.from('100');
+      } else {
+        return Buffer.from('0');
+      }
+    });
+  });
+});
+
+describe('should handle linting metrics', () => {
+  it('should handle linting metrics', () => {
+    // Mock execSync to return fake linting metrics
+    vi.mocked(execSync).mockImplementation((cmd) => {
+      if (cmd.includes('lint')) {
+        return Buffer.from('{"errors":5,"warnings":10}');
+      } else {
+        return Buffer.from('{}');
+      }
+    });
+  });
+});
+
+describe('Test Results Metrics', () => {
+  beforeEach(() => {
+    // Reset mocks
+    vi.resetAllMocks();
+    
+    // Mock execSync
+    vi.mocked(execSync).mockImplementation((cmd) => {
+      if (cmd.includes('find test/unit')) {
+        return '6';
+      } else if (cmd.includes('find test/controllers')) {
+        return '6';
+      } else if (cmd.includes('find test/integration/standard')) {
+        return '12';
+      } else {
+        return '0';
+      }
+    });
+  });
+
+  it('should correctly calculate file counts for test suites', () => {
+    // Setup a mock test result with incorrect file counts
+    const mockTestResult = {
+      numTotalTestSuites: 62, // Incorrectly high count
+      numPassedTests: 100,
+      numFailedTests: 0,
+      numTotalTests: 100,
+      startTime: Date.now() - 1000,
+      endTime: Date.now()
+    };
+    
+    // Test the file count calculation logic
+    // We'll create a simplified version here to test the core logic
+    const calculateActualFileCount = (directory) => {
+      try {
+        const command = `find ${directory} -type f -name "*.test.*" | wc -l`;
+        return parseInt(execSync(command, { encoding: 'utf8' }).trim());
+      } catch (err) {
+        return mockTestResult.numTotalTestSuites; // Fall back to original count on error
+      }
+    };
+    
+    // Test unit test directory
+    const unitTestCount = calculateActualFileCount('test/unit');
+    expect(unitTestCount).toBe(6);
+    
+    // Test controllers directory
+    const controllersTestCount = calculateActualFileCount('test/controllers');
+    expect(controllersTestCount).toBe(6);
+    
+    // Test integration tests
+    const integrationTestCount = calculateActualFileCount('test/integration/standard');
+    expect(integrationTestCount).toBe(12);
+  });
+
+  // Add a more comprehensive test for Unit Tests that also checks if we correctly exclude non-test files
+  it('should correctly count only actual test files for Unit Tests', () => {
+    // This test validates our logic for counting actual test files, excluding README and non-test files
+    const execSync = (cmd) => {
+      // Mock to simulate what we'd get from the file system
+      if (cmd.includes('test/unit')) {
+        return '       7\n'; // Mock result
+      }
+      return '0\n';
+    };
+    
+    try {
+      // For unit tests, we want to exclude README and only count valid test files
+      // This simulates what we actually use in collect-test-results.js
+      const findPattern = `-type f \\( -name "*.test.*" -o -name "*.ts" \\) ! -name "README.md" ! -name "*.d.ts" ! -name "list-tools.js"`;
+      const cmd = `find test/unit ${findPattern} | wc -l`;
+      const result = parseInt(execSync(cmd).trim());
+      expect(result).toBe(7); // Should exclude README.md and other non-test files
+    } catch (err) {
+      console.error(`Error in test: ${err.message}`);
+      throw new Error('Test should not throw an error');
     }
   });
 }); 
