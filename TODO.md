@@ -25,14 +25,17 @@
          - [✅] Ensure cyclometric average complexity is properly displayed in time series
          - [✅] Fix cyclomatic max complexity not showing in the dashboard
          - [🔄] Add cognitive complexity metrics to the dashboard alongside cyclomatic complexity
-         - [⚠️] Fix complex function distribution to show medium and low severity functions for all dates (currently only showing high for recent dates)
+         - [✅] Fix complex function distribution to show medium and low severity functions for all dates (currently only showing high for recent dates)
          - [ ] Add function-by-function complexity tracking over time
+         - [ ] Add historical pass / fail with absolute number of tests passing and failing - should be the first chart under metrics charts. Make it full width and not super tall :)
+         - [ ] Add back a ESLint error callout button at the top next to ESLint Warning
          - [✅] Write tests that verify complexity metrics are correctly captured
 
     4. [🔄] **Fix Coverage Reporting** (In Progress)
          - [✅] Fix test coverage trend not showing in the dashboard
          - [ ] Debug coverage data collection process
-         - [⚠️] Fix unit test file count in dashboard (showing 62 when there are only 6 files)
+         - [✅] Fix unit test file count in dashboard (showing 62 when there are only 6 files)
+         - [✅] Fix controller test file count in dashboard (showing 66 when there are only 6 files)
          - [ ] Ensure coverage reports are being generated and parsed correctly
          - [ ] Add file-level and overall coverage metrics to the dashboard
          - [ ] Add tests to verify coverage data is correctly processed

@@ -191,10 +191,13 @@ function generateHtml(checkpoints) {
     checkpoints[checkpoints.length - 1].metrics.testResults ? 
     checkpoints[checkpoints.length - 1].metrics.testResults : [];
     
+  // Ensure testResults is an array
+  const testResultsArray = Array.isArray(latestTestResults) ? latestTestResults : [];
+    
   // Calculate total pass/fail numbers
-  const totalTests = latestTestResults.reduce((sum, suite) => sum + suite.total, 0);
-  const passedTests = latestTestResults.reduce((sum, suite) => sum + suite.passed, 0);
-  const failedTests = latestTestResults.reduce((sum, suite) => sum + suite.failed, 0);
+  const totalTests = testResultsArray.reduce((sum, suite) => sum + suite.total, 0);
+  const passedTests = testResultsArray.reduce((sum, suite) => sum + suite.passed, 0);
+  const failedTests = testResultsArray.reduce((sum, suite) => sum + suite.failed, 0);
   const passRate = totalTests > 0 ? Math.round((passedTests / totalTests) * 100) : 0;
   
   // Helper function to determine trend direction
@@ -451,7 +454,7 @@ function generateHtml(checkpoints) {
           </tr>
         </thead>
         <tbody>
-          ${latestTestResults
+          ${testResultsArray
             .sort((a, b) => {
               // Sort by importance first
               const importanceOrder = { critical: 0, high: 1, medium: 2, low: 3 };
@@ -851,16 +854,16 @@ function generateHtml(checkpoints) {
     const testResultsChart = new Chart(testResultsCtx, {
       type: 'bar',
       data: {
-        labels: ${JSON.stringify(latestTestResults.map(suite => suite.name))},
+        labels: ${JSON.stringify(testResultsArray.map(suite => suite.name))},
         datasets: [
           {
             label: 'Passed',
-            data: ${JSON.stringify(latestTestResults.map(suite => suite.passed))},
+            data: ${JSON.stringify(testResultsArray.map(suite => suite.passed))},
             backgroundColor: '#4CAF50'
           },
           {
             label: 'Failed',
-            data: ${JSON.stringify(latestTestResults.map(suite => suite.failed))},
+            data: ${JSON.stringify(testResultsArray.map(suite => suite.failed))},
             backgroundColor: '#F44336'
           }
         ]
