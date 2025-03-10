@@ -12,6 +12,7 @@
  * Options:
  *   --skip-tests       Skip running unit tests (use existing results)
  *   --skip-complexity  Skip complexity analysis (use existing results)
+ *   --skip-all         Skip all steps, just generate dashboard from existing data
  *   --profile, -p      Show detailed timing information
  */
 
@@ -136,8 +137,10 @@ async function generateFastDashboard() {
       execWithTiming('npm run test:unit', 'Unit Tests', { continueOnError: true });
       
       // Collect existing test results and any unit test results
+      // Skip TypeScript type checking for faster execution
+      // Skip running integration tests but preserve existing results
       execWithTiming(
-        'node scripts/quality/collect-test-results.js --skip-integration --use-existing', 
+        'node scripts/quality/collect-test-results.js --skip-integration --skip-typecheck', 
         'Test Results Collection'
       );
     } else {
@@ -146,7 +149,7 @@ async function generateFastDashboard() {
       // If test results don't exist or are outdated, at least collect without running
       if (!testResultsExist && !skipAll) {
         execWithTiming(
-          'node scripts/quality/collect-test-results.js --use-existing', 
+          'node scripts/quality/collect-test-results.js --use-existing --skip-typecheck', 
           'Test Results Collection (from existing data)'
         );
       }
@@ -284,11 +287,21 @@ function runSelfTests() {
   }
   
   // Test 3: Verify test results were captured (if tests were run)
-  if (!skipTests && fs.existsSync(TEST_RESULTS_FILE)) {
+  if (fs.existsSync(TEST_RESULTS_FILE)) {
     try {
       const testResults = JSON.parse(fs.readFileSync(TEST_RESULTS_FILE, 'utf8'));
       if (testResults.results && Array.isArray(testResults.results)) {
-        console.log(`✅ Test results captured (${testResults.results.length} tests)`);
+        console.log(`✅ Test results captured (${testResults.results.length} test suites)`);
+        
+        // Check for integration tests
+        const integrationTests = testResults.results.filter(suite => 
+          suite.name.includes('Integration Tests'));
+        if (integrationTests.length > 0) {
+          console.log(`   Including ${integrationTests.length} integration test suites`);
+        } else {
+          console.warn('⚠️ No integration test results found in the dashboard');
+          // Not failing the test for this, just warning
+        }
       } else {
         console.error('❌ Test results file has invalid format');
         testsPassed = false;
