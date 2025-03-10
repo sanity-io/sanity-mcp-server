@@ -185,10 +185,18 @@ function collectTestResults(options = {}) {
       if (verbose) {
         console.log(`Test files count for ${suite.name}: ${resultObj.files}`);
         
-        // For unit tests and controller tests, log more detailed info
-        if (suite.name === 'Unit Tests' || suite.name === 'Controller Tests') {
+        // For unit tests, controller tests, and standard integration tests, log more detailed info
+        if (suite.name === 'Unit Tests' || suite.name === 'Controller Tests' || suite.name === 'Standard Integration Tests') {
           try {
-            const testDir = suite.name === 'Unit Tests' ? 'test/unit' : 'test/controllers';
+            let testDir;
+            if (suite.name === 'Unit Tests') {
+              testDir = 'test/unit';
+            } else if (suite.name === 'Controller Tests') {
+              testDir = 'test/controllers';
+            } else if (suite.name === 'Standard Integration Tests') {
+              testDir = 'test/integration/standard';
+            }
+            
             const actualFileCount = parseInt(execSync(`find ${testDir} -type f -name "*.test.*" | wc -l`, { encoding: 'utf8' }).trim());
             console.log(`Actual test files in ${testDir}: ${actualFileCount}`);
             console.log(`Discrepancy: ${resultObj.files - actualFileCount} files`);
@@ -209,10 +217,18 @@ function collectTestResults(options = {}) {
           }
         }
       } else {
-        // Even in non-verbose mode, fix the files count for unit and controller tests
-        if (suite.name === 'Unit Tests' || suite.name === 'Controller Tests') {
+        // Even in non-verbose mode, fix the files count for unit, controller, and standard integration tests
+        if (suite.name === 'Unit Tests' || suite.name === 'Controller Tests' || suite.name === 'Standard Integration Tests') {
           try {
-            const testDir = suite.name === 'Unit Tests' ? 'test/unit' : 'test/controllers';
+            let testDir;
+            if (suite.name === 'Unit Tests') {
+              testDir = 'test/unit';
+            } else if (suite.name === 'Controller Tests') {
+              testDir = 'test/controllers';
+            } else if (suite.name === 'Standard Integration Tests') {
+              testDir = 'test/integration/standard';
+            }
+            
             const actualFileCount = parseInt(execSync(`find ${testDir} -type f -name "*.test.*" | wc -l`, { encoding: 'utf8' }).trim());
             resultObj.files = actualFileCount;
           } catch (err) {

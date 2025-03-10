@@ -23,11 +23,11 @@
     3. [🔄] **Fix Missing Complexity Metrics** (In Progress)
          - [✅] Update complexity reporting to correctly identify function names (fix "unknown" function names)
          - [✅] Ensure cyclometric average complexity is properly displayed in time series
-         - [🔄] Fix cyclomatic max complexity not showing in the dashboard
+         - [✅] Fix cyclomatic max complexity not showing in the dashboard
          - [🔄] Add cognitive complexity metrics to the dashboard alongside cyclomatic complexity
          - [✅] Fix complex function distribution to show medium and low severity functions (currently only shows high)
          - [ ] Add function-by-function complexity tracking over time
-         - [ ] Write tests that verify complexity metrics are correctly captured
+         - [✅] Write tests that verify complexity metrics are correctly captured
 
     4. [🔄] **Fix Coverage Reporting** (In Progress)
          - [✅] Fix test coverage trend not showing in the dashboard
@@ -45,15 +45,23 @@
          - [✅] Fix time series data storage and parsing for complexity metrics and test coverage trends
          - [✅] Address data gaps in the timeline charts for complexity and test coverage
          - [✅] Investigate potential double counting of test files (dashboard shows 62 unit test files and 66 controller test files when there are only 6 files in each directory)
+         - [✅] Fix file count anomalies for Unit Tests and Standard Integration Tests
 
-    6. [ ] **Refactor High-Complexity Functions**
+    6. [🔄] **Regression Prevention** (In Progress)
+         - [✅] Add automated tests for complexity metrics calculation
+         - [✅] Add tests for test file count calculation
+         - [ ] Add tests for test coverage calculation
+         - [ ] Create end-to-end test for dashboard generation
+         - [ ] Set up GitHub actions workflow to run metrics tests on PRs
+
+    7. [ ] **Refactor High-Complexity Functions**
          - [ ] Analyze and refactor searchContent() in groq.ts (complexity: 25)
          - [ ] Analyze and refactor the high-complexity function in documentHelpers.ts (complexity: 25)
          - [ ] Analyze and refactor the high-complexity function in schema.ts (complexity: 23)
          - [ ] Analyze and refactor query() in groq.ts (complexity: 20)
          - [ ] Add tests for each refactored function to ensure behavior is preserved
 
-    7. [✅] **Performance Optimization**
+    8. [✅] **Performance Optimization**
          - [✅] Reduce dashboard generation time (currently ~40s)
          - [✅] Add a fast mode to skip integration tests during local development
          - [✅] Parallelize test execution where possible
