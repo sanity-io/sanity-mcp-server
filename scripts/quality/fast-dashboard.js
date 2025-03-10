@@ -124,63 +124,66 @@ async function generateFastDashboard() {
   
   try {
     // OPTIMIZATION STRATEGY:
-    // 1. Only collect test results once
+    // 1. Run only unit tests for faster execution
     // 2. Pass appropriate flags to scripts to avoid duplicate work
-    // 3. Reuse existing results when possible
+    // 3. NEVER use stale data - always run the minimal set of tests needed
     
     // Step 1: Run only unit tests if needed
     const testResultsExist = isFileRecentAndValid(TEST_RESULTS_FILE);
     
-    if (!skipTests && !skipAll && !testResultsExist) {
+    if (!skipTests && !skipAll) {
       // We only need to run unit tests and collect them directly
       // Skip the controller and integration tests for speed
       execWithTiming('npm run test:unit', 'Unit Tests', { continueOnError: true });
       
-      // Collect existing test results and any unit test results
+      // Collect test results and any unit test results
       // Skip TypeScript type checking for faster execution
-      // Skip running integration tests but preserve existing results
+      // Skip running integration tests but use fresh unit test data
       execWithTiming(
         'node scripts/quality/collect-test-results.js --skip-integration --skip-typecheck', 
         'Test Results Collection'
       );
-    } else {
-      console.log('⏩ Skipping tests (using existing results)');
+    } else if (skipTests || skipAll) {
+      console.log('⚠️ WARNING: Skipping tests as requested. Dashboard will NOT be accurate!');
+      console.log('   This should ONLY be used for development purposes.');
+      console.log('   Run a full dashboard before committing or reviewing metrics.');
       
-      // If test results don't exist or are outdated, at least collect without running
-      if (!testResultsExist && !skipAll) {
-        execWithTiming(
-          'node scripts/quality/collect-test-results.js --use-existing --skip-typecheck', 
-          'Test Results Collection (from existing data)'
-        );
-      }
+      // Even when skipping tests, we should make it clear they're being skipped
+      // rather than using stale data silently
+      execWithTiming(
+        'node scripts/quality/collect-test-results.js --skip-integration --skip-unit --skip-controllers', 
+        'Test Results Collection (SKIPPED - no test data will be available)'
+      );
     }
     
     // Step 2: Run complexity analysis if needed
     if (!skipComplexity && !skipAll) {
-      // Skip the complexity check if we already have recent metrics
-      const complexityMetricsExist = isFileRecentAndValid(path.join(OUTPUT_DIR, 'complexity-metrics.json'));
-      
-      if (!complexityMetricsExist) {
-        // Break this down into smaller steps for more detailed profiling
-        measureTime('Complexity Analysis', () => {
-          execWithTiming('npm run complexity', 'ESLint Complexity Check', { continueOnError: true });
-          execWithTiming('node scripts/quality/analyze-complexity.js', 'Complexity Data Processing');
-        });
-      } else {
-        console.log('⏩ Skipping complexity analysis (using existing results)');
-      }
-    } else {
-      console.log('⏩ Skipping complexity analysis (using existing results)');
+      // Break this down into smaller steps for more detailed profiling
+      measureTime('Complexity Analysis', () => {
+        execWithTiming('npm run complexity', 'ESLint Complexity Check', { continueOnError: true });
+        execWithTiming('node scripts/quality/analyze-complexity.js', 'Complexity Data Processing');
+      });
+    } else if (skipComplexity || skipAll) {
+      console.log('⚠️ WARNING: Skipping complexity analysis as requested. Dashboard will NOT be accurate!');
+      console.log('   This should ONLY be used for development purposes.');
+      console.log('   Run a full dashboard before committing or reviewing metrics.');
     }
     
-    // Step 3: Generate quality snapshot using existing data
+    // Step 3: Generate quality snapshot
     if (!skipAll) {
+      // Pass the flags to indicate what data we are/aren't collecting
+      const snapshotFlags = [];
+      if (skipTests) snapshotFlags.push('--skip-tests');
+      if (profiling) snapshotFlags.push('--verbose');
+      
       execWithTiming(
-        'npm run quality:save-snapshot -- --skip-tests --verbose', 
+        `npm run quality:save-snapshot -- ${snapshotFlags.join(' ')}`, 
         'Quality Snapshot Generation'
       );
     } else {
-      console.log('⏩ Skipping snapshot generation (using existing data)');
+      console.log('⚠️ WARNING: Skipping snapshot generation as requested. Dashboard will NOT be accurate!');
+      console.log('   This should ONLY be used for development purposes.');
+      console.log('   Run a full dashboard before committing or reviewing metrics.');
     }
     
     // Step 4: Generate the dashboard
@@ -191,6 +194,18 @@ async function generateFastDashboard() {
     const duration = (endTime - startTime) / 1000;
     
     console.log(`\n✅ Fast dashboard generated in ${duration.toFixed(2)}s`);
+    
+    // Display warning banner if any steps were skipped
+    if (skipTests || skipComplexity || skipAll) {
+      console.log('\n');
+      console.log('⚠️ ════════════════════════════════════════════════ ⚠️');
+      console.log('⚠️    WARNING: DASHBOARD CONTAINS PARTIAL DATA     ⚠️');
+      console.log('⚠️ Steps were skipped - metrics are NOT complete   ⚠️');
+      console.log('⚠️ Use only for development, NOT for evaluation    ⚠️');
+      console.log('⚠️ ════════════════════════════════════════════════ ⚠️');
+      console.log('\n');
+    }
+    
     console.log(`📊 Dashboard available at: ${CHART_HTML_FILE}`);
     
     // Print timing information if profiling is enabled

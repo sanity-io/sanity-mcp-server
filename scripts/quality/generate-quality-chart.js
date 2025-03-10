@@ -32,9 +32,13 @@ function generateQualityChart() {
   // Parse each line as JSON
   const checkpoints = lines.map(line => {
     try {
+      // Skip empty lines without warning
+      if (!line || line.trim() === '') {
+        return null;
+      }
       return JSON.parse(line);
     } catch (e) {
-      console.warn(`Error parsing line: ${line}`);
+      console.warn(`Error parsing line: ${e.message}`);
       return null;
     }
   }).filter(Boolean);

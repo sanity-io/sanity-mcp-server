@@ -1,5 +1,21 @@
 # TODO
 
+## Critical Priority
+1. [🔄] **NEVER USE STALE DATA IN QUALITY METRICS** (In Progress)
+
+    - The quality dashboard must ALWAYS use fresh data, never cached results
+    - Current issue: Some metrics are being reported with "estimated: true" and using cached test results
+    - Cached metrics defeat the purpose of a quality dashboard and provide misleading information
+    - Fallback mechanisms should be removed entirely - stale data is NEVER acceptable under any circumstances
+
+    ### Implementation plan
+    1. [🔄] **Remove Stale Data Fallbacks**
+         - [ ] Identify all locations where stale data is being used as fallback
+         - [ ] Make all tests or metrics collection fail fast and explicitly rather than using old data
+         - [ ] Remove ALL fallback mechanisms to existing/cached data - stale data is not acceptable
+         - [ ] Enforce timestamp validation to prevent old data from being used unknowingly
+         - [ ] If tests fail, the dashboard generation should fail too - never display misleading metrics
+
 ## High Priority
 1. [ ] **Fix and Enhance Quality Dashboard**
 
@@ -39,6 +55,7 @@
          - [ ] Ensure coverage reports are being generated and parsed correctly
          - [ ] Add file-level and overall coverage metrics to the dashboard
          - [ ] Add tests to verify coverage data is correctly processed
+         - [ ] Remove the historical data from the 3/8 - we've generated lots of garbage while testing this :)
 
     5. [🔄] **Dashboard Improvements** (In Progress)
          - [✅] Fix chart generation to include all metrics consistently

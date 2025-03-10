@@ -296,27 +296,43 @@ function collectTestResults(options = {}) {
         errorDetail = `Exit code ${error.status}: ${error.stderr.toString()}`;
       }
       
-      // Try to find an existing result for this suite
-      const existingResult = existingResults.find(result => result.name === suite.name);
+      // NEVER use existing results when tests fail - that would be misleading
+      // Instead, add a placeholder result with the error
+      results.push({
+        name: suite.name,
+        importance: suite.importance,
+        passed: 0,
+        failed: 1,  // Indicate a failure
+        total: 1,  // At least one test was attempted
+        success: false,
+        files: 0,
+        duration: 0,
+        error: errorDetail,
+        failedToRun: true  // Flag that this suite failed to run properly
+      });
       
-      if (existingResult && preserveExistingResults) {
-        console.log(`Using existing results for ${suite.name} due to error running tests`);
-        results.push(existingResult);
-      } else {
-        // Add a placeholder result
-        results.push({
-          name: suite.name,
-          importance: suite.importance,
-          passed: 0,
-          failed: 0, 
-          total: 0,
-          success: false,
-          files: 0,
-          duration: 0,
-          error: errorDetail
-        });
+      // Check if we're allowing test failures
+      const allowFailures = process.env.ALLOW_TEST_FAILURES === 'true';
+      
+      // If this is a critical or high importance test suite, fail the entire process
+      // unless we've explicitly set the environment variable to allow failures
+      if ((suite.importance === 'critical' || suite.importance === 'high') && !allowFailures) {
+        throw new Error(`Critical/high importance test suite failed: ${suite.name} - ${errorDetail}`);
+      } else if ((suite.importance === 'critical' || suite.importance === 'high') && allowFailures) {
+        console.warn(`⚠️ WARNING: Critical/high importance test suite failed: ${suite.name}`);
+        console.warn(`⚠️ Continuing only because ALLOW_TEST_FAILURES=true is set`);
+        console.warn(`⚠️ THE RESULTING METRICS WILL BE INCOMPLETE AND POTENTIALLY MISLEADING`);
       }
     }
+  }
+  
+  // Verify results - if ANY suite has the failedToRun flag and we're not explicitly allowing failures,
+  // then throw an error to prevent generating dashboards with stale data
+  const allowFailures = process.env.ALLOW_TEST_FAILURES === 'true';
+  const failedSuites = results.filter(r => r.failedToRun);
+  
+  if (failedSuites.length > 0 && !allowFailures) {
+    throw new Error(`${failedSuites.length} test suites failed to run properly. Fix the tests or use ALLOW_TEST_FAILURES=true to bypass this check.`);
   }
   
   // Save results to file
