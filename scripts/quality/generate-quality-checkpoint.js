@@ -153,31 +153,126 @@ function countEslintIssues() {
  * Get complexity metrics
  */
 function getComplexityMetrics() {
+  // Try to read complexity metrics from the dedicated metrics file first
+  if (fs.existsSync('./scripts/quality/output/complexity-metrics.json')) {
+    try {
+      const complexityMetrics = JSON.parse(fs.readFileSync('./scripts/quality/output/complexity-metrics.json', 'utf8'));
+      
+      if (complexityMetrics && complexityMetrics.metrics) {
+        const metrics = complexityMetrics.metrics;
+        return {
+          // Use consistent format that matches what the chart generator expects
+          cyclomaticComplexity: {
+            average: metrics.averageComplexity || 0,
+            max: metrics.topFunctions && metrics.topFunctions.length > 0 ? 
+                 metrics.topFunctions[0].complexity : 0,
+            count: metrics.totalFunctions || 0
+          },
+          cognitiveComplexity: {
+            average: metrics.averageComplexity || 0,
+            max: metrics.topFunctions && metrics.topFunctions.length > 0 ? 
+                 metrics.topFunctions[0].complexity : 0,
+            count: metrics.totalFunctions || 0
+          },
+          complexFunctions: {
+            high: metrics.highComplexityFunctions || 0,
+            medium: metrics.mediumComplexityFunctions || 0,
+            low: metrics.lowComplexityFunctions || 0,
+            total: metrics.totalFunctions || 0
+          }
+        };
+      }
+    } catch (error) {
+      console.error(`Error parsing complexity metrics file: ${error.message}`);
+    }
+  }
+  
+  // Fallback to parsing the complexity report directly
   if (fs.existsSync(COMPLEXITY_REPORT)) {
     try {
       const report = JSON.parse(fs.readFileSync(COMPLEXITY_REPORT, 'utf8'));
       
       let highComplexity = 0;
+      let mediumComplexity = 0;
+      let lowComplexity = 0;
+      let totalComplexity = 0;
+      let maxComplexity = 0;
+      let totalFunctions = 0;
       
-      // Count high complexity functions
+      // Count functions by complexity level
       for (const file of report) {
         for (const message of file.messages) {
           if (message.ruleId === 'complexity' || message.ruleId === 'sonarjs/cognitive-complexity') {
             const complexityMatch = message.message.match(/complexity of (\d+)/);
-            if (complexityMatch && parseInt(complexityMatch[1]) > 10) {
-              highComplexity++;
+            if (complexityMatch) {
+              const complexity = parseInt(complexityMatch[1], 10);
+              totalComplexity += complexity;
+              totalFunctions++;
+              
+              // Track max complexity
+              if (complexity > maxComplexity) {
+                maxComplexity = complexity;
+              }
+              
+              // Categorize by severity
+              if (complexity > 15) {
+                highComplexity++;
+              } else if (complexity > 10) {
+                mediumComplexity++;
+              } else {
+                lowComplexity++;
+              }
             }
           }
         }
       }
       
-      return { highComplexity };
+      // Calculate average complexity
+      const avgComplexity = totalFunctions > 0 ? Math.round(totalComplexity / totalFunctions) : 0;
+      
+      return {
+        cyclomaticComplexity: {
+          average: avgComplexity,
+          max: maxComplexity,
+          count: totalFunctions
+        },
+        cognitiveComplexity: {
+          average: avgComplexity,
+          max: maxComplexity,
+          count: totalFunctions
+        },
+        complexFunctions: {
+          high: highComplexity,
+          medium: mediumComplexity,
+          low: lowComplexity,
+          total: totalFunctions
+        }
+      };
     } catch (error) {
       console.error(`Error parsing complexity report: ${error.message}`);
     }
   }
   
-  return { highComplexity: 0 };
+  // Return a consistent structure even when no data is available
+  // This prevents gaps in charts due to missing or differently structured data
+  return {
+    cyclomaticComplexity: {
+      average: 0,
+      max: 0,
+      count: 0
+    },
+    cognitiveComplexity: {
+      average: 0,
+      max: 0,
+      count: 0
+    },
+    complexFunctions: {
+      high: 0,
+      medium: 0,
+      low: 0,
+      total: 0
+    }
+  };
 }
 
 /**

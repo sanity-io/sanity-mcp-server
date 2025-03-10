@@ -22,7 +22,7 @@
 
     3. [🔄] **Fix Missing Complexity Metrics** (In Progress)
          - [✅] Update complexity reporting to correctly identify function names (fix "unknown" function names)
-         - [ ] Ensure complexity metrics are being properly aggregated in the quality history
+         - [🔄] Ensure complexity metrics are being properly aggregated in the quality history
          - [ ] Add function-by-function complexity tracking over time
          - [ ] Write tests that verify complexity metrics are correctly captured
 
@@ -32,12 +32,14 @@
          - [ ] Add file-level and overall coverage metrics to the dashboard
          - [ ] Add tests to verify coverage data is correctly processed
 
-    5. [✅] **Dashboard Improvements**
+    5. [🔄] **Dashboard Improvements** (In Progress)
          - [✅] Fix chart generation to include all metrics consistently
          - [✅] Improve dashboard with drill-down capabilities for detailed analysis
          - [✅] Add quality score trending with visual indicators
          - [✅] Create tests for dashboard generation that verify all metrics are included
          - [✅] Ensure integration tests are properly represented in the dashboard
+         - [🔄] Fix time series data storage and parsing for complexity metrics and test coverage trends
+         - [🔄] Address data gaps in the timeline charts for complexity and test coverage
 
     6. [ ] **Refactor High-Complexity Functions**
          - [ ] Analyze and refactor searchContent() in groq.ts (complexity: 25)
