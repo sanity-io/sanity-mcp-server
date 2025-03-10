@@ -197,6 +197,32 @@ function generateHtml(checkpoints) {
   const failedTests = latestTestResults.reduce((sum, suite) => sum + suite.failed, 0);
   const passRate = totalTests > 0 ? Math.round((passedTests / totalTests) * 100) : 0;
   
+  // Helper function to determine trend direction
+  function getTrendIndicator(values, lowerIsBetter = false) {
+    if (values.length < 2) return '—';
+    
+    const latest = values[values.length - 1];
+    const previous = values[values.length - 2];
+    
+    if (latest === previous) return '—';
+    
+    const isImproving = lowerIsBetter ? latest < previous : latest > previous;
+    return isImproving ? '↑' : '↓';
+  }
+  
+  // Helper function to get CSS class based on trend
+  function getTrendClass(values, lowerIsBetter = false) {
+    if (values.length < 2) return 'trend-neutral';
+    
+    const latest = values[values.length - 1];
+    const previous = values[values.length - 2];
+    
+    if (latest === previous) return 'trend-neutral';
+    
+    const isImproving = lowerIsBetter ? latest < previous : latest > previous;
+    return isImproving ? 'trend-positive' : 'trend-negative';
+  }
+  
   // Generate the HTML
   return `<!DOCTYPE html>
 <html lang="en">
@@ -248,7 +274,7 @@ function generateHtml(checkpoints) {
     }
     .stats-container {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(5, 1fr);
       gap: 20px;
       margin-bottom: 20px;
     }
@@ -271,6 +297,80 @@ function generateHtml(checkpoints) {
     }
     .pass-rate {
       color: ${passRate > 90 ? '#4CAF50' : passRate > 80 ? '#FF9800' : '#F44336'};
+    }
+    /* Trend indicators */
+    .trend-positive {
+      color: #4CAF50;
+    }
+    .trend-negative {
+      color: #F44336;
+    }
+    .trend-neutral {
+      color: #FF9800;
+    }
+    /* Test results table styles */
+    .test-results-container {
+      background-color: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 20px;
+      margin-top: 20px;
+      overflow-x: auto;
+    }
+    .test-results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .test-summary {
+      display: flex;
+      gap: 20px;
+    }
+    .test-metric {
+      text-align: center;
+    }
+    .test-metric-value {
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .test-metric-label {
+      font-size: 14px;
+      color: #777;
+    }
+    .test-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .test-table th {
+      background-color: #f2f2f2;
+      padding: 10px;
+      text-align: left;
+      border-bottom: 2px solid #ddd;
+    }
+    .test-table td {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+    .status-passed {
+      color: #4CAF50;
+      font-weight: bold;
+    }
+    .status-failed {
+      color: #F44336;
+      font-weight: bold;
+    }
+    .importance-critical {
+      background-color: #FFEBEE;
+    }
+    .importance-high {
+      background-color: #FFF8E1;
+    }
+    .section-heading {
+      font-size: 18px;
+      margin: 30px 0 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #ddd;
     }
     @media (max-width: 768px) {
       .dashboard {
@@ -299,9 +399,83 @@ function generateHtml(checkpoints) {
       </div>
       <div class="stat-card">
         <h2>${checkpoints.length > 0 ? cyclomaticAvg[cyclomaticAvg.length-1].toFixed(2) : 'N/A'}</h2>
-        <p>Current Average Complexity</p>
+        <p>Average Complexity</p>
+        <div class="${getTrendClass(cyclomaticAvg, true)}">${getTrendIndicator(cyclomaticAvg, true)}</div>
+      </div>
+      <div class="stat-card">
+        <h2>${eslintWarnings[eslintWarnings.length - 1]}</h2>
+        <p>ESLint Warnings</p>
+        <div class="${getTrendClass(eslintWarnings, true)}">${getTrendIndicator(eslintWarnings, true)}</div>
+      </div>
+      <div class="stat-card">
+        <h2>${duplicationPercentage[duplicationPercentage.length - 1].toFixed(1)}%</h2>
+        <p>Code Duplication</p>
+        <div class="${getTrendClass(duplicationPercentage, true)}">${getTrendIndicator(duplicationPercentage, true)}</div>
       </div>
     </div>
+    
+    <!-- Test Results Section -->
+    <div class="test-results-container">
+      <div class="test-results-header">
+        <h2>Test Results</h2>
+        <div class="test-summary">
+          <div class="test-metric">
+            <div class="test-metric-value">${totalTests}</div>
+            <div class="test-metric-label">Total Tests</div>
+          </div>
+          <div class="test-metric">
+            <div class="test-metric-value status-passed">${passedTests}</div>
+            <div class="test-metric-label">Passed</div>
+          </div>
+          <div class="test-metric">
+            <div class="test-metric-value status-failed">${failedTests}</div>
+            <div class="test-metric-label">Failed</div>
+          </div>
+        </div>
+      </div>
+      <table class="test-table">
+        <thead>
+          <tr>
+            <th>Test Suite</th>
+            <th>Status</th>
+            <th>Passed</th>
+            <th>Failed</th>
+            <th>Total</th>
+            <th>Files</th>
+            <th>Duration</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${latestTestResults
+            .sort((a, b) => {
+              // Sort by importance first
+              const importanceOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+              if (importanceOrder[a.importance] !== importanceOrder[b.importance]) {
+                return importanceOrder[a.importance] - importanceOrder[b.importance];
+              }
+              // Then by success status
+              if (a.success !== b.success) {
+                return a.success ? 1 : -1;
+              }
+              // Then by name
+              return a.name.localeCompare(b.name);
+            })
+            .map(suite => `
+              <tr class="importance-${suite.importance}">
+                <td>${suite.name}</td>
+                <td class="status-${suite.success ? 'passed' : 'failed'}">${suite.success ? 'PASSED' : 'FAILED'}</td>
+                <td>${suite.passed}</td>
+                <td>${suite.failed}</td>
+                <td>${suite.total}</td>
+                <td>${suite.files}</td>
+                <td>${suite.duration}s</td>
+              </tr>
+            `).join('')}
+        </tbody>
+      </table>
+    </div>
+    
+    <h3 class="section-heading">Metrics Charts</h3>
     
     <div class="dashboard">
       <div class="chart-container">
@@ -316,8 +490,17 @@ function generateHtml(checkpoints) {
       <div class="chart-container">
         <canvas id="coverageChart"></canvas>
       </div>
+      <div class="chart-container">
+        <canvas id="duplicationChart"></canvas>
+      </div>
+      <div class="chart-container">
+        <canvas id="filesByCoverageChart"></canvas>
+      </div>
       <div class="chart-container full-width">
         <canvas id="testResultsChart"></canvas>
+      </div>
+      <div class="chart-container full-width">
+        <canvas id="timelineChart"></canvas>
       </div>
     </div>
   </div>
@@ -510,22 +693,117 @@ function generateHtml(checkpoints) {
     // Coverage Chart
     const coverageCtx = document.getElementById('coverageChart').getContext('2d');
     const coverageChart = new Chart(coverageCtx, {
+      type: 'line',
+      data: {
+        labels: ${JSON.stringify(dates)},
+        datasets: [
+          {
+            label: 'Overall Coverage (%)',
+            data: ${JSON.stringify(coverageOverall)},
+            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            tension: 0.1,
+            fill: true
+          }
+        ]
+      },
+      options: {
+        plugins: {
+          title: {
+            display: true,
+            text: 'Test Coverage Trend',
+            font: { size: 16, weight: 'bold' }
+          },
+          tooltip: {
+            mode: 'index',
+            intersect: false
+          }
+        },
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Date'
+            }
+          },
+          y: {
+            beginAtZero: true,
+            max: 100,
+            title: {
+              display: true,
+              text: 'Coverage %'
+            }
+          }
+        }
+      }
+    });
+    
+    // Duplication Chart
+    const duplicationCtx = document.getElementById('duplicationChart').getContext('2d');
+    const duplicationChart = new Chart(duplicationCtx, {
+      type: 'line',
+      data: {
+        labels: ${JSON.stringify(dates)},
+        datasets: [
+          {
+            label: 'Duplication Percentage',
+            data: ${JSON.stringify(duplicationPercentage)},
+            borderColor: 'rgba(75, 192, 192, 1)',
+            backgroundColor: 'rgba(75, 192, 192, 0.1)',
+            tension: 0.1,
+            fill: true
+          }
+        ]
+      },
+      options: {
+        plugins: {
+          title: {
+            display: true,
+            text: 'Code Duplication Trend',
+            font: { size: 16, weight: 'bold' }
+          },
+          tooltip: {
+            mode: 'index',
+            intersect: false
+          }
+        },
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Date'
+            }
+          },
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Duplication %'
+            }
+          }
+        }
+      }
+    });
+    
+    // Files by Coverage Chart
+    const filesByCoverageCtx = document.getElementById('filesByCoverageChart').getContext('2d');
+    const filesByCoverageChart = new Chart(filesByCoverageCtx, {
       type: 'bar',
       data: {
         labels: ${JSON.stringify(dates)},
         datasets: [
           {
-            label: 'High Coverage Files',
+            label: 'High Coverage',
             data: ${JSON.stringify(coverageHigh)},
             backgroundColor: '#4CAF50'
           },
           {
-            label: 'Medium Coverage Files',
+            label: 'Medium Coverage',
             data: ${JSON.stringify(coverageMedium)},
             backgroundColor: '#FF9800'
           },
           {
-            label: 'Low Coverage Files',
+            label: 'Low Coverage',
             data: ${JSON.stringify(coverageLow)},
             backgroundColor: '#F44336'
           }
@@ -535,7 +813,7 @@ function generateHtml(checkpoints) {
         plugins: {
           title: {
             display: true,
-            text: 'Test Coverage Distribution',
+            text: 'Files by Coverage Level',
             font: { size: 16, weight: 'bold' }
           },
           tooltip: {
@@ -609,6 +887,93 @@ function generateHtml(checkpoints) {
             title: {
               display: true,
               text: 'Test Suite'
+            }
+          }
+        }
+      }
+    });
+    
+    // Timeline Chart (all metrics in one)
+    const timelineCtx = document.getElementById('timelineChart').getContext('2d');
+    const timelineChart = new Chart(timelineCtx, {
+      type: 'line',
+      data: {
+        labels: ${JSON.stringify(dates)},
+        datasets: [
+          {
+            label: 'Test Coverage (%)',
+            data: ${JSON.stringify(coverageOverall)},
+            borderColor: 'rgba(54, 162, 235, 1)',
+            backgroundColor: 'transparent',
+            tension: 0.1,
+            yAxisID: 'y-percent'
+          },
+          {
+            label: 'Duplication (%)',
+            data: ${JSON.stringify(duplicationPercentage)},
+            borderColor: 'rgba(75, 192, 192, 1)',
+            backgroundColor: 'transparent',
+            tension: 0.1,
+            yAxisID: 'y-percent'
+          },
+          {
+            label: 'Complex Functions',
+            data: ${JSON.stringify(complexHigh)},
+            borderColor: 'rgba(255, 99, 132, 1)',
+            backgroundColor: 'transparent',
+            tension: 0.1,
+            yAxisID: 'y-count'
+          },
+          {
+            label: 'ESLint Issues',
+            data: ${JSON.stringify(eslintErrors.map((e, i) => e + eslintWarnings[i]))},
+            borderColor: 'rgba(255, 159, 64, 1)',
+            backgroundColor: 'transparent',
+            tension: 0.1,
+            yAxisID: 'y-count'
+          }
+        ]
+      },
+      options: {
+        plugins: {
+          title: {
+            display: true,
+            text: 'All Metrics Timeline',
+            font: { size: 16, weight: 'bold' }
+          },
+          tooltip: {
+            mode: 'index',
+            intersect: false
+          }
+        },
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Date'
+            }
+          },
+          'y-percent': {
+            type: 'linear',
+            display: true,
+            position: 'left',
+            min: 0,
+            max: 100,
+            title: {
+              display: true,
+              text: 'Percentage'
+            }
+          },
+          'y-count': {
+            type: 'linear',
+            display: true,
+            position: 'right',
+            grid: {
+              drawOnChartArea: false
+            },
+            title: {
+              display: true,
+              text: 'Count'
             }
           }
         }
