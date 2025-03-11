@@ -2,6 +2,6 @@
 
 # Husky pre-push hook (v10+ compatible)
 
-# Run our full ordered test suite before pushing to ensure quality
+# Run our full test suite before pushing to ensure quality
 # This follows the ordered approach: ESLint → TypeScript → Unit Tests → Integration Tests
-npm run test:full:ordered
+npm run test:full

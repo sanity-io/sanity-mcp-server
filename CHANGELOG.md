@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Document mutation operations (create, update, patch, delete)
 - Release management functionality
 - Schema introspection capabilities
-- New 'test:full:ordered' npm script that ensures consistent test execution order (ESLint → TypeScript → Unit tests → Integration tests)
+- New 'test:full' npm script that ensures consistent test execution order (ESLint → TypeScript → Unit tests → Integration tests)
 - Added `.eslintignore` file to exclude generated code and test files from linting
 - New 'test:source' npm script for running tests without linting during development, allowing functionality verification without being blocked by linting errors
 
@@ -33,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved error handling in the embeddings controller
 - Enhanced Git hooks to follow proper test ordering:
   - Updated pre-commit hook to run ESLint before TypeScript checks and tests
-  - Updated pre-push hook to use the new ordered test script
+  - Updated pre-push hook to use the new test:full script
   - Fixed syntax error in pre-commit hook file
   - Fixed ESLint configuration in pre-commit hook to properly parse TypeScript files
   - Updated Husky hooks for v10+ compatibility by removing deprecated syntax
@@ -44,6 +44,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `findReferences` function in schema.ts
   - `applyPatchOperations` function in documentHelpers.ts
 - Updated linting strategy to focus on production code quality by excluding test files from linting
+- Consolidated npm test scripts for better clarity:
+  - Removed redundant 'with-types' variants and integrated typechecking into main test command
+  - Merged 'test:full:ordered' into 'test:full' to simplify workflow
+  - Ensured proper ordering of all test steps (lint → typecheck → unit → controllers → integration)
 
 ### Fixed
 - TypeScript errors fixed by adding `.js` extensions to imports and removing unused imports.
