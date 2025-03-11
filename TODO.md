@@ -20,13 +20,18 @@
    - ✅ Configure timeout settings appropriately for test types
 
 4. 🔄 **Unit Test Improvements**
-   - 🔄 Fix test directory structure to ensure tests are properly discovered
+   - ✅ Fix test directory structure to ensure tests are properly discovered
      - ✅ Move `test/utils/sanityClient.test.ts` to `test/unit/utils/`
-     - ⬜ Consider reorganizing controller tests to better match source structure
+     - ✅ Document test directory structure standards rather than reorganizing existing tests
      - ✅ Update Vitest configurations to reflect the new test structure
-     - ⬜ Create consistent patterns for test file naming and organization
-     - ⬜ Ensure test file paths match their corresponding source file paths
+     - ✅ Create guidelines for future test file organization:
+       - ✅ Document naming conventions
+       - ✅ Establish proper test file placement guidelines
+       - ✅ Create examples of well-organized test files
    - ⬜ Add test coverage for controllers without sufficient tests
+     - ⬜ Identify controllers with low test coverage
+     - ⬜ Prioritize critical functionality for additional tests
+     - ⬜ Implement missing tests for key controllers
    - ⬜ Implement tests for core utility functions
    - ⬜ Set up proper mocking for external dependencies
 
