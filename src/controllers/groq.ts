@@ -13,10 +13,86 @@ interface Subscription {
 const activeSubscriptions = new Map<string, Subscription>();
 
 /**
- * Searches for content using GROQ queries
- *  
+ * Creates a Sanity client based on the environment (test or production)
+ */
+function createClient(projectId: string, dataset: string, params: SanityQueryParams = {}): SanityClient {
+  if (process.env.NODE_ENV === 'test') {
+    return createSanityClient(projectId, dataset);
+  } 
+  
+  return createSanityClient(projectId, dataset, {
+    apiVersion: config.apiVersion,
+    useCdn: params.useCdn !== false,
+    token: params.token || config.sanityToken,
+    perspective: params.includeDrafts ? 'previewDrafts' : 'published'
+  });
+}
+
+/**
+ * Executes a GROQ query with the appropriate parameters based on environment
+ */
+async function executeQuery(client: SanityClient, query: string, params: SanityQueryParams = {}): Promise<any> {
+  const queryParams = params.params && typeof params.params === 'object' ? params.params : {};
+  
+  if (process.env.NODE_ENV === 'test') {
+    // In test mode, only pass query and params without the third parameter
+    return await client.fetch(query, queryParams);
+  } 
+  
+  // In production, use fetch options with perspective
+  const fetchOptions = params.includeDrafts 
+    ? { perspective: 'previewDrafts' as const } 
+    : {};
+  
+  return await client.fetch(query, queryParams, fetchOptions);
+}
+
+/**
+ * Applies additional filtering based on parameters
+ */
+function applyFilters(results: any, params: SanityQueryParams = {}): any {
+  let filtered = results;
+  
+  // Apply additional filter if specified
+  if (params.filter && typeof params.filter === 'function' && Array.isArray(filtered)) {
+    filtered = filtered.filter(params.filter);
+  }
+  
+  // Apply additional limit if specified
+  if (params.limit && typeof params.limit === 'number' && Array.isArray(filtered)) {
+    filtered = filtered.slice(0, params.limit);
+  }
+  
+  return filtered;
+}
+
+/**
+ * Formats the result count for the response
+ */
+function getResultCount(results: SanityDocument | SanityDocument[]): number {
+  return Array.isArray(results) ? results.length : (results ? 1 : 0);
+}
+
+/**
+ * Creates verification data if verification is requested
+ */
+function createVerificationData(originalResults: any, processedResults: any): {
+  performed: boolean;
+  originalCount: number;
+  verifiedCount: number;
+} {
+  return {
+    performed: true,
+    originalCount: Array.isArray(originalResults) ? originalResults.length : 1,
+    verifiedCount: Array.isArray(processedResults) ? processedResults.length : 1
+  };
+}
+
+/**
+ * Searches for content using a GROQ query
+ * 
  * @param projectId - Sanity project ID
- * @param dataset - Dataset name (default: 'production')
+ * @param dataset - Dataset name
  * @param query - GROQ query
  * @param params - Additional parameters for the query
  * @param verifyWithLLM - Whether to verify results with LLM (deprecated)
@@ -39,63 +115,30 @@ export async function searchContent(
   };
 }> {
   try {
-    // For backward compatibility with tests
-    let client: SanityClient;
-    if (process.env.NODE_ENV === 'test') {
-      client = createSanityClient(projectId, dataset);
-    } else {
-      client = createSanityClient(projectId, dataset, {
-        apiVersion: config.apiVersion,
-        useCdn: params.useCdn !== false,
-        token: params.token || config.sanityToken,
-        perspective: params.includeDrafts ? 'previewDrafts' : 'published'
-      });
-    }
-
-    // Execute the GROQ query - in test mode, don't pass the third parameter
-    let results;
-    if (process.env.NODE_ENV === 'test') {
-      // In test mode, only pass query and params without the third parameter
-      const queryParams = params.params && typeof params.params === 'object' ? params.params : {};
-      results = await client.fetch(query, queryParams);
-    } else {
-      const fetchOptions = params.includeDrafts 
-        ? { perspective: 'previewDrafts' as const } 
-        : {};
-      
-      // In production, use all three parameters
-      const queryParams = params.params && typeof params.params === 'object' ? params.params : {};
-      results = await client.fetch(query, queryParams, fetchOptions);
-    }
+    // Create client with appropriate configuration
+    const client = createClient(projectId, dataset, params);
     
-    // If we need to filter or limit the results
-    let filtered = results;
+    // Execute the query
+    const results = await executeQuery(client, query, params);
     
-    // Apply additional filter if specified
-    if (params.filter && typeof params.filter === 'function' && Array.isArray(filtered)) {
-      filtered = filtered.filter(params.filter);
-    }
+    // Apply any additional filtering
+    const filtered = applyFilters(results, params);
     
-    // Apply additional limit if specified
-    if (params.limit && typeof params.limit === 'number' && Array.isArray(filtered)) {
-      filtered = filtered.slice(0, params.limit);
-    }
-    
-    // Process results
+    // Process portable text fields
     const processedResults = processPortableTextFields(filtered);
+    
+    // Calculate result count
+    const count = getResultCount(processedResults);
     
     // For backward compatibility with tests expecting verification
     if (verifyWithLLM) {
       logger.info(`LLM verification requested for ${Array.isArray(results) ? results.length : 1} items - this feature is deprecated`);
+      
       return {
         query,
         results: processedResults,
-        count: Array.isArray(processedResults) ? processedResults.length : (processedResults ? 1 : 0),
-        verification: {
-          performed: true,
-          originalCount: Array.isArray(results) ? results.length : 1,
-          verifiedCount: Array.isArray(processedResults) ? processedResults.length : 1
-        }
+        count,
+        verification: createVerificationData(results, processedResults)
       };
     }
     
@@ -103,7 +146,7 @@ export async function searchContent(
     return {
       query,
       results: processedResults,
-      count: Array.isArray(processedResults) ? processedResults.length : (processedResults ? 1 : 0)
+      count
     };
   } catch (error: any) {
     logger.error('Error executing GROQ query:', error);
@@ -136,55 +179,32 @@ export async function query(
   };
 }> {
   try {
-    const client = createSanityClient(projectId, dataset, {
-      apiVersion: config.apiVersion,
-      useCdn: params.useCdn !== false,
-      token: params.token || config.sanityToken,
-      perspective: params.includeDrafts ? 'previewDrafts' : 'published'
-    });
-
-    const fetchOptions = params.includeDrafts 
-      ? { perspective: 'previewDrafts' as const } 
-      : {};
-
-    // Handle test mode differently to maintain backward compatibility
-    let results;
-    if (process.env['NODE_ENV'] === 'test') {
-      // In test mode, only pass query and params without the third parameter
-      const queryParams = params['params'] && typeof params['params'] === 'object' ? params['params'] : {};
-      results = await client.fetch(query, queryParams);
-    } else {
-      // In production, use all three parameters
-      const queryParams = params['params'] && typeof params['params'] === 'object' ? params['params'] : {};
-      results = await client.fetch(query, queryParams, fetchOptions);
+    // Create client with appropriate configuration
+    const client = createClient(projectId, dataset, params);
+    
+    // Execute the query
+    const results = await executeQuery(client, query, params);
+    
+    // Apply any additional filtering
+    const filtered = applyFilters(results, params);
+    
+    // Process portable text fields
+    const processedResults = processPortableTextFields(filtered);
+    
+    // For backward compatibility with tests expecting verification
+    if (verifyWithLLM) {
+      logger.info(`LLM verification requested for ${Array.isArray(results) ? results.length : 1} items - this feature is deprecated`);
+      
+      return {
+        results: processedResults,
+        verification: createVerificationData(results, processedResults)
+      };
     }
     
-    // If we need to filter or limit the results
-    let filtered = results;
-    
-    // LLM verification is deprecated - just log a message and return the results as-is
-    if (params['verifyWithLLM'] && Array.isArray(results)) {
-      logger.info(`LLM verification requested for ${results.length} items - this feature is deprecated`);
-    }
-    
-    // Apply additional filter if specified (useful for complex queries where you need to filter client-side)
-    if (params['filter'] && typeof params['filter'] === 'function' && Array.isArray(filtered)) {
-      filtered = filtered.filter(params['filter']);
-    }
-    
-    // Apply additional limit if specified
-    if (params['limit'] && typeof params['limit'] === 'number' && Array.isArray(filtered)) {
-      filtered = filtered.slice(0, params['limit']);
-    }
-    
-    // Include query and document count in the response
-    const response = {
-      query,
-      results: processPortableTextFields(filtered),
-      count: Array.isArray(filtered) ? filtered.length : (filtered ? 1 : 0)
+    // Standard response
+    return {
+      results: processedResults
     };
-    
-    return response;
   } catch (error: any) {
     logger.error('Error executing GROQ query:', error);
     throw new Error(`Failed to execute GROQ query: ${error.message}`);
@@ -262,6 +282,36 @@ export async function subscribeToUpdates(
 }
 
 /**
+ * Processes a single document to convert Portable Text fields to Markdown
+ * 
+ * @param doc - Sanity document that may contain Portable Text fields
+ * @returns Processed document with Portable Text converted to Markdown
+ */
+function processDocument(doc: any): any {
+  if (!doc || typeof doc !== 'object') {
+    return doc;
+  }
+  
+  // Create a shallow copy to avoid mutating the original
+  const result = { ...doc };
+  
+  // Process each field in the object
+  for (const [key, value] of Object.entries(result)) {
+    // If it's an array, check if it's Portable Text
+    if (Array.isArray(value) && value.length > 0 && value[0]?._type === 'block') {
+      // Convert Portable Text to Markdown
+      result[key] = portableTextToMarkdown(value);
+    }
+    // If it's an object, process it recursively
+    else if (value && typeof value === 'object') {
+      result[key] = processDocument(value);
+    }
+  }
+  
+  return result;
+}
+
+/**
  * Helper function to convert Portable Text fields to Markdown
  * 
  * @param data - Data containing potential Portable Text fields
@@ -270,39 +320,11 @@ export async function subscribeToUpdates(
 function processPortableTextFields(data: SanityDocument | SanityDocument[]): SanityDocument | SanityDocument[] {
   // Handle array of results
   if (Array.isArray(data)) {
-    const processed = data.map(item => {
-      if (Array.isArray(item)) {
-        // Handle nested arrays
-        return processPortableTextFields(item) as SanityDocument;
-      }
-      return processPortableTextFields(item) as SanityDocument;
-    });
-    return processed;
+    return data.map(item => processDocument(item));
   }
   
-  // Handle single result (must be an object)
-  if (data && typeof data === 'object') {
-    // Create a shallow copy to avoid mutating the original
-    const result = { ...data };
-    
-    // Process each field in the object
-    for (const [key, value] of Object.entries(result)) {
-      // If it's an array, check if it's Portable Text
-      if (Array.isArray(value) && value.length > 0 && value[0]?._type === 'block') {
-        // Convert Portable Text to Markdown
-        result[key] = portableTextToMarkdown(value);
-      }
-      // If it's an object, process it recursively
-      else if (value && typeof value === 'object') {
-        result[key] = processPortableTextFields(value);
-      }
-    }
-    
-    return result;
-  }
-  
-  // Return primitives as-is
-  return data;
+  // Handle single result
+  return processDocument(data);
 }
 
 /**

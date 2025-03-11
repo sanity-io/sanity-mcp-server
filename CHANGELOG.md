@@ -26,6 +26,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Extracted helper functions from embeddings controller to reduce complexity
   - Fixed TypeScript import path errors by adding proper .js extensions
 
+- Refactored GROQ controller to reduce complexity:
+  - Split `searchContent` function into smaller, focused helper functions
+  - Refactored `query` function to reuse the same helper functions
+  - Extracted `processDocument` function to improve readability
+  - Reduced cognitive complexity scores below the threshold of 10
+  - Improved maintainability while preserving existing functionality
+  - Ensured all tests pass with the refactored implementation
+
 ## [0.2.6] - 2025-03-08
 ### Fixed
 - Improved developer workflow and test reliability:
