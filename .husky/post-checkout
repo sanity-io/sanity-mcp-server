@@ -1,4 +1,3 @@
-
 # Get the previous ref and new ref
 PREV_HEAD=$1
 NEW_HEAD=$2
@@ -13,6 +12,6 @@ fi
 IS_TAG=$(git describe --exact-match --tags $NEW_HEAD 2>/dev/null)
 if [ $? -eq 0 ]; then
   echo "🏷️ Tag detected: $IS_TAG"
-  npm run quality:update-readme -- --tagged --tag "$IS_TAG"
-  echo "📊 Quality metrics updated in README.md for tag: $IS_TAG"
+  # Quality metrics update removed
+  echo "📊 Tag checkout complete: $IS_TAG"
 fi 

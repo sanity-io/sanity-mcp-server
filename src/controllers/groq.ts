@@ -1,4 +1,3 @@
-import { WebSocket } from 'ws';
 import { createSanityClient } from '../utils/sanityClient.js';
 import { portableTextToMarkdown } from '../utils/portableText.js';
 import config from '../config/config.js';

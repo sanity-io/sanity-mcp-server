@@ -4,25 +4,22 @@ import {
   normalizeBaseDocId, 
   applyPatchOperations, 
   normalizeDocumentIds,
-  createErrorResponse
 } from '../utils/documentHelpers.js';
 import type { 
   SanityClient, 
   SanityDocument, 
-  SanityTransaction, 
   SanityActionResult,
   SanityMutationResult,
   PatchOperations,
-  SanityError
 } from '../types/sanity.js';
 
 // Define types for Sanity documents
-interface SanityDocumentStub<T extends { _type: string }> {
+interface SanityDocumentStub {
   _type: string;
   [key: string]: any;
 }
 
-interface IdentifiedSanityDocumentStub<T extends Record<string, any>> extends SanityDocumentStub<T & { _type: string }> {
+interface IdentifiedSanityDocumentStub extends SanityDocumentStub {
   _id: string;
 }
 
@@ -199,9 +196,9 @@ async function createMultipleDocuments(
   
   for (const doc of preparedDocs) {
     if (options?.ifExists === 'ignore' && doc._id) {
-      transaction.createIfNotExists(doc as IdentifiedSanityDocumentStub<Record<string, any>>);
+      transaction.createIfNotExists(doc as IdentifiedSanityDocumentStub);
     } else {
-      transaction.create(doc as SanityDocumentStub<{ _type: string }>);
+      transaction.create(doc as SanityDocumentStub);
     }
   }
   
@@ -229,10 +226,10 @@ async function createSingleDocument(
   let result;
   if (options?.ifExists === 'ignore' && preparedDoc._id) {
     // Use createIfNotExists if we want to ignore existing docs
-    result = await client.createIfNotExists(preparedDoc as IdentifiedSanityDocumentStub<Record<string, any>>);
+    result = await client.createIfNotExists(preparedDoc as IdentifiedSanityDocumentStub);
   } else {
     // Default behavior - just create
-    result = await client.create(preparedDoc as SanityDocumentStub<{ _type: string }>);
+    result = await client.create(preparedDoc as SanityDocumentStub);
   }
   
   // Transform result to match expected interface
@@ -556,7 +553,7 @@ export async function replaceDraftDocument(
       const transaction = client.transaction();
       
       for (const doc of preparedDocs) {
-        transaction.createOrReplace(doc as IdentifiedSanityDocumentStub<Record<string, any>>);
+        transaction.createOrReplace(doc as IdentifiedSanityDocumentStub);
       }
       
       const results = await transaction.commit();
@@ -587,7 +584,7 @@ export async function replaceDraftDocument(
     }
     
     // Replace the document
-    const result = await client.createOrReplace(document as IdentifiedSanityDocumentStub<Record<string, any>>);
+    const result = await client.createOrReplace(document as IdentifiedSanityDocumentStub);
     
     return {
       success: true,

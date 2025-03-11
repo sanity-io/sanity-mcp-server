@@ -13,7 +13,7 @@ export default defineConfig({
     ],
     globals: true,
     setupFiles: ['test/setup.ts'],
-    testTimeout: 10000,
+    testTimeout: 5000,
     
     // Use threads for better performance on multi-core machines
     pool: 'threads',

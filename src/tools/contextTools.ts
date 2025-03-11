@@ -11,7 +11,6 @@ import * as embeddingsController from '../controllers/embeddings.js';
 import * as schemaController from '../controllers/schema.js';
 import * as releasesController from '../controllers/releases.js';
 import type { 
-  EmbeddingsIndex, 
   ListEmbeddingsIndicesParams, 
   SimpleSchemaType, 
   SimpleRelease 

@@ -14,17 +14,12 @@ fi
 # Run TypeScript checks on all changed files together
 if [ ! -z "$CHANGED_TS_FILES" ]; then
   echo "Running TypeScript checks on changed files..."
-  # Skip TypeScript checks for JavaScript files in scripts/quality/ and test/unit/quality/
-  if echo "$CHANGED_TS_FILES" | grep -q -v -E "(scripts/quality/.*\.js|test/unit/quality/.*\.js)"; then
-    # Only run TypeScript on TS files or JS files not in scripts/quality or test/unit/quality
-    echo "Running TypeScript checks..."
-    npm run typecheck:all
-    if [ $? -ne 0 ]; then
-      echo "TypeScript checks failed"
-      exit 1
-    fi
-  else
-    echo "Skipping TypeScript checks for quality JavaScript files"
+  # Run TypeScript on all files
+  echo "Running TypeScript checks..."
+  npm run typecheck:all
+  if [ $? -ne 0 ]; then
+    echo "TypeScript checks failed"
+    exit 1
   fi
 fi
 

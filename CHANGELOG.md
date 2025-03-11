@@ -7,54 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- New complexity analysis system:
-  - Created standalone complexity check script with detailed analysis
-  - Added automatic generation of COMPLEXITY_TODO.md file for easy tracking
-  - Implemented ESLint configuration to enforce complexity standards
-  - Added comprehensive unit tests for complexity checker
-  - Updated TODO.md to focus on upcoming quality improvements
-- Cleaned up completed tasks and created fresh priority list in TODO.md
-- Improved quality dashboard flexibility:
-  - Added `quality:allow-fail` script that generates quality metrics even when tests fail
-  - Created `scripts/quality/allow-fail-dashboard.js` to run tests but continue on failures
-  - Ensured actual test results are captured in metrics rather than skipping or using stale data
-  - Updated documentation to explain the allow-fail approach
 
-### Fixed
-- Code quality improvements:
-  - Enforced cyclomatic complexity limit of 10 across the codebase
-  - Enforced cognitive complexity limit of 10 across the codebase
-  - Updated ESLint configuration to prevent complexity issues in new code
-  - Fixed TypeScript errors in quality scripts:
-    - Fixed type errors in analyze-complexity.js with proper array typing
-    - Fixed execSync options type in collect-test-results.js
-    - Fixed mock implementation issues in test files to be TypeScript compatible
-    - Fixed BigInt type errors in test mocks
-    - Improved test assertions to work with TypeScript type checking
-    - Added proper function exports for testing
+### Improved
+- Cleaned up codebase by removing placeholder quality scripts:
+  - Removed non-functional quality test scripts (complexity-check.js, validate-metrics.js)
+  - Removed placeholder tests and mock implementations
+  - Removed unused dependencies and references to quality scripts
+  - Simplified CI/CD workflow by removing extended integration tests that are now only run locally
+  - Maintained ESLint complexity checking, which provides actual functionality
+  - Fixed `test:unit` command to properly run unit and controller tests without including integration tests
 
-## [0.3.0] - 2025-03-12
-### Added
-- Comprehensive Quality Metrics Dashboard with "Hard Fail" system
-  - Implemented strict validation to prevent stale or estimated data in quality metrics
-  - Added multiple data visualization charts for test results, complexity metrics, and code quality
-  - Improved layout with two-column chart display and responsive design
-  - Added test file counts for all test categories including Extended Integration Tests
-  - Enhanced historical tracking with absolute test numbers and trends
-  - Added ESLint issues chart with breakdown of errors and warnings over time
-  - Implemented robust validation of all metrics data with clear error reporting
-  - Improved detection and reporting of complex functions
-  - Added timestamp validation to prevent stale data in quality metrics
-  - Implemented comprehensive visualization of test coverage and code complexity trends
-
-### Fixed
-- Quality Dashboard Reliability:
-  - Fixed incorrect test file count reporting in test results table
-  - Added Extended Integration Tests category to dashboard
-  - Fixed ESLint issues visualization with separate error and warning tracking
-  - Improved test results display to show number of tests instead of only percentages
-  - Enhanced dashboard layout with clean two-column chart presentation
-  - Fixed test coverage trend display and visualization
+- Fixed test configuration and ESLint setup:
+  - Added detailed comments to ESLint config explaining rule exceptions
+  - Made test-specific rules more lenient while maintaining strict rules for source code
+  - Fixed unused imports and variables across multiple controllers
+  - Optimized Vitest configuration with proper test timeouts
+  - Refactored complex functions to improve maintainability
+  - Extracted helper functions from embeddings controller to reduce complexity
+  - Fixed TypeScript import path errors by adding proper .js extensions
 
 ## [0.2.6] - 2025-03-08
 ### Fixed

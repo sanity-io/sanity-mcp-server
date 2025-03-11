@@ -33,20 +33,59 @@ export default defineConfig({
         extends: true, // Inherit from root config
         test: {
           name: 'unit-tests',
-          include: ['test/unit/**/*.test.{ts,js}'],
+          include: ['test/unit/**/*.test.{ts,js}', 'test/utils/**/*.test.{ts,js}'],
+          exclude: [],
           isolate: false, // Run without isolation for speed
+          testTimeout: 5000, // Shorter timeout for unit tests
         }
       },
       {
-        // Integration tests need isolation
+        // Controller tests
+        extends: true,
+        test: {
+          name: 'controller-tests',
+          include: ['test/controllers/**/*.test.{ts,js}'],
+          exclude: [],
+          isolate: false,
+          testTimeout: 8000,
+        }
+      },
+      {
+        // Critical integration tests need isolation
         extends: true, 
         test: {
-          name: 'integration-tests',
-          include: ['test/integration/**/*.test.{ts,js}'],
+          name: 'critical-integration-tests',
+          include: ['test/integration/critical/**/*.test.{ts,js}'],
+          exclude: [],
           pool: 'forks', // Use forks for integration tests that need process isolation
           isolate: true,
+          testTimeout: 15000, // Longer timeout for integration tests
+        }
+      },
+      {
+        // Standard integration tests
+        extends: true, 
+        test: {
+          name: 'standard-integration-tests',
+          include: ['test/integration/standard/**/*.test.{ts,js}'],
+          exclude: [],
+          pool: 'forks',
+          isolate: true,
+          testTimeout: 15000,
+        }
+      },
+      {
+        // Extended integration tests
+        extends: true, 
+        test: {
+          name: 'extended-integration-tests',
+          include: ['test/integration/extended/**/*.test.{ts,js}'],
+          exclude: [],
+          pool: 'forks',
+          isolate: true,
+          testTimeout: 30000, // Longest timeout for extended tests
         }
       }
     ]
-  },
+  }
 });

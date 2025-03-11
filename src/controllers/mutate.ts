@@ -1,5 +1,5 @@
 import { createSanityClient } from '../utils/sanityClient.js';
-import type { SanityClient, SanityError, SanityDocument, InsertOperation, PatchOperations } from '../types/sanity.js';
+import type { SanityClient, SanityDocument, InsertOperation, PatchOperations } from '../types/sanity.js';
 import { validateMutations, validateDocument } from '../utils/parameterValidation.js';
 import { applyMutationDefaults } from '../utils/defaultValues.js';
 
@@ -25,25 +25,25 @@ interface SanityPatch {
 }
 
 // Define types for mutations
-interface SanityDocumentStub<T extends { _type: string }> {
+interface SanityDocumentStub {
   _type: string;
   [key: string]: any;
 }
 
-interface IdentifiedSanityDocumentStub<T extends Record<string, any>> extends SanityDocumentStub<T & { _type: string }> {
+interface IdentifiedSanityDocumentStub extends SanityDocumentStub {
   _id: string;
 }
 
 export interface CreateMutation {
-  create: SanityDocumentStub<{ _type: string }>;
+  create: SanityDocumentStub;
 }
 
 export interface CreateOrReplaceMutation {
-  createOrReplace: IdentifiedSanityDocumentStub<Record<string, any>>;
+  createOrReplace: IdentifiedSanityDocumentStub;
 }
 
 export interface CreateIfNotExistsMutation {
-  createIfNotExists: IdentifiedSanityDocumentStub<Record<string, any>>;
+  createIfNotExists: IdentifiedSanityDocumentStub;
 }
 
 export interface DeleteMutation {
