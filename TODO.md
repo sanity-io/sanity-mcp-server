@@ -27,8 +27,8 @@
          1. ✅ Refactored searchContent function in groq.ts
          2. ✅ Refactored query function in groq.ts
          3. ✅ Refactored processPortableTextFields function in groq.ts
-         4. ⬜ Refactor findReferences function in schema.ts
-         5. ⬜ Refactor applyPatchOperations function in documentHelpers.ts
+         4. ✅ Refactored findReferences function in schema.ts
+         5. ✅ Refactored applyPatchOperations function in documentHelpers.ts
       5. ✅ Create ESLint configuration to disable specific rules in test files
 
    3. ✅ **Improve Vitest Configuration**
