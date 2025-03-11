@@ -50,6 +50,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Addressed ESLint warnings across the codebase.
 - Fixed TypeScript errors in schema.ts file
 - Fixed ESLint configuration to properly check for cognitive complexity
+- Fixed extended integration tests configuration to correctly find and run tests:
+  - Added explicit reporters configuration to the Vitest config
+  - Ensured test files are properly discovered in the extended integration tests directory
 
 ### Refactored
 - Refactored GROQ controller to reduce complexity:
