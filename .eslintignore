@@ -1,0 +1,22 @@
+# Ignore compiled output
+dist/
+dist/**/*
+*.d.ts
+
+# Ignore node modules
+node_modules/
+
+# Ignore coverage reports
+coverage/
+
+# Ignore build artifacts
+build/
+.cache/
+.temp/
+
+# Ignore any local environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local 

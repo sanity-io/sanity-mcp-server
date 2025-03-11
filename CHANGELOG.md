@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Enhanced test coverage for controllers:
+  - Added comprehensive tests for `createDocument` and `deleteDocument` functions in the `actions` controller
+  - Implemented proper mocking for Sanity client transactions in test environment
+  - Added test cases for various scenarios including error handling and edge cases
+- New endpoint for listing schema types.
+- Support for embedding documents.
+- Expanded documentation.
+- Support for semantic search using embeddings
+- GROQ query capabilities with result verification
+- Document mutation operations (create, update, patch, delete)
+- Release management functionality
+- Schema introspection capabilities
+- New 'test:full:ordered' npm script that ensures consistent test execution order (ESLint → TypeScript → Unit tests → Integration tests)
+- Added `.eslintignore` file to exclude generated code in the dist directory from linting
+
 ### Changed
 - Improved codebase by removing placeholder quality scripts and non-functional test scripts.
 - Simplified CI/CD workflow while maintaining ESLint complexity checking.
@@ -14,6 +30,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added lenient test-specific rules to ESLint and optimized Vitest configuration.
 - Integrated Sanity's ESLint configuration while preserving cognitive complexity checks.
 - Improved error handling in the embeddings controller
+- Enhanced Git hooks to follow proper test ordering:
+  - Updated pre-commit hook to run ESLint before TypeScript checks and tests
+  - Updated pre-push hook to use the new ordered test script
+  - Fixed syntax error in pre-commit hook file
 - Refactored high complexity functions to improve maintainability:
   - `searchContent` function in groq.ts
   - `query` function in groq.ts

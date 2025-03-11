@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-# Run a comprehensive test suite before pushing to ensure quality
-# This includes unit tests and critical integration tests
-npm run test:pre-merge
+# Run our full ordered test suite before pushing to ensure quality
+# This follows the ordered approach: ESLint → TypeScript → Unit Tests → Integration Tests
+npm run test:full:ordered
