@@ -1,5 +1,4 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
+# Husky pre-commit hook (v10+ compatible)
 
 # Get changed files
 CHANGED_TS_FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(ts|tsx|js|jsx)$' || true)
@@ -14,7 +13,7 @@ fi
 # Run ESLint on changed files first
 if [ ! -z "$CHANGED_TS_FILES" ]; then
   echo "Running ESLint on changed files..."
-  npx eslint $CHANGED_TS_FILES
+  npx eslint $CHANGED_TS_FILES --config config/.eslintrc.json
   if [ $? -ne 0 ]; then
     echo "ESLint checks failed"
     exit 1

@@ -33,7 +33,13 @@
     "lint:fix": "eslint . --ext .ts --config config/.eslintrc.json --fix",
     "prerelease": "npm run test:integration",
     "release": "npm run build && npm version patch && git push",
-    "prepare": "husky install"
+    "prepare": "husky"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": ".husky/pre-commit",
+      "pre-push": ".husky/pre-push"
+    }
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.6.1",

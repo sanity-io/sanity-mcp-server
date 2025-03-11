@@ -1,5 +1,6 @@
 #!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
+
+# Husky pre-push hook (v10+ compatible)
 
 # Run our full ordered test suite before pushing to ensure quality
 # This follows the ordered approach: ESLint → TypeScript → Unit Tests → Integration Tests
