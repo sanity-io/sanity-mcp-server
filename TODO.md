@@ -47,11 +47,13 @@
      - ⬜ Continue adding tests for remaining controller functions
    - ⬜ Implement tests for core utility functions
    - ⬜ Set up proper mocking for external dependencies
-   - 🔄 Standardize test execution:
+   - ✅ Standardize test execution:
      - ✅ Create a new npm script 'test:full:ordered' that ensures tests run in the proper order:
        - Linting → TypeScript checking → Unit tests → Integration tests
+     - ✅ Create a new npm script 'test:source' that runs tests without linting during development
      - ⬜ Update CI/CD pipelines to use the ordered test script
-     - ⬜ Update pre-commit and pre-merge hooks to use the ordered approach
+     - ✅ Update pre-commit and pre-push hooks to use the ordered approach
+     - ✅ Fix Husky hooks for v10+ compatibility and proper ESLint configuration
 
 ## Medium Priority
 1. ⬜ **Integration Test Enhancements**

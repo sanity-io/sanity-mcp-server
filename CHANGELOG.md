@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Schema introspection capabilities
 - New 'test:full:ordered' npm script that ensures consistent test execution order (ESLint → TypeScript → Unit tests → Integration tests)
 - Added `.eslintignore` file to exclude generated code and test files from linting
+- New 'test:source' npm script for running tests without linting during development, allowing functionality verification without being blocked by linting errors
 
 ### Changed
 - Improved codebase by removing placeholder quality scripts and non-functional test scripts.
@@ -34,6 +35,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated pre-commit hook to run ESLint before TypeScript checks and tests
   - Updated pre-push hook to use the new ordered test script
   - Fixed syntax error in pre-commit hook file
+  - Fixed ESLint configuration in pre-commit hook to properly parse TypeScript files
+  - Updated Husky hooks for v10+ compatibility by removing deprecated syntax
 - Refactored high complexity functions to improve maintainability:
   - `searchContent` function in groq.ts
   - `query` function in groq.ts
