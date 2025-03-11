@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config';
+import {defineConfig} from 'vitest/config'
 
 export default defineConfig({
   test: {
@@ -12,10 +12,10 @@ export default defineConfig({
     globals: true,
     setupFiles: ['test/setup.ts'],
     testTimeout: 8000, // Shorter timeout for controller tests
-    
+
     // Don't need isolation for controller tests
     pool: 'threads',
-    
+
     // Coverage configuration
     coverage: {
       provider: 'v8',
@@ -25,4 +25,4 @@ export default defineConfig({
       exclude: ['**/*.d.ts', '**/*.test.ts', '**/node_modules/**'],
     }
   }
-}); 
+})

@@ -1,7 +1,8 @@
-import { expect, describe, it, vi, beforeEach, afterEach } from 'vitest';
-import * as releasesController from '../../src/controllers/releases.js';
-import { sanityApi, createSanityClient } from '../../src/utils/sanityClient.js';
-import config from '../../src/config/config.js';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest'
+
+import config from '../../src/config/config.js'
+import * as releasesController from '../../src/controllers/releases.js'
+import {createSanityClient, sanityApi} from '../../src/utils/sanityClient.js'
 
 // Mock the sanityClient module
 vi.mock('../../src/utils/sanityClient.js', () => {
@@ -15,8 +16,8 @@ vi.mock('../../src/utils/sanityClient.js', () => {
       query: vi.fn()
     })),
     isSufficientApiVersion: vi.fn().mockReturnValue(true)
-  };
-});
+  }
+})
 
 // Mock the config module to return a valid API version
 vi.mock('../../src/config/config.js', () => {
@@ -28,19 +29,19 @@ vi.mock('../../src/config/config.js', () => {
       dataset: 'production'
     }
   }
-});
+})
 
 describe('Releases Controller', () => {
-  const mockProjectId = 'test-project';
-  const mockDataset = 'test-dataset';
-  const mockReleaseId = 'test-release-123';
-  const mockDocumentId = 'test-doc-123';
-  const mockClient = { fetch: vi.fn(), getDocument: vi.fn(), query: vi.fn() };
-  
+  const mockProjectId = 'test-project'
+  const mockDataset = 'test-dataset'
+  const mockReleaseId = 'test-release-123'
+  const mockDocumentId = 'test-doc-123'
+  const mockClient = {fetch: vi.fn(), getDocument: vi.fn(), query: vi.fn()}
+
   beforeEach(() => {
     vi.resetAllMocks();
-    (createSanityClient as any).mockReturnValue(mockClient);
-    
+    (createSanityClient as any).mockReturnValue(mockClient)
+
     // Setup mock document behavior
     mockClient.getDocument.mockImplementation((id: string) => {
       if (id === mockDocumentId || id === `drafts.${mockDocumentId}`) {
@@ -48,29 +49,29 @@ describe('Releases Controller', () => {
           _id: id,
           _type: 'article',
           title: 'Test Document'
-        });
+        })
       }
-      return Promise.reject(new Error(`Document ${id} not found`));
-    });
-  });
+      return Promise.reject(new Error(`Document ${id} not found`))
+    })
+  })
 
   afterEach(() => {
-    vi.clearAllMocks();
-  });
+    vi.clearAllMocks()
+  })
 
   describe('createRelease', () => {
     it('should create a release with title', async () => {
-      const mockTitle = 'Test Release';
-      const mockResult = { transactionId: 'tx123' };
-      
-      (sanityApi.performActions as any).mockResolvedValueOnce(mockResult);
+      const mockTitle = 'Test Release'
+      const mockResult = {transactionId: 'tx123'};
+
+      (sanityApi.performActions as any).mockResolvedValueOnce(mockResult)
 
       const result = await releasesController.createRelease(
         mockProjectId,
         mockDataset,
         mockReleaseId,
         mockTitle
-      );
+      )
 
       expect(sanityApi.performActions).toHaveBeenCalledWith(
         mockProjectId,
@@ -84,26 +85,26 @@ describe('Releases Controller', () => {
             }
           }
         ]
-      );
+      )
 
       expect(result).toEqual({
         success: true,
         message: `Release ${mockReleaseId} created successfully`,
         releaseId: mockReleaseId,
         result: mockResult
-      });
-    });
+      })
+    })
 
     it('should create a release with title and options', async () => {
-      const mockTitle = 'Test Release';
+      const mockTitle = 'Test Release'
       const mockOptions = {
         description: 'Test description',
         releaseType: 'scheduled' as const,
         intendedPublishAt: '2025-04-01T12:00:00Z'
-      };
-      const mockResult = { transactionId: 'tx123' };
-      
-      (sanityApi.performActions as any).mockResolvedValueOnce(mockResult);
+      }
+      const mockResult = {transactionId: 'tx123'};
+
+      (sanityApi.performActions as any).mockResolvedValueOnce(mockResult)
 
       const result = await releasesController.createRelease(
         mockProjectId,
@@ -111,7 +112,7 @@ describe('Releases Controller', () => {
         mockReleaseId,
         mockTitle,
         mockOptions
-      );
+      )
 
       expect(sanityApi.performActions).toHaveBeenCalledWith(
         mockProjectId,
@@ -128,36 +129,36 @@ describe('Releases Controller', () => {
             }
           }
         ]
-      );
+      )
 
       expect(result).toEqual({
         success: true,
         message: `Release ${mockReleaseId} created successfully`,
         releaseId: mockReleaseId,
         result: mockResult
-      });
-    });
+      })
+    })
 
     it('should handle errors when creating a release', async () => {
-      const mockTitle = 'Test Release';
+      const mockTitle = 'Test Release'
       const mockError = new Error('Test error');
-      
-      (sanityApi.performActions as any).mockRejectedValueOnce(mockError);
+
+      (sanityApi.performActions as any).mockRejectedValueOnce(mockError)
 
       await expect(
         releasesController.createRelease(mockProjectId, mockDataset, mockReleaseId, mockTitle)
-      ).rejects.toThrow('Failed to create release: Test error');
+      ).rejects.toThrow('Failed to create release: Test error')
 
-      expect(sanityApi.performActions).toHaveBeenCalled();
-    });
-  });
+      expect(sanityApi.performActions).toHaveBeenCalled()
+    })
+  })
 
   describe('addDocumentToRelease', () => {
     it('should add a document to a release when content is provided', async () => {
-      const mockContent = { _id: mockDocumentId, title: 'Test Doc', _type: 'article' };
-      const mockResult = { transactionId: 'tx123' };
-      
-      (sanityApi.performActions as any).mockResolvedValueOnce(mockResult);
+      const mockContent = {_id: mockDocumentId, title: 'Test Doc', _type: 'article'}
+      const mockResult = {transactionId: 'tx123'};
+
+      (sanityApi.performActions as any).mockResolvedValueOnce(mockResult)
 
       const result = await releasesController.addDocumentToRelease(
         mockProjectId,
@@ -165,7 +166,7 @@ describe('Releases Controller', () => {
         mockReleaseId,
         mockDocumentId,
         mockContent
-      );
+      )
 
       expect(sanityApi.performActions).toHaveBeenCalledWith(
         mockProjectId,
@@ -180,7 +181,7 @@ describe('Releases Controller', () => {
             }
           }
         ]
-      );
+      )
 
       expect(result).toEqual({
         success: true,
@@ -189,24 +190,24 @@ describe('Releases Controller', () => {
         documentIds: [mockDocumentId],
         versionIds: [`versions.${mockReleaseId}.${mockDocumentId}`],
         result: mockResult
-      });
-    });
+      })
+    })
 
     it('should fetch document content when not provided', async () => {
-      const mockDoc = { _id: mockDocumentId, title: 'Test Doc', _type: 'article' };
-      const mockResult = { transactionId: 'tx123' };
-      
+      const mockDoc = {_id: mockDocumentId, title: 'Test Doc', _type: 'article'}
+      const mockResult = {transactionId: 'tx123'}
+
       mockClient.getDocument.mockResolvedValueOnce(mockDoc);
-      (sanityApi.performActions as any).mockResolvedValueOnce(mockResult);
+      (sanityApi.performActions as any).mockResolvedValueOnce(mockResult)
 
       const result = await releasesController.addDocumentToRelease(
         mockProjectId,
         mockDataset,
         mockReleaseId,
         mockDocumentId
-      );
+      )
 
-      expect(mockClient.getDocument).toHaveBeenCalledWith(`drafts.${mockDocumentId}`);
+      expect(mockClient.getDocument).toHaveBeenCalledWith(`drafts.${mockDocumentId}`)
       expect(sanityApi.performActions).toHaveBeenCalledWith(
         mockProjectId,
         mockDataset,
@@ -220,33 +221,33 @@ describe('Releases Controller', () => {
             }
           }
         ]
-      );
+      )
 
-      expect(result.success).toBe(true);
-      expect(result.documentIds).toContain(mockDocumentId);
-      expect(result.documentIds.length).toBe(1);
-    });
-  });
+      expect(result.success).toBe(true)
+      expect(result.documentIds).toContain(mockDocumentId)
+      expect(result.documentIds.length).toBe(1)
+    })
+  })
 
   describe('listReleaseDocuments', () => {
     it('should list all documents in a release', async () => {
       const mockDocs = [
-        { _id: `versions.${mockReleaseId}.doc1`, _type: 'post', title: 'Post 1' },
-        { _id: `versions.${mockReleaseId}.doc2`, _type: 'post', title: 'Post 2' }
-      ];
-      
-      mockClient.fetch.mockResolvedValueOnce(mockDocs);
+        {_id: `versions.${mockReleaseId}.doc1`, _type: 'post', title: 'Post 1'},
+        {_id: `versions.${mockReleaseId}.doc2`, _type: 'post', title: 'Post 2'}
+      ]
+
+      mockClient.fetch.mockResolvedValueOnce(mockDocs)
 
       const result = await releasesController.listReleaseDocuments(
         mockProjectId,
         mockDataset,
         mockReleaseId
-      );
+      )
 
       expect(mockClient.fetch).toHaveBeenCalledWith(
-        `*[sanity::partOfRelease($releaseId)]{ _id, _type, title }`,
-        { releaseId: mockReleaseId }
-      );
+        '*[sanity::partOfRelease($releaseId)]{ _id, _type, title }',
+        {releaseId: mockReleaseId}
+      )
       expect(result).toEqual({
         releaseId: mockReleaseId,
         documentCount: 2,
@@ -264,46 +265,44 @@ describe('Releases Controller', () => {
             title: 'Post 2'
           }
         ]
-      });
-    });
-    
+      })
+    })
+
     it('should handle empty releases', async () => {
-      mockClient.fetch.mockResolvedValueOnce([]);
-      
+      mockClient.fetch.mockResolvedValueOnce([])
+
       const result = await releasesController.listReleaseDocuments(
         mockProjectId,
         mockDataset,
         mockReleaseId
-      );
-      
+      )
+
       expect(mockClient.fetch).toHaveBeenCalledWith(
-        `*[sanity::partOfRelease($releaseId)]{ _id, _type, title }`,
-        { releaseId: mockReleaseId }
-      );
-      
+        '*[sanity::partOfRelease($releaseId)]{ _id, _type, title }',
+        {releaseId: mockReleaseId}
+      )
+
       expect(result).toEqual({
         releaseId: mockReleaseId,
         documentCount: 0,
         documents: []
-      });
-    });
-  });
+      })
+    })
+  })
 
   describe('publishRelease', () => {
     it('should publish a release', async () => {
-      const mockDocs = [
-        { _id: `versions.${mockReleaseId}.doc1`, _type: 'post', title: 'Post 1' }
-      ];
-      const mockResult = { transactionId: 'tx123' };
-      
+      const mockDocs = [{_id: `versions.${mockReleaseId}.doc1`, _type: 'post', title: 'Post 1'}]
+      const mockResult = {transactionId: 'tx123'}
+
       mockClient.fetch.mockResolvedValueOnce(mockDocs);
-      (sanityApi.performActions as any).mockResolvedValueOnce(mockResult);
+      (sanityApi.performActions as any).mockResolvedValueOnce(mockResult)
 
       const result = await releasesController.publishRelease(
         mockProjectId,
         mockDataset,
         mockReleaseId
-      );
+      )
 
       expect(sanityApi.performActions).toHaveBeenCalledWith(
         mockProjectId,
@@ -314,7 +313,7 @@ describe('Releases Controller', () => {
             releaseId: mockReleaseId
           }
         ]
-      );
+      )
 
       expect(result).toEqual({
         success: true,
@@ -322,64 +321,64 @@ describe('Releases Controller', () => {
         releaseId: mockReleaseId,
         documentCount: 1,
         result: mockResult
-      });
-    });
+      })
+    })
 
     it('should throw error if release has too many documents', async () => {
       // Generate 51 mock documents to exceed the 50 document limit
-      const mockDocs = Array.from({ length: 51 }).map((_, i) => ({
+      const mockDocs = Array.from({length: 51}).map((_, i) => ({
         _id: `versions.${mockReleaseId}.doc${i}`,
         _type: 'post',
         title: `Post ${i}`
-      }));
-      
-      mockClient.fetch.mockResolvedValueOnce(mockDocs);
+      }))
+
+      mockClient.fetch.mockResolvedValueOnce(mockDocs)
 
       await expect(
         releasesController.publishRelease(mockProjectId, mockDataset, mockReleaseId)
-      ).rejects.toThrow(/Release contains 51 documents, which exceeds the 50 document limit/);
+      ).rejects.toThrow(/Release contains 51 documents, which exceeds the 50 document limit/)
 
-      expect(sanityApi.performActions).not.toHaveBeenCalled();
-    });
-  });
+      expect(sanityApi.performActions).not.toHaveBeenCalled()
+    })
+  })
 
   describe('listReleases', () => {
     it('should list all releases', async () => {
       const mockReleases = [
-        { _id: '_.releases.rel1', name: 'rel1', state: 'active' },
-        { _id: '_.releases.rel2', name: 'rel2', state: 'published' }
-      ];
-      
-      mockClient.fetch.mockResolvedValueOnce(mockReleases);
+        {_id: '_.releases.rel1', name: 'rel1', state: 'active'},
+        {_id: '_.releases.rel2', name: 'rel2', state: 'published'}
+      ]
+
+      mockClient.fetch.mockResolvedValueOnce(mockReleases)
 
       const result = await releasesController.listReleases(
         mockProjectId,
         mockDataset
-      );
+      )
 
-      expect(mockClient.fetch).toHaveBeenCalledWith('releases::all()');
+      expect(mockClient.fetch).toHaveBeenCalledWith('releases::all()')
       expect(result).toEqual({
         releases: mockReleases
-      });
-    });
-  });
+      })
+    })
+  })
 
   describe('updateRelease', () => {
     it('should update a release with provided fields', async () => {
       const mockUpdate = {
         title: 'Updated Title',
         description: 'Updated description'
-      };
-      const mockResult = { transactionId: 'tx123' };
-      
-      (sanityApi.performActions as any).mockResolvedValueOnce(mockResult);
+      }
+      const mockResult = {transactionId: 'tx123'};
+
+      (sanityApi.performActions as any).mockResolvedValueOnce(mockResult)
 
       const result = await releasesController.updateRelease(
         mockProjectId,
         mockDataset,
         mockReleaseId,
         mockUpdate
-      );
+      )
 
       expect(sanityApi.performActions).toHaveBeenCalledWith(
         mockProjectId,
@@ -399,24 +398,24 @@ describe('Releases Controller', () => {
             }
           }
         ]
-      );
+      )
 
-      expect(result.success).toBe(true);
-    });
-  });
+      expect(result.success).toBe(true)
+    })
+  })
 
   describe('removeDocumentFromRelease', () => {
     it('should remove a single document from a release', async () => {
-      const mockResult = { transactionId: 'tx123' };
-      
-      (sanityApi.performActions as any).mockResolvedValueOnce(mockResult);
+      const mockResult = {transactionId: 'tx123'};
+
+      (sanityApi.performActions as any).mockResolvedValueOnce(mockResult)
 
       const result = await releasesController.removeDocumentFromRelease(
         mockProjectId,
         mockDataset,
         mockReleaseId,
         mockDocumentId
-      );
+      )
 
       expect(sanityApi.performActions).toHaveBeenCalledWith(
         mockProjectId,
@@ -427,7 +426,7 @@ describe('Releases Controller', () => {
             documentId: `versions.${mockReleaseId}.${mockDocumentId}`
           }
         ]
-      );
+      )
 
       expect(result).toEqual({
         success: true,
@@ -435,26 +434,26 @@ describe('Releases Controller', () => {
         releaseId: mockReleaseId,
         documentIds: [mockDocumentId],
         result: mockResult
-      });
-    });
+      })
+    })
 
     it('should remove multiple documents from a release when given an array of IDs', async () => {
-      const mockDocumentIds = ['doc1', 'doc2', 'doc3'];
-      const mockResult = { transactionId: 'tx123' };
-      
+      const mockDocumentIds = ['doc1', 'doc2', 'doc3']
+      const mockResult = {transactionId: 'tx123'};
+
       // Mock the performActions function to return a single result
-      (sanityApi.performActions as any).mockResolvedValueOnce(mockResult);
+      (sanityApi.performActions as any).mockResolvedValueOnce(mockResult)
 
       const result = await releasesController.removeDocumentFromRelease(
         mockProjectId,
         mockDataset,
         mockReleaseId,
         mockDocumentIds
-      );
+      )
 
       // Verify that performActions was called once with all document actions
-      expect(sanityApi.performActions).toHaveBeenCalledTimes(1);
-      
+      expect(sanityApi.performActions).toHaveBeenCalledTimes(1)
+
       // Check that all document IDs were included in a single call
       expect(sanityApi.performActions).toHaveBeenCalledWith(
         mockProjectId,
@@ -473,7 +472,7 @@ describe('Releases Controller', () => {
             documentId: `versions.${mockReleaseId}.${mockDocumentIds[2]}`
           }
         ]
-      );
+      )
 
       // Verify the result structure
       expect(result).toEqual({
@@ -482,13 +481,13 @@ describe('Releases Controller', () => {
         releaseId: mockReleaseId,
         documentIds: mockDocumentIds,
         result: mockResult
-      });
-    });
+      })
+    })
 
     it('should handle errors when removing a document from a release', async () => {
       const mockError = new Error('Version deletion failed');
-      
-      (sanityApi.performActions as any).mockRejectedValueOnce(mockError);
+
+      (sanityApi.performActions as any).mockRejectedValueOnce(mockError)
 
       await expect(
         releasesController.removeDocumentFromRelease(
@@ -497,11 +496,11 @@ describe('Releases Controller', () => {
           mockReleaseId,
           mockDocumentId
         )
-      ).rejects.toThrow(`Failed to remove document(s) from release ${mockReleaseId}: Version deletion failed`);
+      ).rejects.toThrow(`Failed to remove document(s) from release ${mockReleaseId}: Version deletion failed`)
 
-      expect(sanityApi.performActions).toHaveBeenCalled();
-    });
-  });
+      expect(sanityApi.performActions).toHaveBeenCalled()
+    })
+  })
 
   describe('getRelease', () => {
     it('should get a release by ID', async () => {
@@ -509,27 +508,27 @@ describe('Releases Controller', () => {
         _id: `_.releases.${mockReleaseId}`,
         title: 'Test Release',
         status: 'active'
-      };
-      
-      mockClient.fetch.mockResolvedValueOnce([mockReleaseData]);
+      }
+
+      mockClient.fetch.mockResolvedValueOnce([mockReleaseData])
 
       const result = await releasesController.getRelease(
         mockProjectId,
         mockDataset,
         mockReleaseId
-      );
+      )
 
       expect(mockClient.fetch).toHaveBeenCalledWith(
         `*[_id == "_.releases.${mockReleaseId}"]`
-      );
+      )
 
       expect(result).toEqual({
         release: mockReleaseData
-      });
-    });
+      })
+    })
 
     it('should throw an error when release is not found', async () => {
-      mockClient.fetch.mockResolvedValueOnce([]);
+      mockClient.fetch.mockResolvedValueOnce([])
 
       await expect(
         releasesController.getRelease(
@@ -537,7 +536,7 @@ describe('Releases Controller', () => {
           mockDataset,
           mockReleaseId
         )
-      ).rejects.toThrow('Failed to get release: Release with ID');
-    });
-  });
-});
+      ).rejects.toThrow('Failed to get release: Release with ID')
+    })
+  })
+})

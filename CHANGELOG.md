@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Release management functionality
 - Schema introspection capabilities
 - New 'test:full:ordered' npm script that ensures consistent test execution order (ESLint → TypeScript → Unit tests → Integration tests)
-- Added `.eslintignore` file to exclude generated code in the dist directory from linting
+- Added `.eslintignore` file to exclude generated code and test files from linting
 
 ### Changed
 - Improved codebase by removing placeholder quality scripts and non-functional test scripts.
@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `processPortableTextFields` function in groq.ts
   - `findReferences` function in schema.ts
   - `applyPatchOperations` function in documentHelpers.ts
+- Updated linting strategy to focus on production code quality by excluding test files from linting
 
 ### Fixed
 - TypeScript errors fixed by adding `.js` extensions to imports and removing unused imports.

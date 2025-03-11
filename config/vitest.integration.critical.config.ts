@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config';
+import {defineConfig} from 'vitest/config'
 
 export default defineConfig({
   test: {
@@ -14,10 +14,10 @@ export default defineConfig({
     globals: true,
     setupFiles: ['test/setup.ts'],
     testTimeout: 15000, // Longer timeout for integration tests
-    
+
     // Use forks for integration tests that need process isolation
     pool: 'forks',
-    
+
     // Coverage configuration
     coverage: {
       provider: 'v8',
@@ -27,4 +27,4 @@ export default defineConfig({
       exclude: ['**/*.d.ts', '**/*.test.ts', '**/node_modules/**'],
     }
   }
-}); 
+})

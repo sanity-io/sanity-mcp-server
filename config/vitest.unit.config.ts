@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config';
+import {defineConfig} from 'vitest/config'
 
 export default defineConfig({
   test: {
@@ -7,13 +7,11 @@ export default defineConfig({
       'test/unit/**/*.test.ts',
       'test/controllers/**/*.test.ts'
     ],
-    exclude: [
-      'test/integration/**/*.test.ts'
-    ],
+    exclude: ['test/integration/**/*.test.ts'],
     globals: true,
     setupFiles: ['test/setup.ts'],
     testTimeout: 5000,
-    
+
     // Use threads for better performance on multi-core machines
     pool: 'threads',
     poolOptions: {
@@ -22,7 +20,7 @@ export default defineConfig({
         maxThreads: 16,
       }
     },
-    
+
     // Coverage configuration
     coverage: {
       provider: 'v8',
@@ -32,4 +30,4 @@ export default defineConfig({
       exclude: ['**/*.d.ts', '**/*.test.ts', '**/node_modules/**'],
     }
   }
-}); 
+})

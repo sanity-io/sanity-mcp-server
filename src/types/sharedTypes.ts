@@ -1,14 +1,15 @@
 /**
  * Shared type definitions for tools and controllers
- * 
+ *
  * This file contains interfaces that are shared between tool definitions
  * and controller implementations to ensure type safety across the codebase.
  */
 
-import { z } from 'zod';
-import type { Mutation } from '../controllers/mutate.js';
-import type { SanityDocument, PatchOperations, SanityMutationResult, SanityActionResult } from './sanity.js';
-import type { SchemaType, SchemaField, SearchOptions } from './index.js';
+import {z} from 'zod'
+
+import type {Mutation} from '../controllers/mutate.js'
+import type {SchemaField, SchemaType, SearchOptions} from './index.js'
+import type {PatchOperations, SanityActionResult, SanityDocument, SanityMutationResult} from './sanity.js'
 
 /**
  * Interface for the result of document mutations
@@ -322,4 +323,4 @@ export interface SemanticSearchParams extends ProjectDatasetParams {
   indexName: string;
   maxResults?: number;
   types?: string | string[];
-} 
+}

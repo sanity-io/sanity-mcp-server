@@ -1,7 +1,7 @@
-import { createSanityClient } from '../utils/sanityClient.js';
-import type { SanityClient, SanityDocument, InsertOperation, PatchOperations } from '../types/sanity.js';
-import { validateMutations, validateDocument } from '../utils/parameterValidation.js';
-import { applyMutationDefaults } from '../utils/defaultValues.js';
+import type {InsertOperation, PatchOperations, SanityClient, SanityDocument} from '../types/sanity.js'
+import {applyMutationDefaults} from '../utils/defaultValues.js'
+import {validateDocument, validateMutations} from '../utils/parameterValidation.js'
+import {createSanityClient} from '../utils/sanityClient.js'
 
 // Define interface for Sanity transaction
 interface SanityTransaction {
@@ -80,69 +80,69 @@ export interface PatchByQueryMutation {
   };
 }
 
-export type Mutation = 
-  | CreateMutation 
-  | CreateOrReplaceMutation 
-  | CreateIfNotExistsMutation 
-  | PatchByIdMutation 
-  | PatchByQueryMutation 
+export type Mutation =
+  | CreateMutation
+  | CreateOrReplaceMutation
+  | CreateIfNotExistsMutation
+  | PatchByIdMutation
+  | PatchByQueryMutation
   | DeleteMutation;
 
 /**
  * Helper function to add create mutation to a transaction
- * 
+ *
  * @param transaction - Sanity transaction
  * @param mutation - Create mutation
  */
 function addCreateMutation(
-  transaction: SanityTransaction, 
+  transaction: SanityTransaction,
   mutation: CreateMutation
 ): void {
-  transaction.create(mutation['create']);
+  transaction.create(mutation.create)
 }
 
 /**
  * Helper function to add createOrReplace mutation to a transaction
- * 
+ *
  * @param transaction - Sanity transaction
  * @param mutation - CreateOrReplace mutation
  */
 function addCreateOrReplaceMutation(
-  transaction: SanityTransaction, 
+  transaction: SanityTransaction,
   mutation: CreateOrReplaceMutation
 ): void {
-  transaction.createOrReplace(mutation['createOrReplace']);
+  transaction.createOrReplace(mutation.createOrReplace)
 }
 
 /**
  * Helper function to add createIfNotExists mutation to a transaction
- * 
+ *
  * @param transaction - Sanity transaction
  * @param mutation - CreateIfNotExists mutation
  */
 function addCreateIfNotExistsMutation(
-  transaction: SanityTransaction, 
+  transaction: SanityTransaction,
   mutation: CreateIfNotExistsMutation
 ): void {
-  transaction.createIfNotExists(mutation['createIfNotExists']);
+  transaction.createIfNotExists(mutation.createIfNotExists)
 }
 
 /**
  * Helper function to add delete mutation to a transaction
- * 
+ *
  * @param transaction - Sanity transaction
  * @param mutation - Delete mutation
  */
 function addDeleteMutation(
-  transaction: SanityTransaction, 
+  transaction: SanityTransaction,
   mutation: DeleteMutation
 ): void {
-  transaction.delete(mutation['delete']['id']);
+  transaction.delete(mutation.delete.id)
 }
 
 /**
  * Helper function to add patch mutation by ID to a transaction
- * 
+ *
  * @param client - Sanity client
  * @param transaction - Sanity transaction
  * @param id - Document ID
@@ -156,24 +156,26 @@ function addPatchByIdMutation(
   ifRevisionID?: string,
   patchOperations?: PatchOperations
 ): void {
-  if (!patchOperations) return;
-  
-  const patch = client.patch(id);
-  
+  if (!patchOperations) {
+    return
+  }
+
+  const patch = client.patch(id)
+
   // Apply optimistic locking if ifRevisionID is provided
   if (ifRevisionID) {
-    patch.ifRevisionId(ifRevisionID);
+    patch.ifRevisionId(ifRevisionID)
   }
-  
-  applyPatchOperationsToClient(patch, patchOperations);
-  
+
+  applyPatchOperationsToClient(patch, patchOperations)
+
   // Add the patch to the transaction
-  transaction.patch(patch);
+  transaction.patch(patch)
 }
 
 /**
  * Helper function to add patch mutation by query to a transaction
- * 
+ *
  * @param transaction - Sanity transaction
  * @param query - GROQ query string
  * @param params - Optional query parameters
@@ -185,18 +187,20 @@ function addPatchByQueryMutation(
   params?: Record<string, any>,
   patchOperations?: PatchOperations
 ): void {
-  if (!patchOperations) return;
-  
+  if (!patchOperations) {
+    return
+  }
+
   transaction.patch({
     query,
     params,
     ...patchOperations
-  });
+  })
 }
 
 /**
  * Helper function to apply patch operations to a Sanity patch client
- * 
+ *
  * @param patch - Sanity patch client
  * @param patchOperations - Operations to apply
  */
@@ -205,63 +209,63 @@ function applyPatchOperationsToClient(
   patchOperations: PatchOperations
 ): void {
   // Apply patch operations in the correct order: set, setIfMissing, unset, inc, dec, insert
-  if (patchOperations['set']) {
-    patch.set(patchOperations['set']);
+  if (patchOperations.set) {
+    patch.set(patchOperations.set)
   }
-  
-  if (patchOperations['setIfMissing']) {
-    patch.setIfMissing(patchOperations['setIfMissing']);
+
+  if (patchOperations.setIfMissing) {
+    patch.setIfMissing(patchOperations.setIfMissing)
   }
-  
-  if (patchOperations['unset']) {
-    patch.unset(Array.isArray(patchOperations['unset']) ? patchOperations['unset'] : [patchOperations['unset']]);
+
+  if (patchOperations.unset) {
+    patch.unset(Array.isArray(patchOperations.unset) ? patchOperations.unset : [patchOperations.unset])
   }
-  
-  if (patchOperations['inc']) {
-    patch.inc(patchOperations['inc']);
+
+  if (patchOperations.inc) {
+    patch.inc(patchOperations.inc)
   }
-  
-  if (patchOperations['dec']) {
-    patch.dec(patchOperations['dec']);
+
+  if (patchOperations.dec) {
+    patch.dec(patchOperations.dec)
   }
-  
-  if (patchOperations['insert']) {
-    applyInsertOperation(patch, patchOperations['insert']);
+
+  if (patchOperations.insert) {
+    applyInsertOperation(patch, patchOperations.insert)
   }
 }
 
 /**
  * Helper function to apply insert operation to a patch
- * 
+ *
  * @param patch - Sanity patch
  * @param insertOp - Insert operation
  */
 function applyInsertOperation(patch: SanityPatch, insertOp: InsertOperation): void {
-  const { items, position } = insertOp;
-  
+  const {items, position} = insertOp
+
   // Get the appropriate selector
-  let selector = '';
-  if (insertOp['at']) {
-    selector = insertOp['at'];
-  } else if (insertOp['before']) {
-    selector = insertOp['before'];
-  } else if (insertOp['after']) {
-    selector = insertOp['after'];
-  } else if (insertOp['replace']) {
-    selector = insertOp['replace'];
+  let selector = ''
+  if (insertOp.at) {
+    selector = insertOp.at
+  } else if (insertOp.before) {
+    selector = insertOp.before
+  } else if (insertOp.after) {
+    selector = insertOp.after
+  } else if (insertOp.replace) {
+    selector = insertOp.replace
   }
-  
+
   if (position === 'before' || position === 'after' || position === 'replace') {
     // Only execute if we have a valid selector and items
     if (selector && items) {
-      patch.insert(position, selector, items);
+      patch.insert(position, selector, items)
     }
   }
 }
 
 /**
  * Helper function to process a single mutation and add it to the transaction
- * 
+ *
  * @param client - Sanity client
  * @param transaction - Sanity transaction
  * @param mutation - Mutation to process
@@ -273,41 +277,41 @@ function processMutation(
 ): void {
   // Handle create mutation
   if ('create' in mutation) {
-    addCreateMutation(transaction, mutation);
+    addCreateMutation(transaction, mutation)
   }
-  
+
   // Handle createOrReplace mutation
   if ('createOrReplace' in mutation) {
-    addCreateOrReplaceMutation(transaction, mutation);
+    addCreateOrReplaceMutation(transaction, mutation)
   }
-  
+
   // Handle createIfNotExists mutation
   if ('createIfNotExists' in mutation) {
-    addCreateIfNotExistsMutation(transaction, mutation);
+    addCreateIfNotExistsMutation(transaction, mutation)
   }
-  
+
   // Handle delete mutation
   if ('delete' in mutation) {
-    addDeleteMutation(transaction, mutation);
+    addDeleteMutation(transaction, mutation)
   }
-  
+
   // Handle patch mutation
   if ('patch' in mutation) {
-    const { id, query, params, ifRevisionID, ...patchOperations } = mutation['patch'] as PatchOperations & { id?: string; query?: string; params?: Record<string, any>; ifRevisionID?: string };
-    
+    const {id, query, params, ifRevisionID, ...patchOperations} = mutation.patch as PatchOperations & { id?: string; query?: string; params?: Record<string, any>; ifRevisionID?: string }
+
     if (query) {
       // Patch by query
-      addPatchByQueryMutation(transaction, query, params, patchOperations);
+      addPatchByQueryMutation(transaction, query, params, patchOperations)
     } else if (id) {
       // Patch by ID
-      addPatchByIdMutation(client, transaction, id, ifRevisionID, patchOperations);
+      addPatchByIdMutation(client, transaction, id, ifRevisionID, patchOperations)
     }
   }
 }
 
 /**
  * Helper function to retrieve documents for mutations
- * 
+ *
  * @param client - Sanity client
  * @param mutations - Array of mutations
  * @returns Array of retrieved documents
@@ -319,32 +323,32 @@ async function retrieveDocumentsForMutations(
   const results = await Promise.all(mutations.map(async (mutation) => {
     try {
       // Type guard for different mutation types
-      if ('create' in mutation && mutation['create']?._id) {
-        return await client.getDocument(mutation['create']['_id']);
-      } else if ('createOrReplace' in mutation && mutation['createOrReplace']?._id) {
-        return await client.getDocument(mutation['createOrReplace']['_id']);
-      } else if ('createIfNotExists' in mutation && mutation['createIfNotExists']?._id) {
-        return await client.getDocument(mutation['createIfNotExists']['_id']);
+      if ('create' in mutation && mutation.create?._id) {
+        return await client.getDocument(mutation.create._id)
+      } else if ('createOrReplace' in mutation && mutation.createOrReplace?._id) {
+        return await client.getDocument(mutation.createOrReplace._id)
+      } else if ('createIfNotExists' in mutation && mutation.createIfNotExists?._id) {
+        return await client.getDocument(mutation.createIfNotExists._id)
       } else if ('patch' in mutation) {
         // Need to handle both patch by ID and patch by query
-        if ('id' in mutation['patch'] && mutation['patch']['id']) {
-          return await client.getDocument(mutation['patch']['id']);
-        } 
+        if ('id' in mutation.patch && mutation.patch.id) {
+          return await client.getDocument(mutation.patch.id)
+        }
         // Query-based patches can't easily return documents
-        return null;
+        return null
       } else if ('delete' in mutation) {
         // Deleted documents don't need to be returned
-        return null;
+        return null
       }
-      return null;
+      return null
     } catch (err) {
-      console.error(`Error retrieving document for mutation:`, err);
-      return null;
+      console.error('Error retrieving document for mutation:', err)
+      return null
     }
-  }));
-  
+  }))
+
   // All results are either SanityDocument or null at this point
-  return results as (SanityDocument | null)[];
+  return results as (SanityDocument | null)[]
 }
 
 /**
@@ -359,7 +363,7 @@ interface MutateDocumentsResult {
 
 /**
  * Modifies documents using transactions
- * 
+ *
  * @param projectId - Project ID
  * @param dataset - Dataset name
  * @param mutations - Array of mutations
@@ -368,8 +372,8 @@ interface MutateDocumentsResult {
  * @returns Result object containing success status, message, and potentially documents
  */
 async function modifyDocuments(
-  projectId: string, 
-  dataset: string, 
+  projectId: string,
+  dataset: string,
   mutations: Mutation[],
   returnDocuments: boolean = false,
   options?: {
@@ -377,67 +381,67 @@ async function modifyDocuments(
   }
 ): Promise<MutateDocumentsResult> {
   try {
-    const client = createSanityClient(projectId, dataset);
-    
+    const client = createSanityClient(projectId, dataset)
+
     // Validate mutations using the parameterValidation utility
-    validateMutations(mutations);
-    
+    validateMutations(mutations)
+
     // Apply default values
     const mutationOptions = applyMutationDefaults({
       returnDocuments,
       ...options
-    });
-    
+    })
+
     // Create a transaction
-    const transaction = client.transaction();
-    
+    const transaction = client.transaction()
+
     // Process each mutation
-    mutations.forEach(mutation => {
+    mutations.forEach((mutation) => {
       // Validate create documents using the parameterValidation utility
-      if ('create' in mutation && mutation['create']) {
-        validateDocument(mutation['create']);
+      if ('create' in mutation && mutation.create) {
+        validateDocument(mutation.create)
       }
-      
+
       // Validate createOrReplace documents
-      if ('createOrReplace' in mutation && mutation['createOrReplace']) {
-        validateDocument(mutation['createOrReplace']);
+      if ('createOrReplace' in mutation && mutation.createOrReplace) {
+        validateDocument(mutation.createOrReplace)
       }
-      
+
       // Validate createIfNotExists documents
-      if ('createIfNotExists' in mutation && mutation['createIfNotExists']) {
-        validateDocument(mutation['createIfNotExists']);
+      if ('createIfNotExists' in mutation && mutation.createIfNotExists) {
+        validateDocument(mutation.createIfNotExists)
       }
-      
+
       // Add proper type information to the document before passing to transaction
-      processMutation(client, transaction as any, mutation);
-    });
-    
+      processMutation(client, transaction as any, mutation)
+    })
+
     // Commit the transaction with visibility option
     const result = await transaction.commit({
-      visibility: mutationOptions['visibility']
-    });
-    
-    if (mutationOptions['returnDocuments']) {
-      const documents = await retrieveDocumentsForMutations(client, mutations);
-      
+      visibility: mutationOptions.visibility
+    })
+
+    if (mutationOptions.returnDocuments) {
+      const documents = await retrieveDocumentsForMutations(client, mutations)
+
       return {
         success: true,
         message: `Successfully applied ${mutations.length} mutations`,
         result,
         documents: documents.filter(Boolean) as SanityDocument[]
-      };
+      }
     }
-    
+
     return {
       success: true,
       message: `Successfully applied ${mutations.length} mutations`,
       result
-    };
+    }
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    throw new Error(`Failed to modify documents: ${errorMessage}`);
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    throw new Error(`Failed to modify documents: ${errorMessage}`)
   }
 }
 
 // Export the refactored function
-export { modifyDocuments };
+export {modifyDocuments}

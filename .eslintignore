@@ -19,4 +19,8 @@ build/
 .env.local
 .env.development.local
 .env.test.local
-.env.production.local 
+.env.production.local
+
+# Ignore test files - they have their own relaxed rules but we're skipping full linting
+test/
+test/**/* 

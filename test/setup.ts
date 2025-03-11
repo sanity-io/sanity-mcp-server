@@ -8,4 +8,4 @@
 // Add any global test setup here
 
 // Example of setting up global environment variables for tests
-process.env.NODE_ENV = 'test';
+process.env.NODE_ENV = 'test'

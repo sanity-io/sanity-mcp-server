@@ -21,7 +21,7 @@ export const logger: Logger = {
   error: (...args: unknown[]) => console.error('[ERROR]', ...args),
   warn: (...args: unknown[]) => console.error('[WARN]', ...args),
   debug: (...args: unknown[]) => console.error('[DEBUG]', ...args)
-};
+}
 
 /**
  * Special write function for MCP protocol outputs
@@ -29,10 +29,10 @@ export const logger: Logger = {
  */
 export const mcpWrite = (data: string): void => {
   try {
-    process.stdout.write(data + '\n');
+    process.stdout.write(`${data }\n`)
   } catch (err) {
-    logger.error('Error writing to stdout:', err);
+    logger.error('Error writing to stdout:', err)
   }
-};
+}
 
-export default logger; 
+export default logger

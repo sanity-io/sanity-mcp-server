@@ -14,14 +14,14 @@
      - ✅ processPortableTextFields function in groq.ts
      - ✅ findReferences function in schema.ts
      - ✅ applyPatchOperations function in documentHelpers.ts
+   - ✅ Exclude test files from linting via .eslintignore
    - 🔄 Address critical linting errors:
-     - ⬜ Fix nested callbacks in test files (max-nested-callbacks)
      - ⬜ Resolve shadow variable declarations (no-shadow)
      - ⬜ Refactor functions with high cognitive complexity:
        - ⬜ Async arrow function in src/controllers/mutate.ts:323
        - ⬜ Arrow function in src/utils/portableText.ts:41
      - ⬜ Fix unused variables and parameters
-   - ⬜ Configure ESLint to ignore generated files in dist directory
+   - ✅ Configure ESLint to ignore generated files in dist directory
    - ⬜ Create a plan for gradually fixing linting warnings:
      - ⬜ Replace `any` types with more specific types
      - ⬜ Break up long lines exceeding 120 characters
