@@ -13,10 +13,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed test configuration and ESLint setup with detailed comments.
 - Added lenient test-specific rules to ESLint and optimized Vitest configuration.
 - Integrated Sanity's ESLint configuration while preserving cognitive complexity checks.
+- Improved error handling in the embeddings controller
+- Refactored high complexity functions to improve maintainability:
+  - `searchContent` function in groq.ts
+  - `query` function in groq.ts
+  - `processPortableTextFields` function in groq.ts
+  - `findReferences` function in schema.ts
+  - `applyPatchOperations` function in documentHelpers.ts
 
 ### Fixed
 - TypeScript errors fixed by adding `.js` extensions to imports and removing unused imports.
 - Addressed ESLint warnings across the codebase.
+- Fixed TypeScript errors in schema.ts file
+- Fixed ESLint configuration to properly check for cognitive complexity
 
 ### Refactored
 - Refactored GROQ controller to reduce complexity:
@@ -32,6 +41,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Split `applyPatchOperations` function into smaller, focused helper functions.
   - Improved handling of insert operations with better separation of concerns.
   - Enhanced error handling and type safety.
+- Improved test directory structure:
+  - Moved `test/utils/sanityClient.test.ts` to `test/unit/utils/` for better organization
+  - Updated Vitest configuration to reflect the new test structure
 
 ## [0.3.0] - 2024-03-07
 
@@ -39,14 +51,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New endpoint for listing schema types.
 - Support for embedding documents.
 - Expanded documentation.
+- Support for semantic search using embeddings
+- GROQ query capabilities with result verification
+- Document mutation operations (create, update, patch, delete)
+- Release management functionality
+- Schema introspection capabilities
 
 ### Changed
 - Enhanced error handling.
 - Improved type safety.
+- Improved error handling across all controllers
+- Enhanced validation for API parameters
 
 ### Fixed
 - Several critical bugs related to document retrieval.
 - Authentication edge cases.
+- Fixed issues with document reference handling
+- Addressed performance bottlenecks in query operations
 
 ## [0.2.0] - 2024-02-20
 

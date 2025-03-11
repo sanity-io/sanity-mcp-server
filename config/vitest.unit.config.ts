@@ -5,7 +5,6 @@ export default defineConfig({
     environment: 'node',
     include: [
       'test/unit/**/*.test.ts',
-      'test/utils/**/*.test.ts',
       'test/controllers/**/*.test.ts'
     ],
     exclude: [
