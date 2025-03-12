@@ -1,7 +1,12 @@
 {
   "root": true,
   "extends": [
-    "@sanity/eslint-config-studio"
+    "sanity",
+    "sanity/typescript"
+  ],
+  "plugins": [
+    "sonarjs",
+    "complexity"
   ],
   "parserOptions": {
     "ecmaVersion": 2020,
@@ -13,42 +18,51 @@
   },
   "rules": {
     "complexity": ["error", 10],
-    "sonarjs/cognitive-complexity": ["error", 10]
+    "sonarjs/cognitive-complexity": ["error", 10],
+    
+    // Temporary relaxed rules for transition period
+    "@typescript-eslint/no-explicit-any": "warn",
+    "max-len": ["warn", { "code": 120 }],
+    "brace-style": "warn"
   },
   "overrides": [
     {
       "files": ["src/index.ts", "usage-example.ts"],
       "rules": {
-        "no-console": "off"
+        "no-console": "off" // Entry points may need console output
       }
     },
     {
       "files": ["src/config/config.ts", "src/utils/sanityClient.ts"],
       "rules": {
-        "no-console": "off"
+        "no-console": "off" // Config and client setup may need console logging
       }
     },
     {
       "files": ["src/types/**/*.ts"],
       "rules": {
-        "@typescript-eslint/no-explicit-any": "off",
-        "@typescript-eslint/no-unused-vars": "off"
+        "@typescript-eslint/no-explicit-any": "off", // Type definitions sometimes need 'any'
+        "@typescript-eslint/no-unused-vars": "off" // Type definitions may include unused vars
       }
     },
     {
-      "files": ["test/**/*.ts"],
+      "files": ["test/**/*.ts", "test/**/*.js"],
       "rules": {
-        "complexity": "off",
-        "sonarjs/cognitive-complexity": "off",
-        "no-console": "off",
-        "@typescript-eslint/no-explicit-any": "off",
-        "sonarjs/no-duplicate-string": "off"
+        "complexity": "off", // Tests often need complex scenarios
+        "sonarjs/cognitive-complexity": "off", // Tests may need complex assertions
+        "no-console": "off", // Tests may need console output for diagnostics
+        "@typescript-eslint/no-explicit-any": "off", // Tests often use 'any' for mocks
+        "sonarjs/no-duplicate-string": "off", // Test data often has repeated strings
+        "@typescript-eslint/no-empty-function": "off", // Mock functions are often empty
+        "@typescript-eslint/no-unused-vars": "warn", // Keep as warning to catch potential issues
+        "max-lines-per-function": "off", // Tests can be longer due to setup/teardown
+        "no-unused-expressions": "off" // Chai assertions use unused expressions
       }
     },
     {
-      "files": ["scripts/quality/**/*.js"],
+      "files": ["dist/**/*.d.ts"],
       "rules": {
-        "no-console": "off"
+        "sonarjs/cognitive-complexity": "off" // Generated declaration files can be complex
       }
     }
   ]

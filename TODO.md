@@ -1,61 +1,82 @@
 # TODO
 
 ## High Priority
-1. 🔄 **Comprehensive Test Suite Improvement**  (In progress) 
-   - Fix TypeScript errors in tests
-   - Fix ESLint configuration issues
-   - Add missing unit tests for critical functionality
-   - Ensure all integration tests pass
-   - Create proper testing documentation
+1. ✅ **Typescript Configuration and Errors**
+   - ✅ Fix build errors in the schema.ts file
+   - ✅ Fix other type errors found by typescript compiler
+   - ⬜ Add stricter type checking and additional compiler options
 
-   **/chore/test-improvement-plan**
+2. 🔄 **ESLint Issues**
+   - ✅ Configure eslint to work consistently across the codebase
+   - ✅ Refactor high complexity functions:
+     - ✅ searchContent function in groq.ts
+     - ✅ query function in groq.ts 
+     - ✅ processPortableTextFields function in groq.ts
+     - ✅ findReferences function in schema.ts
+     - ✅ applyPatchOperations function in documentHelpers.ts
+   - ✅ Exclude test files from linting via .eslintignore
+   - 🔄 Address critical linting errors:
+     - ⬜ Resolve shadow variable declarations (no-shadow)
+     - ⬜ Refactor functions with high cognitive complexity:
+       - ⬜ Async arrow function in src/controllers/mutate.ts:323
+       - ⬜ Arrow function in src/utils/portableText.ts:41
+     - ⬜ Fix unused variables and parameters
+   - ✅ Configure ESLint to ignore generated files in dist directory
+   - ⬜ Create a plan for gradually fixing linting warnings:
+     - ⬜ Replace `any` types with more specific types
+     - ⬜ Break up long lines exceeding 120 characters
+     - ⬜ Fix spacing and semicolon issues
 
-   **PLAN: [plans/test-improvement-plan.md](plans/test-improvement-plan.md)**
+3. ✅ **Vitest Configuration**
+   - ✅ Set up proper test runners for different test categories
+   - ✅ Configure timeout settings appropriately for test types
 
-   ### Implementation plan
-   1. ⃞ **Fix TypeScript Configuration and Errors**
-      1. ⃞ Fix module import errors in quality-validation.test.ts and complexity-check.test.js
-      2. ⃞ Run typecheck:all and address all remaining TypeScript errors
-      3. ⃞ Ensure consistent TypeScript configuration across all test suites
-
-   2. ⃞ **Resolve ESLint Issues**
-      1. ⃞ Fix sonarjs/cognitive-complexity configuration in .eslintrc.json
-      2. ⃞ Address unused variables and imports across the codebase
-      3. ⃞ Refactor functions with high complexity scores
-      4. ⃞ Create repeatable linting process with automatic fixes where possible
-
-   3. ⃞ **Unit Test Improvements**
-      1. ⃞ Fix existing unit test failures
-      2. ⃞ Add test coverage for controllers without sufficient tests
-      3. ⃞ Implement tests for core utility functions
-      4. ⃞ Set up proper mocking for external dependencies
-
-   4. ⃞ **Integration Test Enhancements**
-      1. ⃞ Fix critical integration test failures
-      2. ⃞ Ensure core document operations tests are passing
-      3. ⃞ Add integration tests for missing workflows
-      4. ⃞ Optimize slow-running integration tests
-
-   5. ⃞ **Testing Documentation**
-      1. ⃞ Document test categories and their intended use cases
-      2. ⃞ Create guide for writing effective tests
-      3. ⃞ Document test environment setup requirements
-      4. ⃞ Establish clear criteria for test quality
+4. 🔄 **Test Improvements**
+   - ✅ Fix test directory structure to ensure tests are properly discovered
+     - ✅ Move `test/utils/sanityClient.test.ts` to `test/unit/utils/`
+     - ✅ Document test directory structure standards rather than reorganizing existing tests
+     - ✅ Update Vitest configurations to reflect the new test structure
+     - ✅ Create guidelines for future test file organization:
+       - ✅ Document naming conventions
+       - ✅ Establish proper test file placement guidelines
+       - ✅ Create examples of well-organized test files
+   - 🔄 Add test coverage for controllers without sufficient tests
+     - ✅ Identify controllers with low test coverage
+     - ✅ Create test file for the `projects` controller
+     - ✅ Add comprehensive tests for `createDocument` and `deleteDocument` functions in the `actions` controller
+     - ⬜ Continue adding tests for remaining controller functions
+   - ⬜ Implement tests for core utility functions
+   - ⬜ Set up proper mocking for external dependencies
+   - ✅ Standardize test execution:
+     - ✅ Create a new npm script 'test:full:ordered' that ensures tests run in the proper order:
+       - Linting → TypeScript checking → Unit tests → Integration tests
+     - ✅ Create a new npm script 'test:source' that runs tests without linting during development
+     - ⬜ Update CI/CD pipelines to use the ordered test script
+     - ✅ Update pre-commit and pre-push hooks to use the ordered approach
+     - ✅ Fix Husky hooks for v10+ compatibility and proper ESLint configuration
 
 ## Medium Priority
-1. ⃞ **Test Coverage Analysis**
-   - Run and analyze test coverage reports
-   - Identify critical areas with insufficient coverage
-   - Establish coverage targets for core functionality
+1. ⬜ **Integration Test Enhancements**
+   - ⬜ Add standard integration tests for key user workflows
+   - ⬜ Implement extended integration tests for edge cases
+   - ⬜ Set up proper test fixtures and data generators
 
-2. ⃞ **Test Performance Optimization**
-   - Identify and fix slow-running tests
-   - Implement parallel test execution where appropriate
-   - Optimize test setup and teardown operations
+2. ⬜ **Documentation Improvements**
+   - ⬜ Update API documentation with better JSDoc
+   - ⬜ Create comprehensive getting started guide
+   - ⬜ Add usage examples for key features
+
+3. ⬜ **Performance Optimizations**
+   - ⬜ Identify and optimize slow API routes
+   - ⬜ Add caching for frequently accessed data
+   - ⬜ Implement query optimizations
 
 ## Low Priority
-1. ⃞ **Test Infrastructure Improvements**
-   - Set up continuous integration for automated test runs
-   - Implement visual reporting for test results
-   - Create automated quality dashboards
+1. ⬜ **Code Cleanup**
+   - ⬜ Remove unused code and dependencies
+   - ⬜ Standardize error handling patterns
+   - ⬜ Refactor duplicate code into shared utilities
+   - ⬜ Address remaining ESLint warnings:
+     - ⬜ Create an incremental plan for replacing `any` types
+     - ⬜ Fix remaining stylistic issues (semicolons, spacing, etc.)
 

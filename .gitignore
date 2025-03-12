@@ -55,5 +55,4 @@ coverage/
 # Sanity specific
 .sanity/
 
-# Quality report output
-scripts/quality/output/
+# Quality report output removed

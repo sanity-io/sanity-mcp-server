@@ -1,5 +1,7 @@
 # Testing Strategy for Sanity MCP Server
 
+> **Note:** For detailed guidelines on test organization, naming conventions, and best practices, please refer to the [Test Organization Guide](../docs/testing/test-organization.md).
+
 ## Test Categories
 
 We've organized our tests into distinct categories to optimize for both speed and coverage.

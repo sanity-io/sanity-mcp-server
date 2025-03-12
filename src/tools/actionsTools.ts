@@ -1,18 +1,18 @@
 /**
  * Actions-related tool definitions
- * 
+ *
  * This file defines all the MCP tool definitions related to document actions
  */
-import { z } from 'zod';
-import type { ToolDefinition } from '../types/tools.js';
-import type { ToolProvider } from '../types/toolProvider.js';
-import * as actionsController from '../controllers/actions.js';
-import config from '../config/config.js';
-import type { 
+import {z} from 'zod'
+
+import config from '../config/config.js'
+import * as actionsController from '../controllers/actions.js'
+import type {
+  ActionResult,
   DocumentIdParam,
-  ReleaseDocumentIdParam,
-  ActionResult
-} from '../types/sharedTypes.js';
+  ReleaseDocumentIdParam} from '../types/sharedTypes.js'
+import type {ToolProvider} from '../types/toolProvider.js'
+import type {ToolDefinition} from '../types/tools.js'
 
 /**
  * Actions tools provider class
@@ -20,7 +20,7 @@ import type {
 export class ActionsToolProvider implements ToolProvider {
   /**
    * Get all actions-related tool definitions
-   * 
+   *
    * @returns Array of tool definition objects
    */
   getToolDefinitions(): ToolDefinition[] {
@@ -38,7 +38,7 @@ export class ActionsToolProvider implements ToolProvider {
             args.projectId || config.projectId || '',
             args.dataset || config.dataset || 'production',
             args.documentId
-          );
+          )
         }
       },
       {
@@ -54,7 +54,7 @@ export class ActionsToolProvider implements ToolProvider {
             args.projectId || config.projectId || '',
             args.dataset || config.dataset || 'production',
             args.documentId
-          );
+          )
         }
       },
       {
@@ -70,11 +70,11 @@ export class ActionsToolProvider implements ToolProvider {
           return await actionsController.unpublishDocumentWithRelease(
             args.projectId || config.projectId || '',
             args.dataset || config.dataset || 'production',
-            args.releaseId, 
+            args.releaseId,
             args.documentId
-          );
+          )
         }
       }
-    ];
+    ]
   }
 }

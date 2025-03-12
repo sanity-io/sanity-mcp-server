@@ -1,6 +1,7 @@
 #!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
 
-# Run a comprehensive test suite before pushing to ensure quality
-# This includes unit tests and critical integration tests
+# Husky pre-push hook (v10+ compatible)
+
+# Run our full test suite before pushing to ensure quality
+# This runs the complete test suite: lint, typecheck, unit tests, and all integration tests
 npm run test:pre-merge

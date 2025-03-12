@@ -1,9 +1,10 @@
-import { z } from 'zod';
-import type { ToolHandler, EmbeddingsIndex, SimpleSchemaType, SimpleRelease } from './sharedTypes.js';
+import {z} from 'zod'
+
+import type {EmbeddingsIndex, SimpleRelease, SimpleSchemaType, ToolHandler} from './sharedTypes.js'
 
 /**
  * Generic interface for tool definitions
- * 
+ *
  * This interface uses parameterized types to enforce type safety between
  * the tool parameter schema and the handler function.
  */

@@ -1,10 +1,10 @@
 // Common TypeScript types for Sanity MCP Server
 
 // Re-export Sanity types from sanity.ts
-export * from './sanity.js';
+export * from './sanity.js'
 
 // Import SanityDocument from sanity.ts
-import type { SanityDocument } from './sanity.js';
+import type {SanityDocument} from './sanity.js'
 
 // Sanity client configuration
 export interface SanityClientConfig {
@@ -46,7 +46,7 @@ export interface SearchOptions {
   includeMetadata?: boolean;
   limit?: number;
   filter?: string | Record<string, any>;
-  
+
   // Legacy properties for backward compatibility
   indexName?: string;
   maxResults?: number;

@@ -1,19 +1,20 @@
 /**
  * GROQ-related tool definitions
- * 
+ *
  * This file defines all the MCP tool definitions related to GROQ querying
  */
-import { z } from 'zod';
-import type { ToolDefinition } from '../types/tools.js';
-import type { ToolProvider } from '../types/toolProvider.js';
-import * as groqController from '../controllers/groq.js';
-import config from '../config/config.js';
-import type { 
-  GroqQueryParams, 
-  GetDocumentParams, 
+import {z} from 'zod'
+
+import config from '../config/config.js'
+import * as groqController from '../controllers/groq.js'
+import type {
+  GetDocumentParams,
+  GroqQueryParams,
   GroqQueryResult,
   GroqSpecResult
-} from '../types/sharedTypes.js';
+} from '../types/sharedTypes.js'
+import type {ToolProvider} from '../types/toolProvider.js'
+import type {ToolDefinition} from '../types/tools.js'
 
 /**
  * GROQ tools provider class
@@ -21,7 +22,7 @@ import type {
 export class GroqToolProvider implements ToolProvider {
   /**
    * Get all GROQ-related tool definitions
-   * 
+   *
    * @returns Array of tool definition objects
    */
   getToolDefinitions(): ToolDefinition[] {
@@ -31,7 +32,7 @@ export class GroqToolProvider implements ToolProvider {
         description: 'Get the GROQ language specification',
         parameters: z.object({}),
         handler: async (): Promise<GroqSpecResult> => {
-          return await groqController.getGroqSpecification();
+          return await groqController.getGroqSpecification()
         }
       },
       {
@@ -49,7 +50,7 @@ export class GroqToolProvider implements ToolProvider {
             args.dataset || config.dataset || 'production',
             args.query,
             args.params || {}
-          );
+          )
         }
       },
       {
@@ -67,7 +68,7 @@ export class GroqToolProvider implements ToolProvider {
             args.dataset || config.dataset || 'production',
             args.query,
             args.params || {}
-          );
+          )
         }
       },
       {
@@ -79,17 +80,17 @@ export class GroqToolProvider implements ToolProvider {
           documentId: z.union([z.string(), z.array(z.string())]).describe('ID or array of IDs of the document(s) to retrieve')
         }) as z.ZodType<GetDocumentParams>,
         handler: async (args: GetDocumentParams): Promise<GroqQueryResult> => {
-          const projectId = args.projectId || config.projectId || '';
-          const dataset = args.dataset || config.dataset || 'production';
-          const { documentId } = args;
-          
+          const projectId = args.projectId || config.projectId || ''
+          const dataset = args.dataset || config.dataset || 'production'
+          const {documentId} = args
+
           if (Array.isArray(documentId)) {
-            return await groqController.searchContent(projectId, dataset, '*[_id in $documentIds]', { documentIds: documentId });
+            return await groqController.searchContent(projectId, dataset, '*[_id in $documentIds]', {documentIds: documentId})
           }
-          
-          return await groqController.searchContent(projectId, dataset, '*[_id == $documentId][0]', { documentId });
+
+          return await groqController.searchContent(projectId, dataset, '*[_id == $documentId][0]', {documentId})
         }
       }
-    ];
+    ]
   }
 }

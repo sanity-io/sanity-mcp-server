@@ -1,9 +1,9 @@
 /**
  * Type definitions for Sanity-related objects and operations
  */
-import type { 
+import type {
   SanityClient as OriginalSanityClient
-} from '@sanity/client';
+} from '@sanity/client'
 
 /**
  * Sanity Query Parameters
