@@ -1,82 +1,77 @@
 # TODO
 
 ## High Priority
-1. ✅ **Typescript Configuration and Errors**
-   - ✅ Fix build errors in the schema.ts file
-   - ✅ Fix other type errors found by typescript compiler
-   - ⬜ Add stricter type checking and additional compiler options
+1. ✅ **Fix TypeScript Errors**
+   - ✅ Fix type errors in mutate.ts with proper null checks
+     - ✅ Import logger in createDocument and patchDocument functions
+     - ✅ Fix type checking for document parameters (Record<string, any> vs IdentifiedSanityDocumentStub)
 
-2. 🔄 **ESLint Issues**
-   - ✅ Configure eslint to work consistently across the codebase
-   - ✅ Refactor high complexity functions:
-     - ✅ searchContent function in groq.ts
-     - ✅ query function in groq.ts 
-     - ✅ processPortableTextFields function in groq.ts
-     - ✅ findReferences function in schema.ts
-     - ✅ applyPatchOperations function in documentHelpers.ts
-   - ✅ Exclude test files from linting via .eslintignore
-   - 🔄 Address critical linting errors:
-     - ⬜ Resolve shadow variable declarations (no-shadow)
-     - ⬜ Refactor functions with high cognitive complexity:
-       - ⬜ Async arrow function in src/controllers/mutate.ts:323
-       - ⬜ Arrow function in src/utils/portableText.ts:41
-     - ⬜ Fix unused variables and parameters
-   - ✅ Configure ESLint to ignore generated files in dist directory
-   - ⬜ Create a plan for gradually fixing linting warnings:
-     - ⬜ Replace `any` types with more specific types
-     - ⬜ Break up long lines exceeding 120 characters
-     - ⬜ Fix spacing and semicolon issues
+2. ✅ **Fix Critical Linting Errors**
+   - ✅ Fix semicolon errors in groq.ts
+   - ✅ Fix quotes style error in groq.ts (line 299)
+   - ✅ Fix brace style errors in groq.ts and schema.ts
 
-3. ✅ **Vitest Configuration**
-   - ✅ Set up proper test runners for different test categories
-   - ✅ Configure timeout settings appropriately for test types
+3. ✅ **Reduce Cognitive Complexity**
+   - ✅ Refactor the processDocument function in groq.ts to reduce complexity
+   - ✅ Fix strict equality issue in groq.ts (use === instead of == for null comparisons)
+   - ✅ Refactor the arrow function in src/controllers/mutate.ts:323 to reduce complexity
 
-4. 🔄 **Test Improvements**
-   - ✅ Fix test directory structure to ensure tests are properly discovered
-     - ✅ Move `test/utils/sanityClient.test.ts` to `test/unit/utils/`
-     - ✅ Document test directory structure standards rather than reorganizing existing tests
-     - ✅ Update Vitest configurations to reflect the new test structure
-     - ✅ Create guidelines for future test file organization:
-       - ✅ Document naming conventions
-       - ✅ Establish proper test file placement guidelines
-       - ✅ Create examples of well-organized test files
-   - 🔄 Add test coverage for controllers without sufficient tests
-     - ✅ Identify controllers with low test coverage
-     - ✅ Create test file for the `projects` controller
-     - ✅ Add comprehensive tests for `createDocument` and `deleteDocument` functions in the `actions` controller
-     - ⬜ Continue adding tests for remaining controller functions
-   - ⬜ Implement tests for core utility functions
-   - ⬜ Set up proper mocking for external dependencies
-   - ✅ Standardize test execution:
-     - ✅ Create a new npm script 'test:full:ordered' that ensures tests run in the proper order:
-       - Linting → TypeScript checking → Unit tests → Integration tests
-     - ✅ Create a new npm script 'test:source' that runs tests without linting during development
-     - ⬜ Update CI/CD pipelines to use the ordered test script
-     - ✅ Update pre-commit and pre-push hooks to use the ordered approach
-     - ✅ Fix Husky hooks for v10+ compatibility and proper ESLint configuration
+4. ensure that dataset and project are required in all tools (apart from get initial context)
 
 ## Medium Priority
-1. ⬜ **Integration Test Enhancements**
-   - ⬜ Add standard integration tests for key user workflows
-   - ⬜ Implement extended integration tests for edge cases
-   - ⬜ Set up proper test fixtures and data generators
+1. 🔄 **Replace 'any' Types**
+   - 🔄 Create proper type definitions in src/types:
+     - ✅ Define ContentValue and ContentObject types for general document content
+     - ⬜ Tackle PortableText types separately (deferred for cleaner approach)
+     - ⬜ Define ApiResponse types for consistent return values
+   - ⬜ Replace any types in controllers (start with most used):
+     - ⬜ Replace any types in actions.ts (~30 occurrences)
+     - ⬜ Replace any types in groq.ts (~15 occurrences) 
+     - ⬜ Replace any types in mutate.ts (~15 occurrences)
 
-2. ⬜ **Documentation Improvements**
-   - ⬜ Update API documentation with better JSDoc
-   - ⬜ Create comprehensive getting started guide
-   - ⬜ Add usage examples for key features
+2. 🔄 **Fix Long Lines**
+   - ⬜ Break up long lines exceeding 120 characters:
+     - ⬜ Address groq.ts API specification (lines 461-468)
+     - ⬜ Break up URL and template string lines in embeddings.ts
+     - ⬜ Fix long import lines in releases.ts
+   - ⬜ Create helper functions for repeated complex operations
 
-3. ⬜ **Performance Optimizations**
-   - ⬜ Identify and optimize slow API routes
-   - ⬜ Add caching for frequently accessed data
-   - ⬜ Implement query optimizations
+3. 🔄 **Fix Class-methods-use-this Warnings**
+   - ⬜ Refactor tool classes to use static methods:
+     - ⬜ Convert getToolDefinitions methods to static
+     - ⬜ Update imports and usage accordingly
 
 ## Low Priority
-1. ⬜ **Code Cleanup**
-   - ⬜ Remove unused code and dependencies
-   - ⬜ Standardize error handling patterns
-   - ⬜ Refactor duplicate code into shared utilities
-   - ⬜ Address remaining ESLint warnings:
-     - ⬜ Create an incremental plan for replacing `any` types
-     - ⬜ Fix remaining stylistic issues (semicolons, spacing, etc.)
+1. ⬜ **Standardize Code Structure**
+   - ⬜ Ensure consistent error handling patterns
+   - ⬜ Standardize function signatures and return types
+   - ⬜ Create utility functions for repeated code patterns
 
+2. ⬜ **Documentation Improvements**
+   - ⬜ Update JSDoc comments with proper types
+   - ⬜ Add missing documentation for functions and parameters
+   - ⬜ Standardize comment formatting
+
+3. ⬜ **Remaining ESLint Warnings**
+   - ⬜ Create an incremental plan for addressing remaining warnings
+   - ⬜ Add exclusions for justified cases with explanatory comments
+
+4. ⬜ **Advanced Type Definitions**
+   - ⬜ Create dedicated PortableText type system
+   - ⬜ Implement strict mutation types
+   - ⬜ Add proper response type definitions
+
+## Completed
+1. ✅ **Remove Portable Text Utility**
+   - ✅ Delete src/utils/portableText.ts file
+   - ✅ Update groq.ts to handle Portable Text without the utility
+   - ✅ Update groq.test.ts to remove references to the utility
+
+2. ✅ **Enable Stricter TypeScript and Linting**
+   - ✅ Enable noUnusedLocals and noUnusedParameters in tsconfig.json
+   - ✅ Update ESLint rules to make warnings into errors
+
+3. ✅ **Remove LLM Verification**
+   - ✅ Remove LLM verification parameter from GROQ functions in controllers/groq.ts
+   - ✅ Update GroqQueryResult type in sharedTypes.ts to remove verification field
+   - ✅ Remove verification test from groq.test.ts

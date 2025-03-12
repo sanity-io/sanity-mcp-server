@@ -159,15 +159,13 @@ export interface GetDocumentParams extends ProjectDatasetParams {
   documentId: string | string[];
 }
 
+/**
+ * Interface for GROQ query results
+ */
 export interface GroqQueryResult {
   query: string;
   results: SanityDocument | SanityDocument[];
   count: number;
-  verification?: {
-    performed: boolean;
-    originalCount: number;
-    verifiedCount: number;
-  };
 }
 
 export interface GroqSpecResult {

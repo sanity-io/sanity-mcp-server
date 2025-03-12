@@ -2,7 +2,6 @@ import {beforeEach, describe, expect, it, vi} from 'vitest'
 
 import config from '../../src/config/config.js'
 import {getGroqSpecification, searchContent, subscribeToUpdates} from '../../src/controllers/groq.js'
-import {portableTextToMarkdown} from '../../src/utils/portableText.js'
 
 // Mock the fetch function
 global.fetch = vi.fn()
@@ -13,10 +12,6 @@ vi.mock('../../src/utils/sanityClient.js', () => ({
     fetch: vi.fn(),
     listen: vi.fn()
   }))
-}))
-
-vi.mock('../../src/utils/portableText.js', () => ({
-  portableTextToMarkdown: vi.fn()
 }))
 
 vi.mock('ws')
@@ -64,9 +59,6 @@ describe('GROQ Controller', () => {
     mockClient.listen.mockReturnValue(mockSubscription)
     mockSubscription.subscribe.mockReturnValue({unsubscribe: vi.fn()});
 
-    // Set up the portableTextToMarkdown mock
-    (portableTextToMarkdown as any).mockReturnValue('Converted Markdown');
-
     // Set up the fetch mock for getGroqSpecification
     (global.fetch as any).mockResolvedValue({
       ok: true,
@@ -87,24 +79,20 @@ describe('GROQ Controller', () => {
       expect(result.results).toHaveLength(2)
     })
 
-    it('should handle portable text fields', async () => {
-      await searchContent('project123', 'dataset123', '*')
+    it('should process portable text fields', async () => {
+      // Mock client for this test
+      mockClient.fetch.mockResolvedValueOnce([
+        {_id: 'doc1', title: 'First Document', _type: 'article', body: [{_type: 'block', text: 'Content'}]},
+        {_id: 'doc2', title: 'Second Document', _type: 'article', body: [{_type: 'block', text: 'More content'}]}
+      ])
 
-      expect(portableTextToMarkdown).toHaveBeenCalled()
-    })
-
-    it('should verify results with LLM when requested', async () => {
-      // Temporarily set the openAiApiKey
-      const originalConfig = {...config}
-      Object.assign(config, {openAiApiKey: 'test-key'})
-
-      const result = await searchContent('project123', 'dataset123', '*', {}, true)
-
-      expect(result.verification).toBeDefined()
-      expect(result.verification?.performed).toBe(true)
-
-      // Restore the original config
-      Object.assign(config, originalConfig)
+      const result = await searchContent('project123', 'dataset123', '*')
+      
+      expect(Array.isArray(result.results)).toBe(true)
+      const doc1 = result.results[0]
+      expect(doc1.body).toBe('[Portable Text Content]')
+      const doc2 = result.results[1]
+      expect(doc2.body).toBe('[Portable Text Content]')
     })
 
     it('should handle errors when querying content', async () => {
