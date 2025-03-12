@@ -311,13 +311,13 @@ function processMutation(
 
 /**
  * Retrieves a document after a create mutation
- * 
+ *
  * @param client - Sanity client
  * @param document - Document with ID
  * @returns Retrieved document or null if not found
  */
 async function retrieveDocumentForCreateMutation(
-  client: SanityClient, 
+  client: SanityClient,
   document: SanityDocumentStub
 ): Promise<SanityDocument | null> {
   if (document && '_id' in document) {
@@ -333,7 +333,7 @@ async function retrieveDocumentForCreateMutation(
 
 /**
  * Retrieves a document after a patch mutation
- * 
+ *
  * @param client - Sanity client
  * @param patch - Patch information
  * @returns Retrieved document or null if not found/applicable
@@ -355,7 +355,7 @@ async function retrieveDocumentForPatchMutation(
 
 /**
  * Retrieves documents for each mutation
- * 
+ *
  * @param client - Sanity client
  * @param mutations - Array of mutations
  * @returns Array of documents or null values
@@ -379,7 +379,7 @@ async function retrieveDocumentsForMutations(
         // Deleted documents don't need to be returned
         return null
       }
-      
+
       // Unknown mutation type
       return null
     } catch (error) {
@@ -387,7 +387,7 @@ async function retrieveDocumentsForMutations(
       return null
     }
   }))
-  
+
   return results
 }
 

@@ -29,7 +29,7 @@ interface PortableTextBlock {
 
 /**
  * Process a text span with its marks into markdown
- * 
+ *
  * @param span - The text span to process
  * @returns Markdown formatted text
  */
@@ -60,7 +60,7 @@ function processTextSpan(span: PortableTextSpan): string {
 
 /**
  * Process a block of portable text into markdown
- * 
+ *
  * @param block - The portable text block
  * @returns Markdown formatted text for the block
  */

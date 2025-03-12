@@ -45,7 +45,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 function formatToolResult(result: unknown): string {
   // Ensure we have valid content for the response
   let textContent: string
-  
+
   // Special handling for different result types
   if (typeof result === 'string') {
     textContent = result
@@ -59,7 +59,7 @@ function formatToolResult(result: unknown): string {
       textContent = String(result)
     }
   }
-  
+
   return textContent
 }
 
@@ -78,14 +78,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
     // Format result according to MCP specification
     const textContent = formatToolResult(result)
-    
+
     return {
       content: textContent
     }
   } catch (error: unknown) {
     // Log errors to stderr to avoid interfering with MCP protocol
     logger.error(`Error executing tool ${request.params.name}: ${error instanceof Error ? error.message : String(error)}`)
-    
+
     // Return a structured error message
     return {
       content: JSON.stringify({

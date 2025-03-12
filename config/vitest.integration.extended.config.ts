@@ -17,7 +17,7 @@ export default defineConfig({
 
     // Use forks for integration tests that need process isolation
     pool: 'forks',
-    
+
     // Add explicit reporters
     reporters: ['default', 'verbose'],
 
