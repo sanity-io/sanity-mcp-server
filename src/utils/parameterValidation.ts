@@ -7,7 +7,6 @@
  */
 
 import config from '../config/config.js'
-import {logger} from './logger.js'
 
 /**
  * Validates and normalizes project ID and dataset parameters

@@ -1,5 +1,4 @@
 import config from '../config/config.js'
-import type {SubscribeOptions} from '../types/index.js'
 import type {SanityClient, SanityDocument, SanityQueryParams} from '../types/sanity.js'
 import logger from '../utils/logger.js'
 import {portableTextToMarkdown} from '../utils/portableText.js'
@@ -68,9 +67,8 @@ function applyFilters(results: any, params: SanityQueryParams = {}): any {
 function getResultCount(results: SanityDocument | SanityDocument[]): number {
   if (Array.isArray(results)) {
     return results.length;
-  } else {
-    return results ? 1 : 0;
   }
+  return results ? 1 : 0;
 }
 
 /**

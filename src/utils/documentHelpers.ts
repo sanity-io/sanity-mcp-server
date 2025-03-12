@@ -1,7 +1,7 @@
 /**
  * Document helper utility functions for Sanity operations
  */
-import type {InsertOperation, PatchOperations, SanityClient, SanityDocument, SanityError, SanityPatch} from '../types/sanity.js'
+import type {PatchOperations, SanityClient, SanityDocument, SanityError} from '../types/sanity.js'
 
 /**
  * Normalizes document ID to ensure it has a 'drafts.' prefix
