@@ -27,10 +27,10 @@
    - 🔄 Create proper type definitions in src/types:
      - ✅ Define ContentValue and ContentObject types for general document content
      - ⬜ Tackle PortableText types separately (deferred for cleaner approach)
-     - ⬜ Define ApiResponse types for consistent return values
-   - ⬜ Replace any types in controllers (start with most used):
+     - ✅ Define ApiResponse types for consistent return values
+   - 🔄 Replace any types in controllers (start with most used):
      - ⬜ Replace any types in actions.ts (~30 occurrences)
-     - ⬜ Replace any types in groq.ts (~15 occurrences) 
+     - ✅ Replace any types in groq.ts (~15 occurrences) 
      - ⬜ Replace any types in mutate.ts (~15 occurrences)
 
 2. 🔄 **Fix Long Lines**

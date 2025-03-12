@@ -183,8 +183,42 @@ export interface GroqQueryResult {
 }
 
 export interface GroqSpecResult {
-  specification: Record<string, any>;
+  specification: GroqSpecification;
   source: string;
+}
+
+/**
+ * Specification for the GROQ language
+ */
+export interface GroqSpecification {
+  name: string;
+  version: string;
+  description: string;
+  coreFeatures: string[];
+  queryStructure: Array<{
+    name: string;
+    description: string;
+    syntax: string;
+    example: string;
+  }>;
+  operators: Array<{
+    name: string;
+    description: string;
+    example: string;
+  }>;
+  examples: Array<{
+    description: string;
+    query: string;
+  }>;
+  functions: Array<{
+    name: string;
+    description: string;
+    example: string;
+  }>;
+  resources: Array<{
+    name: string;
+    url: string;
+  }>;
 }
 
 export interface SearchParams extends ProjectDatasetParams {

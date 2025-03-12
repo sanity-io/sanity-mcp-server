@@ -5,7 +5,14 @@
  */
 import {SanityClient} from '@sanity/client'
 import config from '../config/config.js'
-import type {SanityDocument, SanityQueryParams} from '../types/sanity.js'
+import type {
+  ContentObject, 
+  ContentValue, 
+  GroqSpecification,
+  QueryResponse, 
+  SanityDocument, 
+  SanityQueryParams
+} from '../types/index.js'
 import logger from '../utils/logger.js'
 import {createSanityClient} from '../utils/sanityClient.js'
 
@@ -35,7 +42,11 @@ function createClient(projectId: string, dataset: string, params: SanityQueryPar
 /**
  * Executes a GROQ query with the appropriate parameters based on environment
  */
-async function executeQuery(client: SanityClient, queryString: string, params: SanityQueryParams = {}): Promise<any> {
+async function executeQuery(
+  client: SanityClient, 
+  queryString: string, 
+  params: SanityQueryParams = {}
+): Promise<SanityDocument | SanityDocument[]> {
   const queryParams = params.params && typeof params.params === 'object' ? params.params : {}
 
   if (process.env.NODE_ENV === 'test') {
@@ -50,7 +61,10 @@ async function executeQuery(client: SanityClient, queryString: string, params: S
 /**
  * Applies additional filtering based on parameters
  */
-function applyFilters(results: any, params: SanityQueryParams = {}): any {
+function applyFilters(
+  results: SanityDocument | SanityDocument[], 
+  params: SanityQueryParams = {}
+): SanityDocument | SanityDocument[] {
   let filtered = results
 
   // Apply additional filter if specified
@@ -98,23 +112,23 @@ function isPortableTextArray(value: unknown): boolean {
  * @param doc - Sanity document that may contain Portable Text fields
  * @returns Processed document with Portable Text converted to placeholder text
  */
-function processDocument(doc: any): any {
+function processDocument(doc: ContentObject | null): ContentObject | null {
   // Handle null or undefined
   if (!doc) {
     return doc
   }
 
   // Create a shallow copy to avoid mutating the original
-  const result = {...doc}
+  const result: ContentObject = {...doc}
 
   // Process each field in the object
   for (const [key, value] of Object.entries(result)) {
     // Handle Portable Text blocks
     if (isPortableTextArray(value)) {
-      result[key] = '[Portable Text Content]'
+      result[key] = '[Portable Text Content]' as ContentValue
     } else if (value && typeof value === 'object') {
-      // Type assertion is needed here as we know it's a document-like object
-      result[key] = processDocument(value)
+      // Process nested objects
+      result[key] = processDocument(value as ContentObject) as ContentValue
     }
     // Primitive values are left as is
   }
@@ -128,14 +142,16 @@ function processDocument(doc: any): any {
  * @param data - Data containing potential Portable Text fields
  * @returns Processed data with Portable Text converted to placeholder text
  */
-function processPortableTextFields(data: any): any {
+function processPortableTextFields(
+  data: SanityDocument | SanityDocument[]
+): SanityDocument | SanityDocument[] {
   // Handle array of results
   if (Array.isArray(data)) {
-    return data.map((item) => processDocument(item))
+    return data.map((item) => processDocument(item) as SanityDocument)
   }
 
   // Handle single result
-  return processDocument(data)
+  return processDocument(data) as SanityDocument
 }
 
 /**
@@ -152,11 +168,7 @@ export async function searchContent(
   dataset: string,
   queryString: string,
   params: SanityQueryParams = {}
-): Promise<{
-  query: string;
-  results: SanityDocument | SanityDocument[];
-  count: number;
-}> {
+): Promise<QueryResponse<SanityDocument | SanityDocument[]>> {
   try {
     // Create client with appropriate configuration
     const client = createClient(projectId, dataset, params)
@@ -179,9 +191,10 @@ export async function searchContent(
       results: processedResults,
       count
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
     logger.error('Error executing GROQ query:', error)
-    throw new Error(`Failed to execute GROQ query: ${error.message}`)
+    throw new Error(`Failed to execute GROQ query: ${errorMessage}`)
   }
 }
 
@@ -219,9 +232,10 @@ export async function query(
     return {
       results: processedResults
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
     logger.error('Error executing GROQ query:', error)
-    throw new Error(`Failed to execute GROQ query: ${error.message}`)
+    throw new Error(`Failed to execute GROQ query: ${errorMessage}`)
   }
 }
 
@@ -272,9 +286,10 @@ export async function subscribeToUpdates(
       query: queryString,
       message: `Successfully subscribed to updates for query: ${queryString}`
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
     logger.error('Error setting up subscription:', error)
-    throw new Error(`Failed to subscribe to updates: ${error.message}`)
+    throw new Error(`Failed to subscribe to updates: ${errorMessage}`)
   }
 }
 
@@ -284,7 +299,7 @@ export async function subscribeToUpdates(
  * @returns The GROQ specification
  */
 export async function getGroqSpecification(): Promise<{
-  specification: Record<string, any>;
+  specification: GroqSpecification;
   source: string;
 }> {
   try {
@@ -300,8 +315,8 @@ export async function getGroqSpecification(): Promise<{
         name: 'GROQ',
         version: '1.0',
         description: 'GROQ (Graph-Relational Object Queries) is a query language for JSON-like data ' +
-                    'structures that enables you to filter and join data from multiple collections ' +
-                    'without explicit joins.',
+                   'structures that enables you to filter and join data from multiple collections ' +
+                   'without explicit joins.',
         coreFeatures: [
           'Filtering with predicates and operators',
           'Projections to shape the returned data',
@@ -453,8 +468,9 @@ export async function getGroqSpecification(): Promise<{
       },
       source: 'https://sanity-io.github.io/GROQ/'
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
     logger.error('Error fetching GROQ specification:', error)
-    throw new Error(`Failed to get GROQ specification: ${error.message}`)
+    throw new Error(`Failed to get GROQ specification: ${errorMessage}`)
   }
 }
