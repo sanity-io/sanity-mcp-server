@@ -27,32 +27,48 @@ export class ActionsToolProvider implements ToolProvider {
     return [
       {
         name: 'publishDocument',
-        description: 'Publishes a document from draft to published',
+        description: 'Publish one or more draft documents',
         parameters: z.object({
-          projectId: z.string().optional().describe('Project ID, if not provided will use the project ID from the environment'),
-          dataset: z.string().optional().describe('Dataset name, if not provided will use the dataset from the environment'),
+          projectId: z.string().describe('Project ID for the Sanity project'),
+          dataset: z.string().describe('Dataset name within the project'),
           documentId: z.union([z.string(), z.array(z.string())]).describe('The document ID or IDs to publish, must include draft. prefix if publishing a draft')
         }) as z.ZodType<DocumentIdParam>,
         handler: async (args: DocumentIdParam): Promise<ActionResult> => {
           return await actionsController.publishDocument(
-            args.projectId || config.projectId || '',
-            args.dataset || config.dataset || 'production',
+            args.projectId, 
+            args.dataset, 
             args.documentId
           )
         }
       },
       {
         name: 'unpublishDocument',
-        description: 'Unpublishes a document, removing the published version',
+        description: 'Unpublish one or more documents (make them drafts only)',
         parameters: z.object({
-          projectId: z.string().optional().describe('Project ID, if not provided will use the project ID from the environment'),
-          dataset: z.string().optional().describe('Dataset name, if not provided will use the dataset from the environment'),
+          projectId: z.string().describe('Project ID for the Sanity project'),
+          dataset: z.string().describe('Dataset name within the project'),
           documentId: z.union([z.string(), z.array(z.string())]).describe('The document ID or IDs to unpublish')
         }) as z.ZodType<DocumentIdParam>,
         handler: async (args: DocumentIdParam): Promise<ActionResult> => {
           return await actionsController.unpublishDocument(
-            args.projectId || config.projectId || '',
-            args.dataset || config.dataset || 'production',
+            args.projectId, 
+            args.dataset, 
+            args.documentId
+          )
+        }
+      },
+      {
+        name: 'deleteDocument',
+        description: 'Delete one or more documents including their drafts',
+        parameters: z.object({
+          projectId: z.string().describe('Project ID for the Sanity project'),
+          dataset: z.string().describe('Dataset name within the project'),
+          documentId: z.union([z.string(), z.array(z.string())]).describe('The document ID or IDs to delete')
+        }) as z.ZodType<DocumentIdParam>,
+        handler: async (args: DocumentIdParam): Promise<ActionResult> => {
+          return await actionsController.deleteDocument(
+            args.projectId, 
+            args.dataset, 
             args.documentId
           )
         }

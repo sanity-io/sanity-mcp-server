@@ -16,7 +16,11 @@
    - ✅ Fix strict equality issue in groq.ts (use === instead of == for null comparisons)
    - ✅ Refactor the arrow function in src/controllers/mutate.ts:323 to reduce complexity
 
-4. ensure that dataset and project are required in all tools (apart from get initial context)
+4. ✅ **Make projectId and dataset Required**
+   - ✅ Update all tool definitions to make projectId and dataset required parameters
+   - ✅ Update corresponding interfaces in sharedTypes.ts
+   - ✅ Keep getInitialContext tool with optional parameters
+   - ✅ Remove fallback to config values in tool handlers
 
 ## Medium Priority
 1. 🔄 **Replace 'any' Types**

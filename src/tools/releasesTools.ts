@@ -31,14 +31,14 @@ export class ReleasesToolProvider implements ToolProvider {
         name: 'createRelease',
         description: 'Creates a new content release',
         parameters: z.object({
-          projectId: z.string().optional().describe('Project ID, if not provided will use the project ID from the environment'),
-          dataset: z.string().optional().describe('Dataset name, if not provided will use the dataset from the environment'),
+          projectId: z.string().describe('Project ID for the Sanity project'),
+          dataset: z.string().describe('Dataset name within the project'),
           title: z.string().describe('Title for the release'),
           description: z.string().optional().describe('Optional description for the release')
         }),
         handler: async (args: CreateReleaseParams) => {
-          const projectId = args.projectId || config.projectId
-          const dataset = args.dataset || config.dataset || 'production'
+          const projectId = args.projectId
+          const dataset = args.dataset
 
           if (!projectId) {
             throw new Error('Project ID is required. Please provide it as a parameter or set it in the environment.')
@@ -56,12 +56,12 @@ export class ReleasesToolProvider implements ToolProvider {
         name: 'listReleases',
         description: 'Lists all content releases',
         parameters: z.object({
-          projectId: z.string().optional().describe('Project ID, if not provided will use the project ID from the environment'),
-          dataset: z.string().optional().describe('Dataset name, if not provided will use the dataset from the environment')
+          projectId: z.string().describe('Project ID for the Sanity project'),
+          dataset: z.string().describe('Dataset name within the project')
         }),
         handler: async (args: ListReleasesParams) => {
-          const projectId = args.projectId || config.projectId
-          const dataset = args.dataset || config.dataset || 'production'
+          const projectId = args.projectId
+          const dataset = args.dataset
 
           if (!projectId) {
             throw new Error('Project ID is required. Please provide it as a parameter or set it in the environment.')
@@ -74,15 +74,15 @@ export class ReleasesToolProvider implements ToolProvider {
         name: 'updateRelease',
         description: 'Updates an existing content release',
         parameters: z.object({
-          projectId: z.string().optional().describe('Project ID, if not provided will use the project ID from the environment'),
-          dataset: z.string().optional().describe('Dataset name, if not provided will use the dataset from the environment'),
+          projectId: z.string().describe('Project ID for the Sanity project'),
+          dataset: z.string().describe('Dataset name within the project'),
           releaseId: z.string().describe('ID of the release to update'),
           title: z.string().optional().describe('New title for the release'),
           description: z.string().optional().describe('New description for the release')
         }),
         handler: async (args: UpdateReleaseParams) => {
-          const projectId = args.projectId || config.projectId
-          const dataset = args.dataset || config.dataset || 'production'
+          const projectId = args.projectId
+          const dataset = args.dataset
 
           if (!projectId) {
             throw new Error('Project ID is required. Please provide it as a parameter or set it in the environment.')
@@ -103,13 +103,13 @@ export class ReleasesToolProvider implements ToolProvider {
         name: 'archiveRelease',
         description: 'Archives a content release',
         parameters: z.object({
-          projectId: z.string().optional().describe('Project ID, if not provided will use the project ID from the environment'),
-          dataset: z.string().optional().describe('Dataset name, if not provided will use the dataset from the environment'),
+          projectId: z.string().describe('Project ID for the Sanity project'),
+          dataset: z.string().describe('Dataset name within the project'),
           releaseId: z.string().describe('ID of the release to archive')
         }),
         handler: async (args: ReleaseIdParam) => {
-          const projectId = args.projectId || config.projectId
-          const dataset = args.dataset || config.dataset || 'production'
+          const projectId = args.projectId
+          const dataset = args.dataset
 
           if (!projectId) {
             throw new Error('Project ID is required. Please provide it as a parameter or set it in the environment.')
@@ -122,14 +122,14 @@ export class ReleasesToolProvider implements ToolProvider {
         name: 'addDocumentToRelease',
         description: 'Adds a document to a release',
         parameters: z.object({
-          projectId: z.string().optional().describe('Project ID, if not provided will use the project ID from the environment'),
-          dataset: z.string().optional().describe('Dataset name, if not provided will use the dataset from the environment'),
+          projectId: z.string().describe('Project ID for the Sanity project'),
+          dataset: z.string().describe('Dataset name within the project'),
           releaseId: z.string().describe('ID of the release to add the document to'),
           documentId: z.string().describe('ID of the document to add to the release')
         }),
         handler: async (args: AddDocumentToReleaseParams) => {
-          const projectId = args.projectId || config.projectId
-          const dataset = args.dataset || config.dataset || 'production'
+          const projectId = args.projectId
+          const dataset = args.dataset
 
           if (!projectId) {
             throw new Error('Project ID is required. Please provide it as a parameter or set it in the environment.')

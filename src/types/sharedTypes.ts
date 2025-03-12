@@ -33,6 +33,8 @@ export interface ProjectDatasetParams {
  * Interface for document mutation parameters
  */
 export interface MutateDocumentsParams extends ProjectDatasetParams {
+  projectId: string;
+  dataset: string;
   mutations: Mutation[];
   returnDocuments?: boolean;
   options?: {
@@ -45,6 +47,8 @@ export interface MutateDocumentsParams extends ProjectDatasetParams {
  * Interface for create document parameters
  */
 export interface CreateDocumentParams extends ProjectDatasetParams {
+  projectId: string;
+  dataset: string;
   document: Record<string, any>;
   options?: {
     returnDocuments?: boolean;
@@ -56,6 +60,8 @@ export interface CreateDocumentParams extends ProjectDatasetParams {
  * Interface for update document parameters
  */
 export interface UpdateDocumentParams extends ProjectDatasetParams {
+  projectId: string;
+  dataset: string;
   documentId: string;
   document: Record<string, any>;
   options?: {
@@ -68,6 +74,8 @@ export interface UpdateDocumentParams extends ProjectDatasetParams {
  * Interface for patch document parameters
  */
 export interface PatchDocumentParams extends ProjectDatasetParams {
+  projectId: string;
+  dataset: string;
   documentId: string;
   patch: PatchOperations;
   options?: {
@@ -80,6 +88,8 @@ export interface PatchDocumentParams extends ProjectDatasetParams {
  * Interface for delete document parameters
  */
 export interface DeleteDocumentParams extends ProjectDatasetParams {
+  projectId: string;
+  dataset: string;
   documentId: string;
   options?: {
     visibility?: 'sync' | 'async' | 'deferred';
@@ -151,11 +161,15 @@ export interface SchemaTypeDetails extends SchemaType {
  */
 
 export interface GroqQueryParams extends ProjectDatasetParams {
+  projectId: string;
+  dataset: string;
   query: string;
   params?: Record<string, any>;
 }
 
 export interface GetDocumentParams extends ProjectDatasetParams {
+  projectId: string;
+  dataset: string;
   documentId: string | string[];
 }
 
@@ -186,6 +200,8 @@ export interface SearchParams extends ProjectDatasetParams {
  */
 
 export interface DocumentIdParam extends ProjectDatasetParams {
+  projectId: string;
+  dataset: string;
   documentId: string | string[];
 }
 
@@ -203,9 +219,25 @@ export interface ActionResult {
 }
 
 /**
+ * Embeddings-related shared interfaces
+ */
+
+export interface SemanticSearchParams extends ProjectDatasetParams {
+  projectId: string;
+  dataset: string;
+  query: string;
+  indexName: string;
+  maxResults?: number;
+  types?: string | string[];
+}
+
+/**
  * Interface for embeddings index listing parameters
  */
-export interface ListEmbeddingsIndicesParams extends ProjectDatasetParams {}
+export interface ListEmbeddingsIndicesParams extends ProjectDatasetParams {
+  projectId: string;
+  dataset: string;
+}
 
 /**
  * Interface for embeddings index in tool responses
@@ -232,6 +264,8 @@ export interface SimpleSchemaType {
  * Interface for releases listing parameters
  */
 export interface ListReleasesParams extends ProjectDatasetParams {
+  projectId: string;
+  dataset: string;
   includeArchived?: boolean;
 }
 
@@ -286,39 +320,40 @@ export interface ListStudiosParams {
  */
 
 export interface CreateReleaseParams extends ProjectDatasetParams {
+  projectId: string;
+  dataset: string;
   title: string;
   description?: string;
 }
 
 export interface UpdateReleaseParams extends ProjectDatasetParams {
+  projectId: string;
+  dataset: string;
   releaseId: string;
   title?: string;
   description?: string;
 }
 
 export interface ReleaseIdParam extends ProjectDatasetParams {
+  projectId: string;
+  dataset: string;
   releaseId: string;
 }
 
 export interface AddDocumentToReleaseParams extends ReleaseIdParam {
+  projectId: string;
+  dataset: string;
   documentId: string;
 }
 
 export interface RemoveDocumentFromReleaseParams extends ReleaseIdParam {
+  projectId: string;
+  dataset: string;
   documentId: string;
 }
 
 export interface PublishReleaseParams extends ReleaseIdParam {
+  projectId: string;
+  dataset: string;
   scheduledAt?: string;
-}
-
-/**
- * Embeddings-related shared interfaces
- */
-
-export interface SemanticSearchParams extends ProjectDatasetParams {
-  query: string;
-  indexName: string;
-  maxResults?: number;
-  types?: string | string[];
 }

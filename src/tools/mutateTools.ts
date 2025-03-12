@@ -32,8 +32,8 @@ export class MutateToolProvider implements ToolProvider {
         name: 'createDocument',
         description: 'Create a new document',
         parameters: z.object({
-          projectId: z.string().optional().describe('Project ID, if not provided will use the project ID from the environment'),
-          dataset: z.string().optional().describe('Dataset name, if not provided will use the dataset from the environment'),
+          projectId: z.string().describe('Project ID for the Sanity project'),
+          dataset: z.string().describe('Dataset name within the project'),
           document: z.record(z.any()).describe('Document content to create'),
           options: z.object({
             returnDocuments: z.boolean().optional().describe('Whether to return created documents'),
@@ -57,8 +57,8 @@ export class MutateToolProvider implements ToolProvider {
           ]
 
           return await mutateController.modifyDocuments(
-            args.projectId || config.projectId || '',
-            args.dataset || config.dataset || 'production',
+            args.projectId,
+            args.dataset,
             mutations,
             args.options?.returnDocuments || false
           )
@@ -68,8 +68,8 @@ export class MutateToolProvider implements ToolProvider {
         name: 'mutateDocument',
         description: 'Apply mutations to documents',
         parameters: z.object({
-          projectId: z.string().optional().describe('Project ID, if not provided will use the project ID from the environment'),
-          dataset: z.string().optional().describe('Dataset name, if not provided will use the dataset from the environment'),
+          projectId: z.string().describe('Project ID for the Sanity project'),
+          dataset: z.string().describe('Dataset name within the project'),
           mutations: z.array(
             z.union([
               z.object({create: z.object({_type: z.string()}).passthrough()}),
@@ -95,8 +95,8 @@ export class MutateToolProvider implements ToolProvider {
         }),
         handler: async (args: MutateDocumentsParams): Promise<MutateDocumentsResult> => {
           return await mutateController.modifyDocuments(
-            args.projectId || config.projectId || '',
-            args.dataset || config.dataset || 'production',
+            args.projectId,
+            args.dataset,
             args.mutations,
             args.returnDocuments || false
           )
@@ -106,8 +106,8 @@ export class MutateToolProvider implements ToolProvider {
         name: 'updateDocument',
         description: 'Update an existing document',
         parameters: z.object({
-          projectId: z.string().optional().describe('Project ID, if not provided will use the project ID from the environment'),
-          dataset: z.string().optional().describe('Dataset name, if not provided will use the dataset from the environment'),
+          projectId: z.string().describe('Project ID for the Sanity project'),
+          dataset: z.string().describe('Dataset name within the project'),
           documentId: z.string().describe('ID of the document to update'),
           document: z.record(z.any()).describe('Document content to update with'),
           options: z.object({
@@ -130,8 +130,8 @@ export class MutateToolProvider implements ToolProvider {
 
           const mutations = [{createOrReplace: documentWithId}]
           return await mutateController.modifyDocuments(
-            args.projectId || config.projectId || '',
-            args.dataset || config.dataset || 'production',
+            args.projectId,
+            args.dataset,
             mutations,
             args.options?.returnDocuments || false
           )
@@ -141,8 +141,8 @@ export class MutateToolProvider implements ToolProvider {
         name: 'patchDocument',
         description: 'Patch an existing document with partial updates',
         parameters: z.object({
-          projectId: z.string().optional().describe('Project ID, if not provided will use the project ID from the environment'),
-          dataset: z.string().optional().describe('Dataset name, if not provided will use the dataset from the environment'),
+          projectId: z.string().describe('Project ID for the Sanity project'),
+          dataset: z.string().describe('Dataset name within the project'),
           documentId: z.string().describe('ID of the document to patch'),
           patch: z.object({
             set: z.record(z.any()).optional().describe('Fields to set'),
@@ -165,8 +165,8 @@ export class MutateToolProvider implements ToolProvider {
           ]
 
           return await mutateController.modifyDocuments(
-            args.projectId || config.projectId || '',
-            args.dataset || config.dataset || 'production',
+            args.projectId,
+            args.dataset,
             mutations,
             args.options?.returnDocuments || false
           )
@@ -176,8 +176,8 @@ export class MutateToolProvider implements ToolProvider {
         name: 'deleteDocument',
         description: 'Delete a document',
         parameters: z.object({
-          projectId: z.string().optional().describe('Project ID, if not provided will use the project ID from the environment'),
-          dataset: z.string().optional().describe('Dataset name, if not provided will use the dataset from the environment'),
+          projectId: z.string().describe('Project ID for the Sanity project'),
+          dataset: z.string().describe('Dataset name within the project'),
           documentId: z.string().describe('ID of the document to delete'),
           options: z.object({
             visibility: z.enum(['sync', 'async', 'deferred']).optional().describe('Transaction visibility')
@@ -191,8 +191,8 @@ export class MutateToolProvider implements ToolProvider {
           ]
 
           return await mutateController.modifyDocuments(
-            args.projectId || config.projectId || '',
-            args.dataset || config.dataset || 'production',
+            args.projectId,
+            args.dataset,
             mutations,
             false
           )
@@ -202,8 +202,8 @@ export class MutateToolProvider implements ToolProvider {
         name: 'batchMutations',
         description: 'Execute a batch of mutations',
         parameters: z.object({
-          projectId: z.string().optional().describe('Project ID, if not provided will use the project ID from the environment'),
-          dataset: z.string().optional().describe('Dataset name, if not provided will use the dataset from the environment'),
+          projectId: z.string().describe('Project ID for the Sanity project'),
+          dataset: z.string().describe('Dataset name within the project'),
           mutations: z.array(
             z.union([
               z.object({create: z.object({_type: z.string()}).passthrough()}),
@@ -232,8 +232,8 @@ export class MutateToolProvider implements ToolProvider {
         }),
         handler: async (args: MutateDocumentsParams): Promise<MutateDocumentsResult> => {
           return await mutateController.modifyDocuments(
-            args.projectId || config.projectId || '',
-            args.dataset || config.dataset || 'production',
+            args.projectId,
+            args.dataset,
             args.mutations,
             args.options?.returnDocuments || false
           )

@@ -24,8 +24,8 @@ export class EmbeddingsToolProvider implements ToolProvider {
         name: 'listEmbeddingsIndices',
         description: 'List all embeddings indices available for the project and dataset',
         parameters: z.object({
-          projectId: z.string().optional().describe('Project ID, if not provided will use the project ID from the environment'),
-          dataset: z.string().optional().describe('Dataset name, if not provided will use the dataset from the environment')
+          projectId: z.string().describe('Project ID for the Sanity project'),
+          dataset: z.string().describe('Dataset name within the project')
         }),
         handler: async (args: ListEmbeddingsIndicesParams) => {
           return await embeddingsController.listEmbeddingsIndices({
@@ -40,8 +40,8 @@ export class EmbeddingsToolProvider implements ToolProvider {
         parameters: z.object({
           query: z.string().describe('The search query to match documents against'),
           indexName: z.string().describe('The name of the embeddings index to search'),
-          projectId: z.string().optional().describe('Project ID, if not provided will use the project ID from the environment'),
-          dataset: z.string().optional().describe('Dataset name, if not provided will use the dataset from the environment'),
+          projectId: z.string().describe('Project ID for the Sanity project'),
+          dataset: z.string().describe('Dataset name within the project'),
           maxResults: z.number().optional().default(10)
             .describe('Maximum number of results to return'),
           types: z.union([z.string(), z.array(z.string())]).optional().describe('Document type(s) to filter by')
