@@ -25,7 +25,7 @@ export class ProjectsToolProvider implements ToolProvider {
         name: 'listOrganizationsAndProjects',
         description: 'List all organizations and their projects that the user has access to',
         parameters: z.object({}),
-        handler: async (_args: {}) => {
+        handler: async () => {
           return await projectsController.listOrganizationsAndProjects()
         }
       },

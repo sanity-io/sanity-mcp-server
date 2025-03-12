@@ -8,7 +8,6 @@ import {z} from 'zod'
 import * as embeddingsController from '../controllers/embeddings.js'
 import type {ListEmbeddingsIndicesParams, SemanticSearchParams} from '../types/sharedTypes.js'
 import type {ToolProvider} from '../types/toolProvider.js'
-import type {ToolDefinition} from '../types/tools.js'
 
 /**
  * Provider for embeddings-related tool definitions
@@ -19,7 +18,7 @@ export class EmbeddingsToolProvider implements ToolProvider {
    *
    * @returns Array of embeddings tool definitions
    */
-  getToolDefinitions() {
+  getToolDefinitions(): ReturnType<ToolProvider['getToolDefinitions']> {
     return [
       {
         name: 'listEmbeddingsIndices',

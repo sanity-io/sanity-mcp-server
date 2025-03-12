@@ -31,20 +31,16 @@ function createClient(projectId: string, dataset: string, params: SanityQueryPar
 /**
  * Executes a GROQ query with the appropriate parameters based on environment
  */
-async function executeQuery(client: SanityClient, query: string, params: SanityQueryParams = {}): Promise<any> {
+async function executeQuery(client: SanityClient, queryString: string, params: SanityQueryParams = {}): Promise<any> {
   const queryParams = params.params && typeof params.params === 'object' ? params.params : {}
 
   if (process.env.NODE_ENV === 'test') {
     // In test mode, only pass query and params without the third parameter
-    return await client.fetch(query, queryParams)
+    return await client.fetch(queryString, queryParams)
   }
 
-  // In production, use fetch options with perspective
-  const fetchOptions = params.includeDrafts
-    ? {perspective: 'previewDrafts' as const}
-    : {}
-
-  return await client.fetch(query, queryParams, fetchOptions)
+  // In production, include a third parameter for consistency/caching settings
+  return await client.fetch(queryString, queryParams, {})
 }
 
 /**
@@ -70,7 +66,11 @@ function applyFilters(results: any, params: SanityQueryParams = {}): any {
  * Formats the result count for the response
  */
 function getResultCount(results: SanityDocument | SanityDocument[]): number {
-  return Array.isArray(results) ? results.length : (results ? 1 : 0)
+  if (Array.isArray(results)) {
+    return results.length;
+  } else {
+    return results ? 1 : 0;
+  }
 }
 
 /**
@@ -93,7 +93,7 @@ function createVerificationData(originalResults: any, processedResults: any): {
  *
  * @param projectId - Sanity project ID
  * @param dataset - Dataset name
- * @param query - GROQ query
+ * @param queryString - GROQ query
  * @param params - Additional parameters for the query
  * @param verifyWithLLM - Whether to verify results with LLM (deprecated)
  * @returns The query results
@@ -101,7 +101,7 @@ function createVerificationData(originalResults: any, processedResults: any): {
 export async function searchContent(
   projectId: string,
   dataset: string,
-  query: string,
+  queryString: string,
   params: SanityQueryParams = {},
   verifyWithLLM: boolean = false
 ): Promise<{
@@ -119,7 +119,7 @@ export async function searchContent(
     const client = createClient(projectId, dataset, params)
 
     // Execute the query
-    const results = await executeQuery(client, query, params)
+    const results = await executeQuery(client, queryString, params)
 
     // Apply any additional filtering
     const filtered = applyFilters(results, params)
@@ -135,7 +135,7 @@ export async function searchContent(
       logger.info(`LLM verification requested for ${Array.isArray(results) ? results.length : 1} items - this feature is deprecated`)
 
       return {
-        query,
+        query: queryString,
         results: processedResults,
         count,
         verification: createVerificationData(results, processedResults)
@@ -144,7 +144,7 @@ export async function searchContent(
 
     // Standard response
     return {
-      query,
+      query: queryString,
       results: processedResults,
       count
     }
@@ -159,7 +159,7 @@ export async function searchContent(
  *
  * @param projectId - Sanity project ID
  * @param dataset - Dataset name
- * @param query - GROQ query to execute
+ * @param queryString - GROQ query to execute
  * @param params - Query parameters (if any)
  * @param verifyWithLLM - Whether to verify results with LLM (deprecated)
  * @returns Query results
@@ -167,7 +167,7 @@ export async function searchContent(
 export async function query(
   projectId: string,
   dataset: string,
-  query: string,
+  queryString: string,
   params: SanityQueryParams = {},
   verifyWithLLM: boolean = false
 ): Promise<{
@@ -183,7 +183,7 @@ export async function query(
     const client = createClient(projectId, dataset, params)
 
     // Execute the query
-    const results = await executeQuery(client, query, params)
+    const results = await executeQuery(client, queryString, params)
 
     // Apply any additional filtering
     const filtered = applyFilters(results, params)
@@ -231,15 +231,13 @@ export async function query(
  *
  * @param projectId - Sanity project ID
  * @param dataset - Dataset name
- * @param query - GROQ query to listen to
- * @param options - Additional options for the subscription (currently unused but kept for future extensibility)
+ * @param queryString - GROQ query to listen to
  * @returns Subscription details
  */
 export async function subscribeToUpdates(
   projectId: string,
   dataset: string,
-  query: string,
-  options: Partial<SubscribeOptions> = {}
+  queryString: string
 ): Promise<{
   subscriptionId: string;
   query: string;
@@ -249,7 +247,7 @@ export async function subscribeToUpdates(
     const client = createSanityClient(projectId, dataset)
 
     // Create a subscription
-    const subscription = client.listen(query)
+    const subscription = client.listen(queryString)
 
     // Generate a unique subscription ID
     const subscriptionId = `sub_${Date.now()}_${Math.random().toString(36).substring(2, 12)}`
@@ -272,8 +270,8 @@ export async function subscribeToUpdates(
 
     return {
       subscriptionId,
-      query,
-      message: `Successfully subscribed to updates for query: ${query}`
+      query: queryString,
+      message: `Successfully subscribed to updates for query: ${queryString}`
     }
   } catch (error: any) {
     logger.error('Error setting up subscription:', error)

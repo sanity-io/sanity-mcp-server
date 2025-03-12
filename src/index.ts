@@ -6,7 +6,6 @@ import {
 } from '@modelcontextprotocol/sdk/types.js'
 import {zodToJsonSchema} from 'zod-to-json-schema'
 
-import config from './config/config.js'
 import * as toolsRegistry from './tools/index.js'
 import logger from './utils/logger.js'
 import {sanityTransport} from './utils/mcpTransport.js'
@@ -38,6 +37,32 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
   }
 })
 
+/**
+ * Format the tool execution result according to MCP specification
+ * @param result - The result from tool execution
+ * @returns Properly formatted result
+ */
+function formatToolResult(result: unknown): string {
+  // Ensure we have valid content for the response
+  let textContent: string
+  
+  // Special handling for different result types
+  if (typeof result === 'string') {
+    textContent = result
+  } else if (result === null || result === undefined) {
+    textContent = ''
+  } else {
+    // For objects and arrays, format as JSON
+    try {
+      textContent = JSON.stringify(result, null, 2)
+    } catch (error) {
+      textContent = String(result)
+    }
+  }
+  
+  return textContent
+}
+
 // Handle tool execution request
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
@@ -52,46 +77,20 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     )
 
     // Format result according to MCP specification
-    // Ensure we have valid content for the response
-    let textContent
-    try {
-      // Special handling for different result types
-      if (typeof result === 'string') {
-        textContent = result
-      } else if (result === null || result === undefined) {
-        textContent = `${result}`
-      } else if (typeof result === 'object') {
-        // Try to stringify with spaces for readability
-        textContent = JSON.stringify(result, null, 2)
-      } else {
-        // For other primitive types
-        textContent = String(result)
-      }
-    } catch (e) {
-      logger.error('Error serializing response:', e)
-      textContent = `[Error serializing result: ${e instanceof Error ? e.message : String(e)}]`
-    }
-
-    // Verify the text content is properly set
-    if (textContent === undefined || textContent === null) {
-      textContent = '[No result data]'
-    }
-
-    const response = {
-      content: [
-        {
-          type: 'text',
-          text: textContent
-        }
-      ]
-    }
-
-    logger.info('Tool response prepared')
-    return response
-  } catch (error: unknown) {
-    logger.error('Error executing tool:', error)
+    const textContent = formatToolResult(result)
+    
     return {
-      error: error instanceof Error ? error.message : String(error)
+      content: textContent
+    }
+  } catch (error: unknown) {
+    // Log errors to stderr to avoid interfering with MCP protocol
+    logger.error(`Error executing tool ${request.params.name}: ${error instanceof Error ? error.message : String(error)}`)
+    
+    // Return a structured error message
+    return {
+      content: JSON.stringify({
+        error: error instanceof Error ? error.message : String(error)
+      })
     }
   }
 })

@@ -310,11 +310,55 @@ function processMutation(
 }
 
 /**
- * Helper function to retrieve documents for mutations
- *
+ * Retrieves a document after a create mutation
+ * 
+ * @param client - Sanity client
+ * @param document - Document with ID
+ * @returns Retrieved document or null if not found
+ */
+async function retrieveDocumentForCreateMutation(
+  client: SanityClient, 
+  document: SanityDocumentStub
+): Promise<SanityDocument | null> {
+  if (document && '_id' in document) {
+    try {
+      return await client.getDocument(document._id)
+    } catch (error) {
+      console.error('Error retrieving document:', error)
+      return null
+    }
+  }
+  return null
+}
+
+/**
+ * Retrieves a document after a patch mutation
+ * 
+ * @param client - Sanity client
+ * @param patch - Patch information
+ * @returns Retrieved document or null if not found/applicable
+ */
+async function retrieveDocumentForPatchMutation(
+  client: SanityClient,
+  patch: PatchByIdMutation['patch'] | PatchByQueryMutation['patch']
+): Promise<SanityDocument | null> {
+  if ('id' in patch && patch.id) {
+    try {
+      return await client.getDocument(patch.id)
+    } catch (error) {
+      console.error('Error retrieving document:', error)
+      return null
+    }
+  }
+  return null
+}
+
+/**
+ * Retrieves documents for each mutation
+ * 
  * @param client - Sanity client
  * @param mutations - Array of mutations
- * @returns Array of retrieved documents
+ * @returns Array of documents or null values
  */
 async function retrieveDocumentsForMutations(
   client: SanityClient,
@@ -323,32 +367,28 @@ async function retrieveDocumentsForMutations(
   const results = await Promise.all(mutations.map(async (mutation) => {
     try {
       // Type guard for different mutation types
-      if ('create' in mutation && mutation.create?._id) {
-        return await client.getDocument(mutation.create._id)
-      } else if ('createOrReplace' in mutation && mutation.createOrReplace?._id) {
-        return await client.getDocument(mutation.createOrReplace._id)
-      } else if ('createIfNotExists' in mutation && mutation.createIfNotExists?._id) {
-        return await client.getDocument(mutation.createIfNotExists._id)
+      if ('create' in mutation) {
+        return await retrieveDocumentForCreateMutation(client, mutation.create)
+      } else if ('createOrReplace' in mutation) {
+        return await retrieveDocumentForCreateMutation(client, mutation.createOrReplace)
+      } else if ('createIfNotExists' in mutation) {
+        return await retrieveDocumentForCreateMutation(client, mutation.createIfNotExists)
       } else if ('patch' in mutation) {
-        // Need to handle both patch by ID and patch by query
-        if ('id' in mutation.patch && mutation.patch.id) {
-          return await client.getDocument(mutation.patch.id)
-        }
-        // Query-based patches can't easily return documents
-        return null
+        return await retrieveDocumentForPatchMutation(client, mutation.patch)
       } else if ('delete' in mutation) {
         // Deleted documents don't need to be returned
         return null
       }
+      
+      // Unknown mutation type
       return null
-    } catch (err) {
-      console.error('Error retrieving document for mutation:', err)
+    } catch (error) {
+      console.error('Error retrieving document for mutation:', error)
       return null
     }
   }))
-
-  // All results are either SanityDocument or null at this point
-  return results as (SanityDocument | null)[]
+  
+  return results
 }
 
 /**

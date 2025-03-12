@@ -2,7 +2,6 @@
 
 # Get changed files
 CHANGED_TS_FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(ts|tsx|js|jsx)$' || true)
-CHANGED_TEST_FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.test\.(ts|tsx|js|jsx)$' || true)
 
 # If no relevant files changed, skip checks and tests
 if [ -z "$CHANGED_TS_FILES" ]; then
@@ -10,47 +9,8 @@ if [ -z "$CHANGED_TS_FILES" ]; then
   exit 0
 fi
 
-# Run ESLint on changed files first
-if [ ! -z "$CHANGED_TS_FILES" ]; then
-  echo "Running ESLint on changed files..."
-  npx eslint $CHANGED_TS_FILES --config config/.eslintrc.json
-  if [ $? -ne 0 ]; then
-    echo "ESLint checks failed"
-    exit 1
-  fi
-fi
+# If there are relevant changes, run the pre-commit test suite
+echo "Running pre-commit checks and tests..."
+npm run test:pre-commit
 
-# Run TypeScript checks
-echo "Running TypeScript checks..."
-npm run typecheck:all
-if [ $? -ne 0 ]; then
-  echo "TypeScript checks failed"
-  exit 1
-fi
-
-# Only run unit tests if test files changed
-if [ ! -z "$CHANGED_TEST_FILES" ]; then
-  echo "Running tests for changed test files..."
-  for file in $CHANGED_TEST_FILES; do
-    # Run tests directly with Vitest
-    npx vitest run "$file" --config config/vitest.config.ts
-    if [ $? -ne 0 ]; then
-      echo "Tests failed for $file"
-      exit 1
-    fi
-  done
-else
-  echo "No test files changed, skipping specific test execution"
-fi
-
-# If changes include core functionality, run core tests
-if echo "$CHANGED_TS_FILES" | grep -q -E '(src/|lib/|core/)'; then
-  echo "Core files changed, running critical tests..."
-  npm run test:core
-  if [ $? -ne 0 ]; then
-    echo "Core tests failed"
-    exit 1
-  fi
-fi
-
-exit 0
+exit $?

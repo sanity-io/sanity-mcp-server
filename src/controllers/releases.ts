@@ -126,7 +126,9 @@ export async function createRelease(
       result
     }
   } catch (error: any) {
-    handleReleaseCreationError(error, releaseId)
+    // This function throws an error, so it never actually returns - but we need to satisfy TypeScript
+    // by ensuring all code paths return a value or throw an exception
+    return handleReleaseCreationError(error, releaseId)
   }
 }
 
