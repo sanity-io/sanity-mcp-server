@@ -25,6 +25,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New 'test:source' npm script for running tests without linting during development, allowing functionality verification without being blocked by linting errors
 
 ### Changed
+- Consolidated npm test scripts for better developer experience:
+  - Simplified test command structure by removing redundant scripts
+  - Ensured `test:full` runs linting, typechecking, and all tests in the correct order
+  - Updated git hooks to use the new test commands
+- Improved code quality and maintainability:
+  - Fixed variable shadowing in groq.ts
+  - Removed unused imports and variables
+  - Fixed inconsistent returns in createRelease
+  - Reduced complexity in retrieveDocumentsForMutations by extracting helper functions
+  - Fixed empty object type issues
 - Improved codebase by removing placeholder quality scripts and non-functional test scripts.
 - Simplified CI/CD workflow while maintaining ESLint complexity checking.
 - Fixed test configuration and ESLint setup with detailed comments.
