@@ -32,19 +32,18 @@ You can run the script directly:
 Or use one of the npm scripts:
 
 ```bash
-# Run the default job (critical-integration-tests)
+# Run all integration tests (default job)
 npm run debug-github-ci
 
 # Run specific jobs
-npm run debug-github-ci:critical
-npm run debug-github-ci:standard
-npm run debug-github-ci:lint
-npm run debug-github-ci:unit
+npm run debug-github-ci:integration  # All integration tests
+npm run debug-github-ci:lint         # Linting checks
+npm run debug-github-ci:unit         # Unit tests
 ```
 
 ### Options
 
-- `-j, --job JOB` - Specify the job to run (default: critical-integration-tests)
+- `-j, --job JOB` - Specify the job to run (default: integration-tests)
 - `-e, --env FILE` - Specify the environment file (default: .env)
 - `-p, --pull` - Pull Docker images before running
 - `-v, --verbose` - Enable verbose output from act
@@ -52,16 +51,17 @@ npm run debug-github-ci:unit
 
 ### Available Jobs
 
+- `integration-tests` - Run all integration tests (critical, standard, and extended)
+- `critical-integration-tests` - Run only critical integration tests
+- `standard-integration-tests` - Run only standard integration tests
 - `lint` - Run linting checks
 - `unit-tests` - Run unit tests
-- `critical-integration-tests` - Run critical integration tests
-- `standard-integration-tests` - Run standard integration tests
 
 ### Examples
 
 ```bash
-# Run critical integration tests with verbose output
-./scripts/debug-github-ci.sh --job critical-integration-tests --verbose
+# Run all integration tests with verbose output
+./scripts/debug-github-ci.sh --verbose
 
 # Run linting checks with a custom env file
 ./scripts/debug-github-ci.sh --job lint --env .env.test

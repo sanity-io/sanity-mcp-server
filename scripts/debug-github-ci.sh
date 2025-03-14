@@ -7,7 +7,7 @@
 set -e
 
 # Default values
-JOB="critical-integration-tests"
+JOB="integration-tests"
 ENV_FILE=".env"
 PLATFORM="--platform ubuntu-latest=node:18-buster"
 
@@ -18,19 +18,20 @@ show_help() {
   echo "Usage: ./scripts/debug-github-ci.sh [options]"
   echo ""
   echo "Options:"
-  echo "  -j, --job JOB         Specify the job to run (default: critical-integration-tests)"
+  echo "  -j, --job JOB         Specify the job to run (default: integration-tests)"
   echo "  -e, --env FILE        Specify the environment file (default: .env)"
   echo "  -p, --pull            Pull Docker images before running"
   echo "  -v, --verbose         Enable verbose output from act"
   echo "  -h, --help            Display this help message"
   echo ""
   echo "Available jobs:"
-  echo "  - lint"
-  echo "  - unit-tests"
+  echo "  - integration-tests        Run all integration tests (critical, standard, and extended)"
   echo "  - critical-integration-tests"
   echo "  - standard-integration-tests"
+  echo "  - lint"
+  echo "  - unit-tests"
   echo ""
-  echo "Example: ./scripts/debug-github-ci.sh --job standard-integration-tests"
+  echo "Example: ./scripts/debug-github-ci.sh --job integration-tests --verbose"
 }
 
 # Parse command line arguments
@@ -80,20 +81,69 @@ if ! command -v act &> /dev/null; then
   exit 1
 fi
 
-# Run the GitHub Action workflow locally
-echo "Running GitHub Action job '$JOB' locally with environment from '$ENV_FILE'..."
-echo "This simulates how the job will run in GitHub Actions CI."
-echo ""
+# If running integration-tests, we need to create a custom workflow for act
+if [ "$JOB" = "integration-tests" ]; then
+  # Create a temporary workflow file
+  TEMP_WORKFLOW_FILE=$(mktemp)
+  cat > "$TEMP_WORKFLOW_FILE" << EOF
+name: Run All Integration Tests
 
-# Execute act with the specified options
-act -j "$JOB" --env-file "$ENV_FILE" $PLATFORM $PULL_OPTION $VERBOSE_OPTION
+on:
+  workflow_dispatch:
 
-# Check if the execution was successful
-if [ $? -eq 0 ]; then
+jobs:
+  integration-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+      - name: Clean install
+        run: |
+          rm -rf node_modules package-lock.json
+          npm install
+      - run: npm run test:integration
+EOF
+
+  # Run the GitHub Action workflow locally with the custom workflow file
+  echo "Running all integration tests locally with environment from '$ENV_FILE'..."
+  echo "This simulates how all integration tests will run in GitHub Actions CI."
   echo ""
-  echo "✅ Success! The job '$JOB' completed successfully."
+
+  # Execute act with the custom workflow
+  act -j integration-tests -W "$TEMP_WORKFLOW_FILE" --env-file "$ENV_FILE" $PLATFORM $PULL_OPTION $VERBOSE_OPTION
+  RESULT=$?
+
+  # Clean up the temporary file
+  rm "$TEMP_WORKFLOW_FILE"
+
+  # Check if the execution was successful
+  if [ $RESULT -eq 0 ]; then
+    echo ""
+    echo "✅ Success! All integration tests completed successfully."
+  else
+    echo ""
+    echo "❌ Error! Integration tests failed. See above for details."
+    exit 1
+  fi
 else
+  # Run the GitHub Action workflow locally for a specific job
+  echo "Running GitHub Action job '$JOB' locally with environment from '$ENV_FILE'..."
+  echo "This simulates how the job will run in GitHub Actions CI."
   echo ""
-  echo "❌ Error! The job '$JOB' failed. See above for details."
-  exit 1
+
+  # Execute act with the specified options
+  act -j "$JOB" --env-file "$ENV_FILE" $PLATFORM $PULL_OPTION $VERBOSE_OPTION
+
+  # Check if the execution was successful
+  if [ $? -eq 0 ]; then
+    echo ""
+    echo "✅ Success! The job '$JOB' completed successfully."
+  else
+    echo ""
+    echo "❌ Error! The job '$JOB' failed. See above for details."
+    exit 1
+  fi
 fi 
