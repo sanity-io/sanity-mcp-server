@@ -57,7 +57,11 @@
         "@typescript-eslint/no-empty-function": "off", // Mock functions are often empty
         "@typescript-eslint/no-unused-vars": "warn", // Keep as warning to catch potential issues
         "max-lines-per-function": "off", // Tests can be longer due to setup/teardown
-        "no-unused-expressions": "off" // Chai assertions use unused expressions
+        "no-unused-expressions": "off", // Chai assertions use unused expressions
+        "max-nested-callbacks": "off", // Tests often require nested callbacks for describe/it blocks
+        "max-len": "off", // Test descriptions can be longer
+        "no-shadow": "off", // Tests may reuse variable names in different contexts
+        "no-trailing-spaces": "off" // Allow trailing spaces in test files
       }
     },
     {
