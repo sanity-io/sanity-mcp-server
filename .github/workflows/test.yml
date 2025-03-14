@@ -57,6 +57,7 @@ jobs:
           SANITY_TOKEN: ${{ secrets.SANITY_TOKEN }}
           SANITY_PROJECT_ID: ${{ secrets.SANITY_PROJECT_ID }}
           SANITY_DATASET: ${{ secrets.SANITY_DATASET }}
+          SANITY_API_VERSION: ${{ secrets.SANITY_API_VERSION || '2025-03-07' }}
     
   standard-integration-tests:
     runs-on: ubuntu-latest
@@ -78,6 +79,7 @@ jobs:
           SANITY_TOKEN: ${{ secrets.SANITY_TOKEN }}
           SANITY_PROJECT_ID: ${{ secrets.SANITY_PROJECT_ID }}
           SANITY_DATASET: ${{ secrets.SANITY_DATASET }}
+          SANITY_API_VERSION: ${{ secrets.SANITY_API_VERSION || '2025-03-07' }}
   
   # Integration tests configuration:
   # - Critical tests run in CI first for all events
