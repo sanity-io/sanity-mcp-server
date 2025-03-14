@@ -23,7 +23,12 @@
     "typecheck:all": "tsc --noEmit --project config/tsconfig.json",
     "prerelease": "npm run test:integration",
     "release": "npm run build && npm version patch && git push",
-    "prepare": "husky"
+    "prepare": "husky",
+    "debug-github-ci": "./scripts/debug-github-ci.sh",
+    "debug-github-ci:critical": "./scripts/debug-github-ci.sh --job critical-integration-tests",
+    "debug-github-ci:standard": "./scripts/debug-github-ci.sh --job standard-integration-tests",
+    "debug-github-ci:lint": "./scripts/debug-github-ci.sh --job lint",
+    "debug-github-ci:unit": "./scripts/debug-github-ci.sh --job unit-tests"
   },
   "husky": {
     "hooks": {
