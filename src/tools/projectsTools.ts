@@ -19,7 +19,18 @@ export class ProjectsToolProvider implements ToolProvider {
    *
    * @returns Array of tool definition objects
    */
+  // eslint-disable-next-line class-methods-use-this
   getToolDefinitions(): ToolDefinition[] {
+    return ProjectsToolProvider.getToolDefinitionsStatic()
+  }
+
+  /**
+   * Static method to get all projects-related tool definitions
+   * This allows the method to be called without an instance
+   *
+   * @returns Array of tool definition objects
+   */
+  static getToolDefinitionsStatic(): ToolDefinition[] {
     return [
       {
         name: 'listOrganizationsAndProjects',

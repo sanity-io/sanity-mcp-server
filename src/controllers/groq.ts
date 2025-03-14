@@ -4,13 +4,14 @@
  * Handles GROQ queries against the Sanity Content Lake
  */
 import {SanityClient} from '@sanity/client'
+
 import config from '../config/config.js'
 import type {
-  ContentObject, 
-  ContentValue, 
+  ContentObject,
+  ContentValue,
   GroqSpecification,
-  QueryResponse, 
-  SanityDocument, 
+  QueryResponse,
+  SanityDocument,
   SanityQueryParams
 } from '../types/index.js'
 import logger from '../utils/logger.js'
@@ -40,11 +41,11 @@ function createClient(projectId: string, dataset: string, params: SanityQueryPar
 }
 
 /**
- * Executes a GROQ query with the appropriate parameters based on environment
+ * Executes a GROQ query with the appropriate parameters based on environmen
  */
 async function executeQuery(
-  client: SanityClient, 
-  queryString: string, 
+  client: SanityClient,
+  queryString: string,
   params: SanityQueryParams = {}
 ): Promise<SanityDocument | SanityDocument[]> {
   const queryParams = params.params && typeof params.params === 'object' ? params.params : {}
@@ -62,7 +63,7 @@ async function executeQuery(
  * Applies additional filtering based on parameters
  */
 function applyFilters(
-  results: SanityDocument | SanityDocument[], 
+  results: SanityDocument | SanityDocument[],
   params: SanityQueryParams = {}
 ): SanityDocument | SanityDocument[] {
   let filtered = results
@@ -110,7 +111,7 @@ function isPortableTextArray(value: unknown): boolean {
  * Processes a single document to convert Portable Text fields to a placeholder
  *
  * @param doc - Sanity document that may contain Portable Text fields
- * @returns Processed document with Portable Text converted to placeholder text
+ * @returns Processed document with Portable Text converted to placeholder tex
  */
 function processDocument(doc: ContentObject | null): ContentObject | null {
   // Handle null or undefined
@@ -121,7 +122,7 @@ function processDocument(doc: ContentObject | null): ContentObject | null {
   // Create a shallow copy to avoid mutating the original
   const result: ContentObject = {...doc}
 
-  // Process each field in the object
+  // Process each field in the objec
   for (const [key, value] of Object.entries(result)) {
     // Handle Portable Text blocks
     if (isPortableTextArray(value)) {
@@ -137,10 +138,10 @@ function processDocument(doc: ContentObject | null): ContentObject | null {
 }
 
 /**
- * Helper function to convert Portable Text fields to placeholder text
+ * Helper function to convert Portable Text fields to placeholder tex
  *
  * @param data - Data containing potential Portable Text fields
- * @returns Processed data with Portable Text converted to placeholder text
+ * @returns Processed data with Portable Text converted to placeholder tex
  */
 function processPortableTextFields(
   data: SanityDocument | SanityDocument[]
@@ -150,7 +151,7 @@ function processPortableTextFields(
     return data.map((item) => processDocument(item) as SanityDocument)
   }
 
-  // Handle single result
+  // Handle single resul
   return processDocument(data) as SanityDocument
 }
 
@@ -182,7 +183,7 @@ export async function searchContent(
     // Process portable text fields
     const processedResults = processPortableTextFields(filtered)
 
-    // Calculate result count
+    // Calculate result coun
     const count = getResultCount(processedResults)
 
     // Standard response
@@ -199,7 +200,7 @@ export async function searchContent(
 }
 
 /**
- * Executes GROQ queries to retrieve content
+ * Executes GROQ queries to retrieve conten
  *
  * @param projectId - Sanity project ID
  * @param dataset - Dataset name
@@ -267,14 +268,14 @@ export async function subscribeToUpdates(
 
     // Set up event handlers for the subscription
     const sub = subscription.subscribe((update) => {
-      // Process the update event
+      // Process the update even
       logger.info(`Document update for subscription ${subscriptionId}:`, {
         documentId: update.documentId,
         type: update.transition,
         result: update.result
       })
 
-      // In a production implementation, you would send these updates to the client
+      // In a production implementation, you would send these updates to the clien
       // e.g., via WebSockets, Server-Sent Events, or a notification system
     })
 
@@ -378,8 +379,8 @@ export async function getGroqSpecification(): Promise<{
           {name: 'count()', description: 'Count items', example: "count(*[_type == 'post'])"},
           {name: 'defined()', description: 'Check if field is defined', example: 'defined(imageUrl)'},
           {
-            name: 'references()', 
-            description: 'Check if document references another', 
+            name: 'references()',
+            description: 'Check if document references another',
             example: "references('doc-id')"
           }
         ],
@@ -419,43 +420,43 @@ export async function getGroqSpecification(): Promise<{
         ],
         functions: [
           {
-            name: 'count()', 
-            description: 'Counts the number of items in an array', 
+            name: 'count()',
+            description: 'Counts the number of items in an array',
             example: "count(*[_type == 'post'])"
           },
           {
-            name: 'defined()', 
-            description: 'Checks if a property is defined', 
+            name: 'defined()',
+            description: 'Checks if a property is defined',
             example: "*[_type == 'post' && defined(imageUrl)]"
           },
           {
-            name: 'references()', 
-            description: 'Checks if a document references another', 
+            name: 'references()',
+            description: 'Checks if a document references another',
             example: "*[_type == 'post' && references('author-id')]"
           },
           {
-            name: 'order()', 
-            description: 'Orders results by a property', 
+            name: 'order()',
+            description: 'Orders results by a property',
             example: "*[_type == 'post'] | order(publishedAt desc)"
           },
           {
-            name: 'now()', 
-            description: 'Returns the current datetime', 
+            name: 'now()',
+            description: 'Returns the current datetime',
             example: "*[_type == 'post' && publishedAt < now()]"
           },
           {
-            name: 'coalesce()', 
-            description: 'Returns the first non-null value', 
+            name: 'coalesce()',
+            description: 'Returns the first non-null value',
             example: "coalesce(subtitle, title, 'Untitled')"
           },
           {
-            name: 'select()', 
-            description: 'Selects value based on a condition', 
+            name: 'select()',
+            description: 'Selects value based on a condition',
             example: "select(_type == 'post' => title, _type == 'page' => heading, 'Unknown')"
           },
           {
-            name: 'length()', 
-            description: 'Returns the length of a string or array', 
+            name: 'length()',
+            description: 'Returns the length of a string or array',
             example: "*[_type == 'post' && length(tags) > 3]"
           }
         ],

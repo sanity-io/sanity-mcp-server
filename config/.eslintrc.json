@@ -21,9 +21,9 @@
     "sonarjs/cognitive-complexity": ["error", 10],
     
     // Temporary relaxed rules for transition period
-    "@typescript-eslint/no-explicit-any": "warn",
-    "max-len": ["warn", { "code": 120 }],
-    "brace-style": "warn"
+    "@typescript-eslint/no-explicit-any": "error",
+    "max-len": ["error", { "code": 120 }],
+    "brace-style": "error"
   },
   "overrides": [
     {

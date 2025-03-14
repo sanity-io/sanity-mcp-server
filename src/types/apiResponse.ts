@@ -15,7 +15,7 @@ export interface ApiResponse {
 
 /**
  * Generic API success response
- * Extends ApiResponse with a generic data type for the result
+ * Extends ApiResponse with a generic data type for the resul
  */
 export interface ApiSuccessResponse<T> extends ApiResponse {
   success: true;
@@ -70,4 +70,4 @@ export interface SearchResponse<T> {
 export interface ListResponse<T> {
   items: T[];
   total: number;
-} 
+}

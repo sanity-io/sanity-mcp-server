@@ -31,7 +31,7 @@ export function createEnhancedTransport(): StdioServerTransport {
 
   logger.info('Enhanced MCP transport initialized')
 
-  // Return a standard StdioServerTransport
+  // Return a standard StdioServerTranspor
   return new StdioServerTransport()
 }
 

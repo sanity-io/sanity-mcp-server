@@ -78,14 +78,16 @@ export async function listOrganizationsAndProjects(): Promise<Organization[]> {
       // Remove empty organizations
       .filter((org) => org.projects.length > 0)
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error listing organizations and projects:', error)
-    throw new Error(`Failed to list organizations and projects: ${error.message}`)
+    throw new Error(
+      `Failed to list organizations and projects: ${error instanceof Error ? error.message : String(error)}`
+    )
   }
 }
 
 /**
- * List all studios for a specific project
+ * List all studios for a specific projec
  *
  * @param projectId - Sanity project ID
  * @returns Array of studio URLs
@@ -128,8 +130,8 @@ export async function listStudios(projectId: string): Promise<StudiosResult> {
 
     return {studios}
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(`Error listing studios for project ${projectId}:`, error)
-    throw new Error(`Failed to list studios: ${error.message}`)
+    throw new Error(`Failed to list studios: ${error instanceof Error ? error.message : String(error)}`)
   }
 }

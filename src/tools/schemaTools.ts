@@ -25,7 +25,18 @@ export class SchemaToolProvider implements ToolProvider {
    *
    * @returns Array of tool definition objects
    */
+  // eslint-disable-next-line class-methods-use-this
   getToolDefinitions(): ToolDefinition[] {
+    return SchemaToolProvider.getToolDefinitionsStatic()
+  }
+
+  /**
+   * Static method to get all schema-related tool definitions
+   * This allows the method to be called without an instance
+   *
+   * @returns Array of tool definition objects
+   */
+  static getToolDefinitionsStatic(): ToolDefinition[] {
     return [
       {
         name: 'getSchema',
@@ -48,7 +59,10 @@ export class SchemaToolProvider implements ToolProvider {
           allTypes: z.boolean().optional().describe('Whether to include all types or only document types')
         }) as z.ZodType<ListSchemaTypesParams>,
         handler: async (args: ListSchemaTypesParams): Promise<SchemaTypeDetails[]> => {
-          logger.info(`Listing schema types for project ${args.projectId}, dataset ${args.dataset}, allTypes=${args.allTypes || false}`)
+          logger.info(
+            `Listing schema types for project ${args.projectId}, dataset ${args.dataset}, ` +
+            `allTypes=${args.allTypes || false}`
+          )
           return await schemaController.listSchemaTypes(args.projectId, args.dataset, {allTypes: args.allTypes})
         }
       },

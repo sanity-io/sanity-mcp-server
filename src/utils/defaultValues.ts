@@ -41,7 +41,13 @@ export const DEFAULT_SEARCH = {
  * @param dataset Optional dataset name
  * @returns Object with projectId and dataset with defaults applied
  */
-export function applyProjectDatasetDefaults(projectId?: string, dataset?: string): { projectId: string, dataset: string } {
+export function applyProjectDatasetDefaults(
+  projectId?: string,
+  dataset?: string
+): {
+  projectId: string,
+  dataset: string
+} {
   return {
     projectId: projectId || config.projectId || '',
     dataset: dataset || config.dataset || ''
@@ -106,13 +112,13 @@ export function applySearchDefaults(searchParams?: {
 }
 
 /**
- * Applies default values to an object based on a defaults object
+ * Applies default values to an object based on a defaults objec
  *
  * @param obj Object to apply defaults to
  * @param defaults Default values to apply
  * @returns Object with defaults applied
  */
-export function applyDefaults<T extends Record<string, any>>(
+export function applyDefaults<T extends Record<string, unknown>>(
   obj: Partial<T> | undefined,
   defaults: T
 ): T {

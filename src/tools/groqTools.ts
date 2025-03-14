@@ -5,7 +5,6 @@
  */
 import {z} from 'zod'
 
-import config from '../config/config.js'
 import * as groqController from '../controllers/groq.js'
 import type {
   GetDocumentParams,
@@ -25,7 +24,18 @@ export class GroqToolProvider implements ToolProvider {
    *
    * @returns Array of tool definition objects
    */
+  // eslint-disable-next-line class-methods-use-this
   getToolDefinitions(): ToolDefinition[] {
+    return GroqToolProvider.getToolDefinitionsStatic()
+  }
+
+  /**
+   * Static method to get all GROQ-related tool definitions
+   * This allows the method to be called without an instance
+   *
+   * @returns Array of tool definition objects
+   */
+  static getToolDefinitionsStatic(): ToolDefinition[] {
     return [
       {
         name: 'getGroqSpecification',
@@ -42,7 +52,7 @@ export class GroqToolProvider implements ToolProvider {
           projectId: z.string().describe('Project ID for the Sanity project'),
           dataset: z.string().describe('Dataset name within the project'),
           query: z.string().describe('GROQ query to run'),
-          params: z.record(z.any()).optional().describe('Optional parameters for the GROQ query')
+          params: z.record(z.unknown()).optional().describe('Optional parameters for the GROQ query')
         }) as z.ZodType<GroqQueryParams>,
         handler: async (args: GroqQueryParams): Promise<GroqQueryResult> => {
           return await groqController.searchContent(
@@ -58,9 +68,12 @@ export class GroqToolProvider implements ToolProvider {
         description: 'Run a GROQ query against the dataset',
         parameters: z.object({
           projectId: z.string().describe('Project ID for the Sanity project'),
-          dataset: z.string().describe('Dataset name within the project'),
-          query: z.string().describe('GROQ query to run'),
-          params: z.record(z.any()).optional().describe('Optional parameters for the GROQ query')
+          dataset: z
+            .string()
+            .optional()
+            .describe('Sanity dataset. Uses default dataset if omitted.'),
+          query: z.string().optional().describe('Get examples specifically for this query'),
+          params: z.record(z.unknown()).optional().describe('Optional parameters for the GROQ query')
         }) as z.ZodType<GroqQueryParams>,
         handler: async (args: GroqQueryParams): Promise<GroqQueryResult> => {
           return await groqController.searchContent(
@@ -77,13 +90,20 @@ export class GroqToolProvider implements ToolProvider {
         parameters: z.object({
           projectId: z.string().describe('Project ID for the Sanity project'),
           dataset: z.string().describe('Dataset name within the project'),
-          documentId: z.union([z.string(), z.array(z.string())]).describe('ID or array of IDs of the document(s) to retrieve')
+          documentId: z.union([z.string(), z.array(z.string())]).describe(
+            'ID or array of IDs of the document(s) to retrieve'
+          )
         }) as z.ZodType<GetDocumentParams>,
         handler: async (args: GetDocumentParams): Promise<GroqQueryResult> => {
           const {projectId, dataset, documentId} = args
 
           if (Array.isArray(documentId)) {
-            return await groqController.searchContent(projectId, dataset, '*[_id in $documentIds]', {documentIds: documentId})
+            return await groqController.searchContent(
+              projectId,
+              dataset,
+              '*[_id in $documentIds]',
+              {documentIds: documentId}
+            )
           }
 
           return await groqController.searchContent(projectId, dataset, '*[_id == $documentId][0]', {documentId})

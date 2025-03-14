@@ -13,7 +13,7 @@ import config from '../config/config.js'
  *
  * @param projectId Optional project ID parameter
  * @param dataset Optional dataset parameter
- * @returns Object containing validated project ID and dataset
+ * @returns Object containing validated project ID and datase
  * @throws Error if required parameters cannot be determined
  */
 export function validateProjectDataset(projectId?: string, dataset?: string): { projectId: string, dataset: string } {
@@ -66,7 +66,7 @@ export function validateDocumentId(documentId: string | string[]): string[] {
  * @param mutations Array of mutations
  * @throws Error if mutations array is invalid
  */
-export function validateMutations(mutations: any[]): void {
+export function validateMutations(mutations: unknown[]): void {
   if (!Array.isArray(mutations)) {
     throw new Error('Mutations must be an array')
   }
@@ -100,12 +100,12 @@ export function validateMutations(mutations: any[]): void {
 }
 
 /**
- * Validates a document object
+ * Validates a document objec
  *
- * @param document Document object
+ * @param document Document objec
  * @throws Error if document is invalid
  */
-export function validateDocument(document: Record<string, any>): void {
+export function validateDocument(document: Record<string, unknown>): void {
   if (!document || typeof document !== 'object') {
     throw new Error('Document must be an object')
   }

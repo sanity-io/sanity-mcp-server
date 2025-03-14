@@ -1,7 +1,14 @@
 /**
  * Document helper utility functions for Sanity operations
  */
-import type {PatchOperations, SanityClient, SanityDocument, SanityError} from '../types/sanity.js'
+import type {
+  InsertOperation,
+  PatchOperations,
+  SanityClient,
+  SanityDocument,
+  SanityError,
+  SanityPatch
+} from '../types/sanity.js'
 
 /**
  * Normalizes document ID to ensure it has a 'drafts.' prefix
@@ -30,7 +37,7 @@ export function normalizeBaseDocId(documentId: string): string {
  * @param patchObj - Sanity patch object
  * @returns Updated patch object
  */
-function applySetOperations(patch: PatchOperations, patchObj: any): any {
+function applySetOperations(patch: PatchOperations, patchObj: SanityPatch): SanityPatch {
   let updatedPatch = patchObj
 
   // Set fields if provided
@@ -53,20 +60,22 @@ function applySetOperations(patch: PatchOperations, patchObj: any): any {
  * @param patchObj - Sanity patch object
  * @returns Updated patch object
  */
-function applyModificationOperations(patch: PatchOperations, patchObj: any): any {
+function applyModificationOperations(patch: PatchOperations, patchObj: SanityPatch): SanityPatch {
   let updatedPatch = patchObj
 
-  // Unset fields
+  // Unset fields if provided
   if (patch.unset && typeof updatedPatch.unset === 'function') {
-    updatedPatch = updatedPatch.unset(patch.unset)
+    // Ensure unset is an array
+    const unsetFields = Array.isArray(patch.unset) ? patch.unset : [patch.unset]
+    updatedPatch = updatedPatch.unset(unsetFields)
   }
 
-  // Increment fields
+  // Increment fields if provided
   if (patch.inc && typeof updatedPatch.inc === 'function') {
     updatedPatch = updatedPatch.inc(patch.inc)
   }
 
-  // Decrement fields
+  // Decrement fields if provided
   if (patch.dec && typeof updatedPatch.dec === 'function') {
     updatedPatch = updatedPatch.dec(patch.dec)
   }
@@ -75,87 +84,78 @@ function applyModificationOperations(patch: PatchOperations, patchObj: any): any
 }
 
 /**
- * Processes basic patch operations (set, setIfMissing, unset, inc, dec)
+ * Process basic patch operations (set, setIfMissing, unset, inc, dec)
  *
  * @param patch - Patch operations to apply
  * @param patchObj - Sanity patch object
  * @returns Updated patch object
  */
-function processBasicOperations(patch: PatchOperations, patchObj: any): any {
+function processBasicOperations(patch: PatchOperations, patchObj: SanityPatch): SanityPatch {
   let updatedPatch = patchObj
-
-  // Apply operations in sequence
   updatedPatch = applySetOperations(patch, updatedPatch)
   updatedPatch = applyModificationOperations(patch, updatedPatch)
+  return updatedPatch
+}
+
+/**
+ * Determine the selector for an insert operation
+ *
+ * @param insert - Insert operation
+ * @returns The selector string
+ */
+function determineInsertSelector(insert: InsertOperation): string {
+  if (insert.at) {
+    return insert.at
+  } else if (insert.before) {
+    return insert.before
+  } else if (insert.after) {
+    return insert.after
+  } else if (insert.replace) {
+    return insert.replace
+  }
+  return ''
+}
+
+/**
+ * Process insert operations
+ *
+ * @param patch - Patch operations to apply
+ * @param patchObj - Sanity patch object
+ * @returns Updated patch object
+ */
+function processInsertOperation(patch: PatchOperations, patchObj: SanityPatch): SanityPatch {
+  let updatedPatch = patchObj
+
+  // Handle insert operations
+  if (patch.insert && typeof updatedPatch.insert === 'function') {
+    const {items, position} = patch.insert
+    const selector = determineInsertSelector(patch.insert)
+
+    // Only execute if we have a valid selector and items
+    if (selector && items && (position === 'before' || position === 'after' || position === 'replace')) {
+      updatedPatch = updatedPatch.insert(position, selector, items)
+    }
+  }
 
   return updatedPatch
 }
 
 /**
- * Determines the selector to use for insert operations
+ * Process special operations like diffMatchPatch and ifRevisionId
  *
- * @param insert - Insert operation configuration
- * @returns The appropriate selector or empty string if none found
- */
-function determineInsertSelector(insert: any): string {
-  if (insert.at) {
-    // Legacy format
-    return insert.at
-  }
-
-  if (insert.before) {
-    return insert.before
-  }
-
-  if (insert.after) {
-    return insert.after
-  }
-
-  if (insert.replace) {
-    return insert.replace
-  }
-
-  return ''
-}
-
-/**
- * Process insert operations on arrays
- *
- * @param patch - Patch operations containing insert operation
+ * @param patch - Patch operations to apply
  * @param patchObj - Sanity patch object
  * @returns Updated patch object
  */
-function processInsertOperation(patch: PatchOperations, patchObj: any): any {
-  if (!patch.insert || typeof patchObj.insert !== 'function') {
-    return patchObj
-  }
-
-  const {position, items} = patch.insert
-  const selector = determineInsertSelector(patch.insert)
-
-  if (!selector || !items || !position) {
-    return patchObj
-  }
-
-  return patchObj.insert(position, selector, items)
-}
-
-/**
- * Process special operations (diffMatchPatch, ifRevisionID)
- *
- * @param patch - Patch operations containing special operations
- * @param patchObj - Sanity patch object
- * @returns Updated patch object
- */
-function processSpecialOperations(patch: PatchOperations, patchObj: any): any {
+function processSpecialOperations(patch: PatchOperations, patchObj: SanityPatch): SanityPatch {
   let updatedPatch = patchObj
 
-  // DiffMatchPatch operations
+  // Handle diffMatchPatch operations
   if (patch.diffMatchPatch && typeof updatedPatch.diffMatchPatch === 'function') {
     updatedPatch = updatedPatch.diffMatchPatch(patch.diffMatchPatch)
   }
 
-  // If revisionID is provided
+  // Handle revision ID for optimistic locking
   if (patch.ifRevisionID && typeof updatedPatch.ifRevisionId === 'function') {
     updatedPatch = updatedPatch.ifRevisionId(patch.ifRevisionID)
   }
@@ -164,13 +164,13 @@ function processSpecialOperations(patch: PatchOperations, patchObj: any): any {
 }
 
 /**
- * Apply patch operations to a patch object
+ * Apply patch operations to a Sanity patch object
  *
  * @param patch - Patch operations to apply
  * @param patchObj - Patch object to apply them to
  * @returns The updated patch object
  */
-export function applyPatchOperations(patch: PatchOperations, patchObj: any): any {
+export function applyPatchOperations(patch: PatchOperations, patchObj: SanityPatch): SanityPatch {
   // Check if patchObj is valid
   if (!patchObj) {
     console.error('Invalid patch object provided')
@@ -189,10 +189,10 @@ export function applyPatchOperations(patch: PatchOperations, patchObj: any): any
 /**
  * Retrieves document content, trying draft first then published version
  *
- * @param client - Sanity client
+ * @param client - Sanity clien
  * @param documentId - The document ID to retrieve
- * @param fallbackContent - Optional fallback content
- * @returns The document content or fallback content
+ * @param fallbackContent - Optional fallback conten
+ * @returns The document content or fallback conten
  * @throws Error if document not found and no fallback content provided
  */
 export async function getDocumentContent(
@@ -212,12 +212,12 @@ export async function getDocumentContent(
       documentContent = await client.getDocument(baseDocId)
     }
 
-    // If content was found, return it
+    // If content was found, return i
     if (documentContent) {
       return documentContent
     }
   } catch (e) {
-    // Intentionally empty, will fall through to check fallback content
+    // Intentionally empty, will fall through to check fallback conten
   }
 
   // If content parameter is provided, use that instead

@@ -5,14 +5,14 @@
  */
 import {z} from 'zod'
 
-import config from '../config/config.js'
 import * as releasesController from '../controllers/releases.js'
 import type {
   AddDocumentToReleaseParams,
   CreateReleaseParams,
   ListReleasesParams,
   ReleaseIdParam,
-  UpdateReleaseParams} from '../types/sharedTypes.js'
+  UpdateReleaseParams
+} from '../types/sharedTypes.js'
 import type {ToolProvider} from '../types/toolProvider.js'
 import type {ToolDefinition} from '../types/tools.js'
 
@@ -25,7 +25,18 @@ export class ReleasesToolProvider implements ToolProvider {
    *
    * @returns Array of tool definition objects
    */
+  // eslint-disable-next-line class-methods-use-this
   getToolDefinitions(): ToolDefinition[] {
+    return ReleasesToolProvider.getToolDefinitionsStatic()
+  }
+
+  /**
+   * Static method to get all releases-related tool definitions
+   * This allows the method to be called without an instance
+   *
+   * @returns Array of tool definition objects
+   */
+  static getToolDefinitionsStatic(): ToolDefinition[] {
     return [
       {
         name: 'createRelease',

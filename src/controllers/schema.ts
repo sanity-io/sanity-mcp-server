@@ -6,15 +6,15 @@ import logger from '../utils/logger.js'
 
 interface SchemaTypeDetails extends SchemaType {
   fields?: SchemaField[];
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
- * Gets the full schema for a Sanity project and dataset
+ * Gets the full schema for a Sanity project and datase
  *
  * @param projectId - Sanity project ID
  * @param dataset - Dataset name (default: 'production')
- * @returns The schema object
+ * @returns The schema objec
  */
 export async function getSchema(projectId: string, dataset: string = 'production'): Promise<SchemaTypeDetails[]> {
   try {
@@ -23,8 +23,8 @@ export async function getSchema(projectId: string, dataset: string = 'production
     try {
       const schemaData = await readFile(schemaPath, 'utf-8')
       return JSON.parse(schemaData)
-    } catch (readError: any) {
-      if (readError.code === 'ENOENT') {
+    } catch (readError: unknown) {
+      if (readError instanceof Error && 'code' in readError && readError.code === 'ENOENT') {
         throw new Error(
           `Schema file not found for project ${projectId} and dataset ${dataset}. ` +
           'Please run \'npx sanity@latest schema extract\' in your Sanity studio and ' +
@@ -33,9 +33,9 @@ export async function getSchema(projectId: string, dataset: string = 'production
       }
       throw readError
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error(`Error getting schema for ${projectId}/${dataset}:`, error)
-    throw new Error(`Failed to get schema: ${error.message}`)
+    throw new Error(`Failed to get schema: ${error instanceof Error ? error.message : String(error)}`)
   }
 }
 
@@ -80,9 +80,11 @@ export async function getSchemaForType(
       ...typeSchema,
       references: referencedTypes
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error(`Error getting schema for type ${typeName}:`, error)
-    throw new Error(`Failed to get schema for type ${typeName}: ${error.message}`)
+    throw new Error(
+      `Failed to get schema for type ${typeName}: ${error instanceof Error ? error.message : String(error)}`
+    )
   }
 }
 
@@ -166,13 +168,10 @@ function processField(
   referencedTypes: SchemaTypeDetails[],
   processedTypes: Set<string>
 ) {
-  // Check for reference types
   if (field.type === 'reference' && field.to) {
     processReferenceField(field, allTypes, referencedTypes, processedTypes)
-  }
-
-  // Check for array types
-  else if (field.type === 'array' && field.of) {
+  } else if (field.type === 'array' && field.of) {
+    // Check for array types
     processArrayField(field, allTypes, referencedTypes, processedTypes)
   }
 }
@@ -218,7 +217,7 @@ function findReferencedTypes(typeSchema: SchemaTypeDetails, allTypes: SchemaType
 }
 
 /**
- * Lists available schema types for a Sanity project and dataset
+ * Lists available schema types for a Sanity project and datase
  *
  * @param projectId - Sanity project ID
  * @param dataset - Dataset name (default: 'production')
@@ -244,9 +243,9 @@ export async function listSchemaTypes(
       name: type.name,
       type: type.type
     }))
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Error listing schema types:', error)
-    throw new Error(`Failed to list schema types: ${error.message}`)
+    throw new Error(`Failed to list schema types: ${error instanceof Error ? error.message : String(error)}`)
   }
 }
 
@@ -275,8 +274,8 @@ export async function getTypeSchema(
     }
 
     return typeSchema
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Error getting type schema:', error)
-    throw new Error(`Failed to get type schema: ${error.message}`)
+    throw new Error(`Failed to get type schema: ${error instanceof Error ? error.message : String(error)}`)
   }
 }

@@ -55,4 +55,5 @@ coverage/
 # Sanity specific
 .sanity/
 
-# Quality report output removed
+# Vibe buddy
+.cursor

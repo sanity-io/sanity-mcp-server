@@ -5,7 +5,6 @@
  */
 import {z} from 'zod'
 
-import config from '../config/config.js'
 import * as mutateController from '../controllers/mutate.js'
 import type {
   CreateDocumentParams,
@@ -13,7 +12,8 @@ import type {
   MutateDocumentsParams,
   MutateDocumentsResult,
   PatchDocumentParams,
-  UpdateDocumentParams} from '../types/sharedTypes.js'
+  UpdateDocumentParams
+} from '../types/sharedTypes.js'
 import type {ToolProvider} from '../types/toolProvider.js'
 import type {ToolDefinition} from '../types/tools.js'
 
@@ -26,7 +26,18 @@ export class MutateToolProvider implements ToolProvider {
    *
    * @returns Array of tool definition objects
    */
+  // eslint-disable-next-line class-methods-use-this
   getToolDefinitions(): ToolDefinition[] {
+    return MutateToolProvider.getToolDefinitionsStatic()
+  }
+
+  /**
+   * Static method to get all mutation-related tool definitions
+   * This allows the method to be called without an instance
+   *
+   * @returns Array of tool definition objects
+   */
+  static getToolDefinitionsStatic(): ToolDefinition[] {
     return [
       {
         name: 'createDocument',
@@ -34,7 +45,7 @@ export class MutateToolProvider implements ToolProvider {
         parameters: z.object({
           projectId: z.string().describe('Project ID for the Sanity project'),
           dataset: z.string().describe('Dataset name within the project'),
-          document: z.record(z.any()).describe('Document content to create'),
+          document: z.record(z.unknown()).describe('Document content to create'),
           options: z.object({
             returnDocuments: z.boolean().optional().describe('Whether to return created documents'),
             visibility: z.enum(['sync', 'async', 'deferred']).optional().describe('Transaction visibility')
@@ -80,12 +91,12 @@ export class MutateToolProvider implements ToolProvider {
                 patch: z.object({
                   id: z.string(),
                   ifRevisionID: z.string().optional(),
-                  set: z.record(z.any()).optional(),
-                  setIfMissing: z.record(z.any()).optional(),
+                  set: z.record(z.unknown()).optional(),
+                  setIfMissing: z.record(z.unknown()).optional(),
                   unset: z.union([z.string(), z.array(z.string())]).optional(),
                   inc: z.record(z.number()).optional(),
                   dec: z.record(z.number()).optional(),
-                  insert: z.any().optional(),
+                  insert: z.unknown().optional(),
                   diffMatchPatch: z.record(z.string()).optional()
                 })
               })
@@ -109,7 +120,7 @@ export class MutateToolProvider implements ToolProvider {
           projectId: z.string().describe('Project ID for the Sanity project'),
           dataset: z.string().describe('Dataset name within the project'),
           documentId: z.string().describe('ID of the document to update'),
-          document: z.record(z.any()).describe('Document content to update with'),
+          document: z.record(z.unknown()).describe('Document content to update with'),
           options: z.object({
             returnDocuments: z.boolean().optional().describe('Whether to return updated documents'),
             visibility: z.enum(['sync', 'async', 'deferred']).optional().describe('Transaction visibility')
@@ -121,7 +132,7 @@ export class MutateToolProvider implements ToolProvider {
             throw new Error('Document must have a _type field')
           }
 
-          // Make sure _id is included in the document
+          // Make sure _id is included in the documen
           const documentWithId = {
             _id: args.documentId,
             _type: args.document._type,
@@ -145,8 +156,8 @@ export class MutateToolProvider implements ToolProvider {
           dataset: z.string().describe('Dataset name within the project'),
           documentId: z.string().describe('ID of the document to patch'),
           patch: z.object({
-            set: z.record(z.any()).optional().describe('Fields to set'),
-            setIfMissing: z.record(z.any()).optional().describe('Fields to set if they are missing'),
+            set: z.record(z.unknown()).optional().describe('Fields to set'),
+            setIfMissing: z.record(z.unknown()).optional().describe('Fields to set if they are missing'),
             unset: z.array(z.string()).optional().describe('Fields to unset')
           }).describe('Patch operations to apply'),
           options: z.object({
@@ -214,12 +225,12 @@ export class MutateToolProvider implements ToolProvider {
                 patch: z.object({
                   id: z.string(),
                   ifRevisionID: z.string().optional(),
-                  set: z.record(z.any()).optional(),
-                  setIfMissing: z.record(z.any()).optional(),
+                  set: z.record(z.unknown()).optional(),
+                  setIfMissing: z.record(z.unknown()).optional(),
                   unset: z.union([z.string(), z.array(z.string())]).optional(),
                   inc: z.record(z.number()).optional(),
                   dec: z.record(z.number()).optional(),
-                  insert: z.any().optional(),
+                  insert: z.unknown().optional(),
                   diffMatchPatch: z.record(z.string()).optional()
                 })
               })

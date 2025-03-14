@@ -11,8 +11,8 @@
     "skipLibCheck": true,
     "rootDir": "../src",
     "noPropertyAccessFromIndexSignature": false,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
   },
   "include": ["../src/**/*"],
   "exclude": ["../node_modules", "../dist", "../test"]

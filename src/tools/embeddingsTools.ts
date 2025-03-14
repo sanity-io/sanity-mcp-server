@@ -8,6 +8,7 @@ import {z} from 'zod'
 import * as embeddingsController from '../controllers/embeddings.js'
 import type {ListEmbeddingsIndicesParams, SemanticSearchParams} from '../types/sharedTypes.js'
 import type {ToolProvider} from '../types/toolProvider.js'
+import type {ToolDefinition} from '../types/tools.js'
 
 /**
  * Provider for embeddings-related tool definitions
@@ -16,9 +17,20 @@ export class EmbeddingsToolProvider implements ToolProvider {
   /**
    * Get all embeddings-related tool definitions
    *
-   * @returns Array of embeddings tool definitions
+   * @returns Array of tool definition objects
    */
-  getToolDefinitions(): ReturnType<ToolProvider['getToolDefinitions']> {
+  // eslint-disable-next-line class-methods-use-this
+  getToolDefinitions(): ToolDefinition[] {
+    return EmbeddingsToolProvider.getToolDefinitionsStatic()
+  }
+
+  /**
+   * Static method to get all embeddings-related tool definitions
+   * This allows the method to be called without an instance
+   *
+   * @returns Array of tool definition objects
+   */
+  static getToolDefinitionsStatic(): ToolDefinition[] {
     return [
       {
         name: 'listEmbeddingsIndices',

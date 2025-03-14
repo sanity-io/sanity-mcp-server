@@ -2,18 +2,91 @@
  * Type definitions for Sanity-related objects and operations
  */
 import type {
-  SanityClient as OriginalSanityClient
+  SanityClient as OriginalSanityClien
 } from '@sanity/client'
 
 /**
  * Sanity Query Parameters
  */
 export interface SanityQueryParams {
-  [key: string]: string | number | boolean | string[] | number[] | SanityQueryParams;
+  [key: string]: string | number | boolean | string[] | number[] | SanityQueryParams |
+    ((item: unknown) => boolean) | Record<string, unknown> | undefined;
+  useCdn?: boolean;
+  token?: string;
+  includeDrafts?: boolean;
+  filter?: (item: unknown) => boolean;
+  limit?: number;
+  params?: Record<string, unknown>;
 }
 
 /**
- * Sanity Document interface
+ * Content Value type
+ */
+export type ContentValue =
+  | string
+  | number
+  | boolean
+  | SanityReference
+  | Date
+  | null
+  | undefined
+  | ContentObject
+  | ContentArray;
+
+/**
+ * Content Object type
+ */
+export interface ContentObject {
+  [key: string]: ContentValue;
+}
+
+/**
+ * Content Array type
+ */
+export interface ContentArray extends Array<ContentValue> {}
+
+/**
+ * Sanity Reference interface
+ */
+export interface SanityReference {
+  _ref: string;
+  _weak?: boolean;
+}
+
+/**
+ * Sanity Image Asset interface
+ */
+export interface SanityImageAsset {
+  _id: string;
+  _type: 'sanity.imageAsset';
+  url: string;
+  metadata: {
+    dimensions: {
+      width: number;
+      height: number;
+      aspectRatio: number;
+    };
+    lqip?: string;
+    hasAlpha?: boolean;
+    isOpaque?: boolean;
+  };
+}
+
+/**
+ * Sanity File Asset interface
+ */
+export interface SanityFileAsset {
+  _id: string;
+  _type: 'sanity.fileAsset';
+  url: string;
+  originalFilename?: string;
+  extension?: string;
+  mimeType?: string;
+  size?: number;
+}
+
+/**
+ * Sanity Document interface with improved typing
  */
 export interface SanityDocument {
   _id: string;
@@ -21,7 +94,7 @@ export interface SanityDocument {
   _rev?: string;
   _createdAt?: string;
   _updatedAt?: string;
-  [key: string]: any;
+  [key: string]: any; // Reverted back to any for simplicity
 }
 
 /**
@@ -34,7 +107,7 @@ export interface SanityPatch {
   inc(attributes: Record<string, number>): SanityPatch;
   dec(attributes: Record<string, number>): SanityPatch;
   insert(position: 'before' | 'after' | 'replace', selector: string, items: any[] | any): SanityPatch;
-  unset(attributes: string | string[]): SanityPatch;
+  unset(attributes: string[]): SanityPatch;
   diffMatchPatch(attributes: Record<string, string>): SanityPatch;
   ifRevisionId(id: string): SanityPatch;
   commit(): Promise<SanityMutationResult>;
@@ -56,7 +129,7 @@ export interface SanityTransaction {
 /**
  * Extended SanityClient interface with the specific methods used in our application
  */
-export type SanityClient = OriginalSanityClient;
+export type SanityClient = OriginalSanityClien;
 
 /**
  * Sanity Draft Document interface
@@ -139,7 +212,7 @@ export interface InsertOperation {
 export interface PatchOperations {
   set?: Record<string, any>;
   setIfMissing?: Record<string, any>;
-  unset?: string | string[];
+  unset?: string[];
   inc?: Record<string, number>;
   dec?: Record<string, number>;
   insert?: InsertOperation;

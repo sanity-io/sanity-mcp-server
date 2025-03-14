@@ -14,7 +14,7 @@ export interface Logger {
 
 /**
  * Logger implementation that redirects all output to stderr
- * This ensures logs don't interfere with the MCP protocol JSON communication on stdout
+ * This ensures logs don't interfere with the MCP protocol JSON communication on stdou
  */
 export const logger: Logger = {
   info: (...args: unknown[]) => console.error('[INFO]', ...args),

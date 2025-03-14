@@ -84,7 +84,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     }
   } catch (error: unknown) {
     // Log errors to stderr to avoid interfering with MCP protocol
-    logger.error(`Error executing tool ${request.params.name}: ${error instanceof Error ? error.message : String(error)}`)
+    logger.error(
+      `Error executing tool ${request.params.name}: ${error instanceof Error ? error.message : String(error)}`
+    )
 
     // Return a structured error message
     return {

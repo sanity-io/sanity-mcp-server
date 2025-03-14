@@ -2,20 +2,20 @@ import {createClient} from '@sanity/client'
 import fetch from 'node-fetch'
 
 import config from '../config/config.js'
-import type {SanityActionResult, SanityClient} from '../types/sanity.js'
+import type {ContentValue, InsertOperation, SanityActionResult, SanityClient} from '../types/sanity.js'
 
 interface SanityAction {
-  create?: Record<string, any>;
-  createOrReplace?: Record<string, any>;
-  createIfNotExists?: Record<string, any>;
+  create?: Record<string, ContentValue>;
+  createOrReplace?: Record<string, ContentValue>;
+  createIfNotExists?: Record<string, ContentValue>;
   patch?: {
     id: string;
-    set?: Record<string, any>;
-    setIfMissing?: Record<string, any>;
+    set?: Record<string, ContentValue>;
+    setIfMissing?: Record<string, ContentValue>;
     unset?: string[];
-    insert?: Record<string, any>;
-    inc?: Record<string, any>;
-    dec?: Record<string, any>;
+    insert?: InsertOperation;
+    inc?: Record<string, number>;
+    dec?: Record<string, number>;
   };
   delete?: {
     id: string;
@@ -25,8 +25,8 @@ interface SanityAction {
   draftId?: string;
   publishedId?: string;
   releaseId?: string;
-  metadata?: Record<string, any>;
-  attributes?: Record<string, any>;
+  metadata?: Record<string, ContentValue>;
+  attributes?: Record<string, ContentValue>;
 }
 
 interface SanityProject {
@@ -43,7 +43,7 @@ interface SanityProject {
 }
 
 /**
- * Creates a Sanity client for a specific project and dataset
+ * Creates a configured Sanity client instance
  *
  * @param projectId - Sanity project ID
  * @param dataset - Dataset name (default: 'production')
@@ -53,14 +53,20 @@ interface SanityProject {
 export function createSanityClient(
   projectId: string,
   dataset: string = 'production',
-  options: Record<string, any> = {}
+  options: {
+    useCdn?: boolean;
+    token?: string;
+    apiVersion?: string;
+    perspective?: 'published' | 'previewDrafts' | 'raw';
+    [key: string]: unknown;
+  } = {}
 ): SanityClient {
   return createClient({
     projectId,
     dataset,
     apiVersion: config.apiVersion,
     token: config.sanityToken,
-    useCdn: false, // Using the API directly ensures we get fresh content
+    useCdn: false, // Using the API directly ensures we get fresh conten
     ...options
   })
 }
@@ -75,7 +81,7 @@ export function createSanityClient(
 export function isSufficientApiVersion(currentVersion: string, requiredVersion: string): boolean {
   // Convert versions to comparable format (YYYY-MM-DD → YYYYMMDD)
   const formatVersion = (version: string): number => {
-    // Remove 'v' prefix if present
+    // Remove 'v' prefix if presen
     const cleanVersion = version.replace(/^v/, '')
 
     // Handle versions without dashes (already in YYYYMMDD format)
@@ -87,7 +93,7 @@ export function isSufficientApiVersion(currentVersion: string, requiredVersion: 
       }
     }
 
-    // Convert from YYYY-MM-DD format
+    // Convert from YYYY-MM-DD forma
     const parts = cleanVersion.split('-')
     if (parts.length !== 3) {
       throw new Error(`Invalid version format: ${version}. Expected YYYY-MM-DD`)
@@ -103,13 +109,13 @@ export function isSufficientApiVersion(currentVersion: string, requiredVersion: 
     return current >= required
   } catch (error) {
     console.error(`Error comparing API versions: ${error}`)
-    // If there's any error in parsing, assume version is insufficient
+    // If there's any error in parsing, assume version is insufficien
     return false
   }
 }
 
 /**
- * Makes direct HTTP requests to Sanity APIs not covered by the client
+ * Makes direct HTTP requests to Sanity APIs not covered by the clien
  */
 export const sanityApi = {
   /**
@@ -137,7 +143,7 @@ export const sanityApi = {
    * @param projectId - Sanity project ID
    * @param dataset - Dataset name
    * @param actions - Array of action objects
-   * @returns Promise with action result
+   * @returns Promise with action resul
    */
   async performActions(projectId: string, dataset: string, actions: SanityAction[]): Promise<SanityActionResult> {
     // IMPORTANT: The Actions API requires at least API version 2024-05-23

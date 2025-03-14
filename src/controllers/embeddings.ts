@@ -6,11 +6,12 @@ import type {EmbeddingIndex, SearchOptions, SearchResponse, SearchResult} from '
 import logger from '../utils/logger.js'
 
 /**
- * Lists all embeddings indices for a dataset
+ * Lists all embeddings indices for a project and datase
  *
  * @param options - Options for listing embeddings indices
  * @returns Promise with array of embeddings indices
  */
+// eslint-disable-next-line complexity
 export async function listEmbeddingsIndices({
   projectId = config.projectId || process.env.SANITY_PROJECT_ID,
   dataset = config.dataset || process.env.SANITY_DATASET
@@ -18,7 +19,10 @@ export async function listEmbeddingsIndices({
   try {
     // Ensure we have the necessary info
     if (!projectId || !dataset) {
-      throw new Error('Project ID and Dataset name are required. Please set SANITY_PROJECT_ID and SANITY_DATASET in your environment variables or provide them as parameters.')
+      throw new Error(
+        'Project ID and Dataset name are required. ' +
+        'Please set SANITY_PROJECT_ID and SANITY_DATASET in your environment variables or provide them as parameters.'
+      )
     }
 
     // Validate token exists
@@ -52,26 +56,37 @@ export async function listEmbeddingsIndices({
 
     const indices = await response.json()
     return indices as EmbeddingIndex[]
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error listing embeddings indices:', error)
-    throw new Error(`Failed to list embeddings indices: ${error.message}`)
+    throw new Error(`Failed to list embeddings indices: ${error instanceof Error ? error.message : String(error)}`)
   }
 }
 
 /**
  * Validates the required parameters for semantic search
  */
-function validateSearchParameters(query: string, indexName: string | undefined, projectId: string | undefined, dataset: string | undefined) {
+function validateSearchParameters(
+  query: string,
+  indexName: string | undefined,
+  projectId: string | undefined,
+  dataset: string | undefined
+) {
   if (!query) {
     throw new Error('Query parameter is required for semantic search')
   }
 
   if (!indexName) {
-    throw new Error('indexName parameter is required for semantic search. Use listEmbeddingsIndices to get available indices.')
+    throw new Error(
+      'indexName parameter is required for semantic search. ' +
+      'Use listEmbeddingsIndices to get available indices.'
+    )
   }
 
   if (!projectId || !dataset) {
-    throw new Error('Project ID and Dataset name are required. Please set SANITY_PROJECT_ID and SANITY_DATASET in your environment variables or provide them as parameters.')
+    throw new Error(
+      'Project ID and Dataset name are required. ' +
+      'Please set SANITY_PROJECT_ID and SANITY_DATASET in your environment variables or provide them as parameters.'
+    )
   }
 
   if (!config.sanityToken) {
@@ -93,22 +108,25 @@ function createSearchPayload(query: string, maxResults: number, types: string[])
 /**
  * Processes the API response from the embeddings search
  */
-function processSearchResults(rawResults: any): SearchResponse {
+function processSearchResults(rawResults: Array<Record<string, unknown>> | Record<string, unknown>): SearchResponse {
   // The API returns an array of results, not an object
   if (Array.isArray(rawResults)) {
     return {
       hits: rawResults.map((doc) => ({
         ...doc,
-        score: doc.score || 0,
-        value: doc.value || doc
+        score: (doc.score as number) || 0,
+        value: (doc.value as Record<string, unknown>) || doc
       })) as SearchResult[],
       total: rawResults.length
     }
   }
 
   // If for some reason we get an object with hits already, just return it
-  if (rawResults.hits) {
-    return rawResults as SearchResponse
+  if ('hits' in rawResults && Array.isArray(rawResults.hits)) {
+    return {
+      hits: rawResults.hits as SearchResult[],
+      total: (rawResults.total as number) || rawResults.hits.length
+    }
   }
 
   // If we somehow got an empty response or invalid format
@@ -135,7 +153,7 @@ async function handleEmbeddingsApiError(response: Response, indexName: string): 
 /**
  * Performs semantic search on Sanity documentation and guides using embeddings
  *
- * @param query - Natural language query to search for semantically similar content
+ * @param query - Natural language query to search for semantically similar conten
  * @param options - Additional search options
  * @returns Promise with search results containing hits and total properties
  */
@@ -176,8 +194,8 @@ export async function semanticSearch(query: string, {
     const rawResults = await embeddingsResponse.json()
     return processSearchResults(rawResults)
 
-  } catch (error: any) {
-    logger.error(`Error performing semantic search: ${error.message}`)
-    throw new Error(`Error performing semantic search: ${error.message}`)
+  } catch (error: unknown) {
+    logger.error(`Error performing semantic search: ${error instanceof Error ? error.message : String(error)}`)
+    throw new Error(`Error performing semantic search: ${error instanceof Error ? error.message : String(error)}`)
   }
 }

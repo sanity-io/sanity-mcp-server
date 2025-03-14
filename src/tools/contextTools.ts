@@ -9,10 +9,11 @@ import config from '../config/config.js'
 import * as embeddingsController from '../controllers/embeddings.js'
 import * as releasesController from '../controllers/releases.js'
 import * as schemaController from '../controllers/schema.js'
+import type {EmbeddingIndex, SchemaType} from '../types/index.js'
+import type {SanityDocument} from '../types/sanity.js'
 import type {
-  ListEmbeddingsIndicesParams,
-  SimpleRelease,
-  SimpleSchemaType} from '../types/sharedTypes.js'
+  ListEmbeddingsIndicesParams
+} from '../types/sharedTypes.js'
 import type {ToolProvider} from '../types/toolProvider.js'
 import type {InitialContext, ToolDefinition} from '../types/tools.js'
 
@@ -25,11 +26,24 @@ export class ContextToolProvider implements ToolProvider {
    *
    * @returns Array of tool definition objects
    */
+  // eslint-disable-next-line class-methods-use-this
   getToolDefinitions(): ToolDefinition[] {
+    return ContextToolProvider.getToolDefinitionsStatic()
+  }
+
+  /**
+   * Static method to get all context-related tool definitions
+   * This allows the method to be called without an instance
+   *
+   * @returns Array of tool definition objects
+   */
+  static getToolDefinitionsStatic(): ToolDefinition[] {
     return [
       {
         name: 'getInitialContext',
-        description: 'IMPORTANT: Call this tool first to get initial context and usage instructions for this MCP server. This provides critical information about which projects and datasets you should use.',
+        description:
+          'IMPORTANT: Call this tool first to get initial context and usage instructions for this MCP server. ' +
+          'This provides critical information about which projects and datasets you should use.',
         parameters: z.object({}),
         handler: async (): Promise<InitialContext> => {
           // Validate that we have project ID and dataset configured
@@ -64,30 +78,36 @@ export class ContextToolProvider implements ToolProvider {
             )
 
             // Filter to only active releases
-            const activeReleases = releasesResult.releases.filter((release: any) => !release.archivedAt && !release.discardedAt)
+            const activeReleases = releasesResult.releases.filter(
+              (release: SanityDocument) => !release.archivedAt && !release.discardedAt
+            )
 
             return {
               message: 'Welcome to the Sanity MCP Server!',
-              instructions: 'You can use this server to interact with Sanity content. Start by exploring the schema to understand the content model.',
+              instructions:
+                'You can use this server to interact with Sanity content. ' +
+                'Start by exploring the schema to understand the content model.',
               projectId: config.projectId,
               dataset: config.dataset || 'production',
-              embeddingsIndices: embeddingsIndices.map((index: any) => ({
-                id: index.name,
-                name: index.name,
+              embeddingsIndices: embeddingsIndices.map((index: EmbeddingIndex) => ({
+                id: index.webhookId || index.indexName,
+                name: index.indexName,
                 status: index.status || 'available',
-                documentCount: index.documentCount
+                documentCount: index.startDocumentCount - index.remainingDocumentCount
               })),
-              documentTypes: documentTypes.map((type: any) => ({
+              documentTypes: documentTypes.map((type: SchemaType) => ({
                 name: type.name,
                 title: type.title,
                 type: type.type
-              } as SimpleSchemaType)),
-              activeReleases: activeReleases.map((release: any) => ({
+              })),
+              activeReleases: activeReleases.map((release: SanityDocument) => ({
                 id: release.id,
                 title: release.title,
                 status: release.status
-              } as SimpleRelease)),
-              note: "The above information provides context about the Sanity project you're working with. You can use the schema types to formulate GROQ queries."
+              })),
+              note:
+                "The above information provides context about the Sanity project you're working with. " +
+                'You can use the schema types to formulate GROQ queries.'
             }
           } catch (error) {
             return {

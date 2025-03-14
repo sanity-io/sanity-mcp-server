@@ -23,7 +23,18 @@ export class ActionsToolProvider implements ToolProvider {
    *
    * @returns Array of tool definition objects
    */
+  // eslint-disable-next-line class-methods-use-this
   getToolDefinitions(): ToolDefinition[] {
+    return ActionsToolProvider.getToolDefinitionsStatic()
+  }
+
+  /**
+   * Static method to get all actions-related tool definitions
+   * This allows the method to be called without an instance
+   *
+   * @returns Array of tool definition objects
+   */
+  static getToolDefinitionsStatic(): ToolDefinition[] {
     return [
       {
         name: 'publishDocument',
@@ -31,12 +42,14 @@ export class ActionsToolProvider implements ToolProvider {
         parameters: z.object({
           projectId: z.string().describe('Project ID for the Sanity project'),
           dataset: z.string().describe('Dataset name within the project'),
-          documentId: z.union([z.string(), z.array(z.string())]).describe('The document ID or IDs to publish, must include draft. prefix if publishing a draft')
+          documentId: z.union([z.string(), z.array(z.string())]).describe(
+            'The document ID or IDs to publish, must include draft. prefix if publishing a draft'
+          )
         }) as z.ZodType<DocumentIdParam>,
         handler: async (args: DocumentIdParam): Promise<ActionResult> => {
           return await actionsController.publishDocument(
-            args.projectId, 
-            args.dataset, 
+            args.projectId,
+            args.dataset,
             args.documentId
           )
         }
@@ -51,8 +64,8 @@ export class ActionsToolProvider implements ToolProvider {
         }) as z.ZodType<DocumentIdParam>,
         handler: async (args: DocumentIdParam): Promise<ActionResult> => {
           return await actionsController.unpublishDocument(
-            args.projectId, 
-            args.dataset, 
+            args.projectId,
+            args.dataset,
             args.documentId
           )
         }
@@ -67,8 +80,8 @@ export class ActionsToolProvider implements ToolProvider {
         }) as z.ZodType<DocumentIdParam>,
         handler: async (args: DocumentIdParam): Promise<ActionResult> => {
           return await actionsController.deleteDocument(
-            args.projectId, 
-            args.dataset, 
+            args.projectId,
+            args.dataset,
             args.documentId
           )
         }
@@ -77,8 +90,12 @@ export class ActionsToolProvider implements ToolProvider {
         name: 'unpublishDocumentWithRelease',
         description: 'Unpublishes a document as part of a release',
         parameters: z.object({
-          projectId: z.string().optional().describe('Project ID, if not provided will use the project ID from the environment'),
-          dataset: z.string().optional().describe('Dataset name, if not provided will use the dataset from the environment'),
+          projectId: z.string().optional().describe(
+            'Project ID, if not provided will use the project ID from the environment'
+          ),
+          dataset: z.string().optional().describe(
+            'Dataset name, if not provided will use the dataset from the environment'
+          ),
           releaseId: z.string().describe('The release ID to unpublish with'),
           documentId: z.union([z.string(), z.array(z.string())]).describe('The document ID or IDs to unpublish')
         }) as z.ZodType<ReleaseDocumentIdParam>,

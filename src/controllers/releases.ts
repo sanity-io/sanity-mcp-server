@@ -1,6 +1,16 @@
 import config from '../config/config.js'
-import type {ReleaseOptions, SanityActionResult, SanityClient, SanityDocument, SanityError} from '../types/sanity.js'
-import {createErrorResponse, getDocumentContent, normalizeBaseDocId, normalizeDocumentIds} from '../utils/documentHelpers.js'
+import type {
+  ReleaseOptions,
+  SanityActionResult,
+  SanityClient,
+  SanityDocument,
+  SanityError
+} from '../types/sanity.js'
+import {
+  getDocumentContent,
+  normalizeBaseDocId,
+  normalizeDocumentIds
+} from '../utils/documentHelpers.js'
 import {createSanityClient, isSufficientApiVersion, sanityApi} from '../utils/sanityClient.js'
 
 // Define local ReleaseDocument to avoid conflicts
@@ -28,7 +38,8 @@ function validateApiVersion(): void {
 
   if (!isSufficientApiVersion(currentVersion, REQUIRED_API_VERSION)) {
     throw new Error(
-      `API version ${currentVersion} is outdated. Please update to version ${REQUIRED_API_VERSION} or later to use Content Releases. You can do this by updating your SANITY_API_VERSION in .env or config.`
+      `API version ${currentVersion} is outdated. Please update to version ${REQUIRED_API_VERSION} or later ` +
+      'to use Content Releases. You can do this by updating your SANITY_API_VERSION in .env or config.'
     )
   }
 }
@@ -40,7 +51,7 @@ function validateReleaseParameters(
   _releaseId: string, // Prefix with underscore to indicate it's intentionally unused
   options?: ReleaseOptions
 ): void {
-  // Validate that scheduled releases have intendedPublishAt
+  // Validate that scheduled releases have intendedPublishA
   if (options?.releaseType === 'scheduled' && !options?.intendedPublishAt) {
     throw new Error('publishAt is required for scheduled releases')
   }
@@ -70,11 +81,18 @@ function handleReleaseCreationError(error: SanityError, releaseId: string): neve
 
   // Check for common issues
   if (error.message?.includes('API version')) {
-    throw new Error('Failed to create release: Make sure you\'re using API version 2024-05-23 or later.')
+    throw new Error(
+      'Failed to create release: Make sure you\'re using API version 2024-05-23 or later.'
+    )
   } else if (error.statusCode === 404 || error.message?.includes('not found')) {
-    throw new Error('Failed to create release: The Content Releases feature might not be enabled for this project or the API token lacks permissions.')
+    throw new Error(
+      'Failed to create release: The Content Releases feature might not be enabled for this project ' +
+      'or the API token lacks permissions.'
+    )
   } else if (error.statusCode === 401 || error.statusCode === 403 || error.message?.includes('Not authorized')) {
-    throw new Error('Failed to create release: Authentication failed. Check that your Sanity token has permission to create releases.')
+    throw new Error(
+      'Failed to create release: Authentication failed. Check that your Sanity token has permission to create releases.'
+    )
   } else {
     throw new Error(`Failed to create release: ${error.message}`)
   }
@@ -103,7 +121,7 @@ export async function createRelease(
   result: SanityActionResult;
 }> {
   try {
-    // Check API version first
+    // Check API version firs
     validateApiVersion()
 
     // Validate release parameters
@@ -125,10 +143,10 @@ export async function createRelease(
       releaseId,
       result
     }
-  } catch (error: any) {
-    // This function throws an error, so it never actually returns - but we need to satisfy TypeScript
+  } catch (error: unknown) {
+    // This function throws an error, so it never actually returns - but we need to satisfy TypeScrip
     // by ensuring all code paths return a value or throw an exception
-    return handleReleaseCreationError(error, releaseId)
+    return handleReleaseCreationError(error as SanityError, releaseId)
   }
 }
 
@@ -138,7 +156,7 @@ export async function createRelease(
  * @param releaseId - ID of the release
  * @param documentId - ID of the document to create a version for
  * @param attributes - Document content/attributes
- * @returns The created action object
+ * @returns The created action objec
  */
 function createVersionAction(releaseId: string, documentId: string, attributes: SanityDocument) {
   const baseDocId = normalizeBaseDocId(documentId)
@@ -157,10 +175,10 @@ function createVersionAction(releaseId: string, documentId: string, attributes: 
 /**
  * Processes a single document for adding to a release
  *
- * @param client - Sanity client
+ * @param client - Sanity clien
  * @param releaseId - ID of the release
  * @param documentId - ID of the document to process
- * @param content - Optional custom content
+ * @param content - Optional custom conten
  * @returns Object containing the processed document's action, ID, and version ID
  * @throws Error if document is not found
  */
@@ -189,7 +207,7 @@ async function processDocumentForRelease(
 }
 
 /**
- * Adds a document or multiple documents to a content release
+ * Adds one or more documents to a release by creating document versions
  *
  * @param projectId - Sanity project ID
  * @param dataset - Dataset name
@@ -198,6 +216,7 @@ async function processDocumentForRelease(
  * @param content - Optional custom content to use for the document version
  * @returns Result of adding the document(s) to the release
  */
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export async function addDocumentToRelease(
   projectId: string,
   dataset: string,
@@ -213,7 +232,7 @@ export async function addDocumentToRelease(
   result: SanityActionResult;
 }> {
   try {
-    // Check API version first
+    // Check API version firs
     validateApiVersion()
 
     // Normalize to always work with an array of document IDs
@@ -223,7 +242,7 @@ export async function addDocumentToRelease(
       throw new Error('No valid document IDs provided')
     }
 
-    // Create a Sanity client
+    // Create a Sanity clien
     const client = createSanityClient(projectId, dataset, {
       apiVersion: config.apiVersion,
       token: config.sanityToken
@@ -252,9 +271,11 @@ export async function addDocumentToRelease(
         actions.push(action)
         processedIds.push(documentId)
         versionIds.push(versionId)
-      } catch (documentError: any) {
+      } catch (documentError: unknown) {
         console.error(`Error processing document ${docId}:`, documentError)
-        errors.push(`Document ID ${docId}: ${documentError.message}`)
+        errors.push(
+          `Document ID ${docId}: ${documentError instanceof Error ? documentError.message : String(documentError)}`
+        )
       }
     }
 
@@ -281,8 +302,9 @@ export async function addDocumentToRelease(
       versionIds,
       result
     }
-  } catch (error: any) {
-    throw createErrorResponse(`Failed to add document(s) to release ${releaseId}`, error)
+  } catch (error: unknown) {
+    console.error('Error adding document to release:', error)
+    throw new Error(`Failed to add document to release: ${error instanceof Error ? error.message : String(error)}`)
   }
 }
 
@@ -335,7 +357,7 @@ export async function removeDocumentFromRelease(
         })
 
         processedIds.push(baseDocId)
-      } catch (documentError: any) {
+      } catch (documentError: unknown) {
         console.error(`Error processing document ${docId} for removal:`, documentError)
       }
     }
@@ -350,14 +372,14 @@ export async function removeDocumentFromRelease(
 
     return {
       success: true,
-      message: `${processedIds.length} document(s) removed from release ${releaseId} successfully`,
+      message: `Removed ${documentIds.length} documents from release ${releaseId}`,
       releaseId,
       documentIds: processedIds,
       result
     }
-  } catch (error: any) {
-    console.error(`Error removing document(s) from release ${releaseId}:`, error)
-    throw createErrorResponse(`Failed to remove document(s) from release ${releaseId}: ${error.message}`, error)
+  } catch (error: unknown) {
+    console.error('Error removing document from release:', error)
+    throw new Error(`Failed to remove document from release: ${error instanceof Error ? error.message : String(error)}`)
   }
 }
 
@@ -386,7 +408,7 @@ export async function listReleaseDocuments(
   documents: ReleaseDocument[];
 }> {
   try {
-    // Check API version first
+    // Check API version firs
     validateApiVersion()
 
     // Create client with perspective: 'raw' as required for sanity::partOfRelease
@@ -416,9 +438,10 @@ export async function listReleaseDocuments(
       documentCount: mappedDocuments.length,
       documents: mappedDocuments
     }
-  } catch (error: any) {
-    console.error(`Error listing documents in release ${releaseId}:`, error)
-    throw new Error(`Failed to list release documents: ${error.message}`)
+  } catch (documentError: unknown) {
+    console.error('Error retrieving documents for release:', documentError)
+    const errorMsg = documentError instanceof Error ? documentError.message : String(documentError)
+    throw new Error(`Failed to retrieve documents for release: ${errorMsg}`)
   }
 }
 
@@ -442,7 +465,7 @@ export async function publishRelease(
   result: SanityActionResult;
 }> {
   try {
-    // Check API version first
+    // Check API version firs
     validateApiVersion()
 
     // First, check how many documents are in the release
@@ -471,14 +494,14 @@ export async function publishRelease(
       documentCount: documents.documentCount,
       result
     }
-  } catch (error: any) {
-    console.error(`Error publishing release ${releaseId}:`, error)
-    throw new Error(`Failed to publish release: ${error.message}`)
+  } catch (error: unknown) {
+    console.error('Error publishing release:', error)
+    throw new Error(`Failed to publish release: ${error instanceof Error ? error.message : String(error)}`)
   }
 }
 
 /**
- * Lists all releases for a project and dataset
+ * Lists all releases for a project and datase
  *
  * @param projectId - Sanity project ID
  * @param dataset - Dataset name
@@ -491,7 +514,7 @@ export async function listReleases(
   releases: SanityDocument[];
 }> {
   try {
-    // Check API version first
+    // Check API version firs
     validateApiVersion()
 
     const client = createSanityClient(projectId, dataset)
@@ -503,19 +526,9 @@ export async function listReleases(
     return {
       releases
     }
-  } catch (error: any) {
-    console.error('Error listing releases:', error)
-
-    // Check for common issues
-    if (error.message?.includes('Unknown GROQ function "releases::all"')) {
-      throw new Error('Failed to list releases: The releases::all() function is not available. Make sure you\'re using API version 2024-05-23 or later.')
-    } else if (error.statusCode === 404) {
-      throw new Error('Failed to list releases: The Content Releases feature might not be enabled for this project or the API token lacks permissions.')
-    } else if (error.statusCode === 401 || error.statusCode === 403) {
-      throw new Error('Failed to list releases: Authentication failed. Check that your Sanity token has permission to access releases.')
-    } else {
-      throw new Error(`Failed to list releases: ${error.message}`)
-    }
+  } catch (error: unknown) {
+    console.error('Error retrieving releases:', error)
+    throw new Error(`Failed to retrieve releases: ${error instanceof Error ? error.message : String(error)}`)
   }
 }
 
@@ -535,7 +548,7 @@ export async function getRelease(
   release: SanityDocument;
 }> {
   try {
-    // Check API version first
+    // Check API version firs
     validateApiVersion()
 
     const client = createSanityClient(projectId, dataset)
@@ -551,9 +564,9 @@ export async function getRelease(
     return {
       release: releases[0]
     }
-  } catch (error: any) {
-    console.error(`Error getting release ${releaseId}:`, error)
-    throw new Error(`Failed to get release: ${error.message}`)
+  } catch (error: unknown) {
+    console.error('Error retrieving release:', error)
+    throw new Error(`Failed to retrieve release: ${error instanceof Error ? error.message : String(error)}`)
   }
 }
 
@@ -583,7 +596,7 @@ export async function updateRelease(
   result: SanityActionResult;
 }> {
   try {
-    // Check API version first
+    // Check API version firs
     validateApiVersion()
 
     // Validate required fields for scheduled releases
@@ -592,7 +605,12 @@ export async function updateRelease(
     }
 
     // Create the metadata object with only provided fields
-    const metadata: Record<string, any> = {}
+    const metadata: {
+      title?: string;
+      description?: string;
+      releaseType?: 'asap' | 'scheduled';
+      intendedPublishAt?: string;
+    } = {}
     if (updateData.title) {
       metadata.title = updateData.title
     }
@@ -627,9 +645,9 @@ export async function updateRelease(
       releaseId,
       result
     }
-  } catch (error: any) {
-    console.error(`Error updating release ${releaseId}:`, error)
-    throw new Error(`Failed to update release: ${error.message}`)
+  } catch (error: unknown) {
+    console.error('Error updating release:', error)
+    throw new Error(`Failed to update release: ${error instanceof Error ? error.message : String(error)}`)
   }
 }
 
@@ -655,7 +673,7 @@ export async function scheduleRelease(
   result: SanityActionResult;
 }> {
   try {
-    // Check API version first
+    // Check API version firs
     validateApiVersion()
 
     // Create the schedule release action
@@ -675,9 +693,9 @@ export async function scheduleRelease(
       scheduledTime: publishAt,
       result
     }
-  } catch (error: any) {
-    console.error(`Error scheduling release ${releaseId}:`, error)
-    throw new Error(`Failed to schedule release: ${error.message}`)
+  } catch (error: unknown) {
+    console.error('Error scheduling release:', error)
+    throw new Error(`Failed to schedule release: ${error instanceof Error ? error.message : String(error)}`)
   }
 }
 
@@ -700,7 +718,7 @@ export async function unscheduleRelease(
   result: SanityActionResult;
 }> {
   try {
-    // Check API version first
+    // Check API version firs
     validateApiVersion()
 
     // Create the unschedule release action
@@ -718,9 +736,9 @@ export async function unscheduleRelease(
       releaseId,
       result
     }
-  } catch (error: any) {
-    console.error(`Error unscheduling release ${releaseId}:`, error)
-    throw new Error(`Failed to unschedule release: ${error.message}`)
+  } catch (error: unknown) {
+    console.error('Error unscheduling release:', error)
+    throw new Error(`Failed to unschedule release: ${error instanceof Error ? error.message : String(error)}`)
   }
 }
 
@@ -743,7 +761,7 @@ export async function archiveRelease(
   result: SanityActionResult;
 }> {
   try {
-    // Check API version first
+    // Check API version firs
     validateApiVersion()
 
     // Create the archive release action
@@ -761,9 +779,9 @@ export async function archiveRelease(
       releaseId,
       result
     }
-  } catch (error: any) {
-    console.error(`Error archiving release ${releaseId}:`, error)
-    throw new Error(`Failed to archive release: ${error.message}`)
+  } catch (error: unknown) {
+    console.error('Error archiving release:', error)
+    throw new Error(`Failed to archive release: ${error instanceof Error ? error.message : String(error)}`)
   }
 }
 
@@ -786,7 +804,7 @@ export async function unarchiveRelease(
   result: SanityActionResult;
 }> {
   try {
-    // Check API version first
+    // Check API version firs
     validateApiVersion()
 
     // Create the unarchive release action
@@ -804,9 +822,9 @@ export async function unarchiveRelease(
       releaseId,
       result
     }
-  } catch (error: any) {
-    console.error(`Error unarchiving release ${releaseId}:`, error)
-    throw new Error(`Failed to unarchive release: ${error.message}`)
+  } catch (error: unknown) {
+    console.error('Error unarchiving release:', error)
+    throw new Error(`Failed to unarchive release: ${error instanceof Error ? error.message : String(error)}`)
   }
 }
 
@@ -829,7 +847,7 @@ export async function deleteRelease(
   result: SanityActionResult;
 }> {
   try {
-    // Check API version first
+    // Check API version firs
     validateApiVersion()
 
     // Create the delete release action
@@ -847,8 +865,8 @@ export async function deleteRelease(
       releaseId,
       result
     }
-  } catch (error: any) {
-    console.error(`Error deleting release ${releaseId}:`, error)
-    throw new Error(`Failed to delete release: ${error.message}`)
+  } catch (error: unknown) {
+    console.error('Error deleting release:', error)
+    throw new Error(`Failed to delete release: ${error instanceof Error ? error.message : String(error)}`)
   }
 }

@@ -146,8 +146,6 @@ SANITY_TOKEN=your_sanity_api_token
 SANITY_PROJECT_ID=your_sanity_project_id
 SANITY_DATASET=your_sanity_dataset
 SANITY_API_VERSION=your_sanity_api_version
-# Optional: for LLM verification of content
-OPENAI_API_KEY=your_openai_api_key
 ```
 
 ## Development

@@ -71,7 +71,7 @@ export function getToolDefinition(toolName: string): ToolDefinition | null {
  * @param args - The arguments to pass to the tool handler
  * @returns The result of the tool execution
  */
-export async function executeTool(toolName: string, args: Record<string, any> = {}): Promise<any> {
+export async function executeTool(toolName: string, args: Record<string, unknown> = {}): Promise<unknown> {
   const tool = getToolDefinition(toolName)
 
   if (!tool) {
