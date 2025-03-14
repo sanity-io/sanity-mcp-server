@@ -18,62 +18,46 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build-report:
+  quality-info:
     runs-on: ubuntu-latest
-    environment: Test
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Generate quality report with test results
+      - name: Display quality report status
         run: |
-          # Add debugging information
-          echo "Current directory: $(pwd)"
-          echo "Content of scripts/quality directory:"
-          ls -la scripts/quality/
-          echo "Content of scripts/quality/output directory (before running reports):"
-          ls -la scripts/quality/output/ || echo "Output directory doesn't exist yet"
-          
-          # Create output directory if it doesn't exist
-          mkdir -p scripts/quality/output
-          
-          # Make the new GitHub-specific script executable
-          chmod +x scripts/quality/github-build.js
-          
-          # Run the dedicated GitHub build script (much simpler than the complex script chain)
-          echo "Running GitHub-specific build script..."
-          node scripts/quality/github-build.js
+          echo "::notice title=Quality Report::The quality report feature is being refactored. Will be available in a future update."
 
-      - name: Create report directory
+      - name: Create placeholder report
         run: |
-          echo "Creating quality-report directory"
           mkdir -p quality-report
-          
-          # Copy all files from output to quality-report
-          echo "Copying output files to quality-report"
-          if [ -d "scripts/quality/output" ]; then
-            cp -r scripts/quality/output/* quality-report/ || echo "No files to copy from output directory"
-          fi
-          
-          # Copy any standalone files
-          if [ -f "scripts/quality/quality-tag-checkpoint.ndjson" ]; then
-            cp scripts/quality/quality-tag-checkpoint.ndjson quality-report/ || echo "Failed to copy checkpoint file"
-          fi
-          
-          # List contents of quality-report directory
-          echo "Contents of quality-report directory:"
-          ls -la quality-report/
+          cat << EOF > quality-report/index.html
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>Quality Report Status</title>
+            <style>
+              body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; margin: 40px; line-height: 1.6; }
+              .container { max-width: 800px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+              h1 { color: #333; }
+              .info { background-color: #f8f9fa; padding: 15px; border-radius: 4px; }
+              .date { color: #666; font-size: 0.9em; margin-top: 20px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1>Quality Report Status</h1>
+              <div class="info">
+                <p>The quality report feature is currently being refactored.</p>
+                <p>The updated version will be available in a future release.</p>
+              </div>
+              <div class="date">
+                <p>Last updated: $(date)</p>
+              </div>
+            </div>
+          </body>
+          </html>
+          EOF
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -85,8 +69,4 @@ jobs:
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
-
-      - name: Output quality report URL
-        run: |
-          echo "::notice title=Quality Report::Quality report is available at ${{ steps.deployment.outputs.page_url }}" 
+        uses: actions/deploy-pages@v4 

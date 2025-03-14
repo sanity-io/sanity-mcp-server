@@ -17,6 +17,7 @@
     "lint": "eslint . --ext .ts --config config/.eslintrc.json",
     "lint:fix": "eslint . --ext .ts --config config/.eslintrc.json --fix",
     "typecheck": "tsc --noEmit --project config/tsconfig.json",
+    "typecheck:all": "tsc --noEmit --project config/tsconfig.json",
     "prerelease": "npm run test:integration",
     "release": "npm run build && npm version patch && git push",
     "prepare": "husky"

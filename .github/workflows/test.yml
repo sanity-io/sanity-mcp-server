@@ -31,7 +31,7 @@ jobs:
           node-version: '18.x'
           cache: 'npm'
       - run: npm ci
-      - run: npm run typecheck:all
+      - run: npm run typecheck
       - run: npm run test:unit
 
   critical-integration-tests:
