@@ -7,143 +7,139 @@
 set -e
 
 # Default values
-JOB="integration-tests"
+DEFAULT_JOB="critical-integration-tests"
 ENV_FILE=".env"
-PLATFORM="--platform ubuntu-latest=node:18-buster"
+PLATFORM=""
+PULL=false
+VERBOSE=false
+ARCH_FLAG="--container-architecture linux/amd64"
 
-# Display help information
-show_help() {
-  echo "Debug GitHub CI locally using act"
-  echo ""
-  echo "Usage: ./scripts/debug-github-ci.sh [options]"
-  echo ""
-  echo "Options:"
-  echo "  -j, --job JOB         Specify the job to run (default: integration-tests)"
-  echo "  -e, --env FILE        Specify the environment file (default: .env)"
-  echo "  -p, --pull            Pull Docker images before running"
-  echo "  -v, --verbose         Enable verbose output from act"
-  echo "  -h, --help            Display this help message"
-  echo ""
-  echo "Available jobs:"
-  echo "  - integration-tests        Run all integration tests (critical, standard, and extended)"
-  echo "  - critical-integration-tests"
-  echo "  - standard-integration-tests"
-  echo "  - lint"
-  echo "  - unit-tests"
-  echo ""
-  echo "Example: ./scripts/debug-github-ci.sh --job integration-tests --verbose"
+print_help() {
+    echo "Usage: $0 [options]"
+    echo ""
+    echo "Options:"
+    echo "  --help                     Display this help message"
+    echo "  --job JOB_NAME             Specify the GitHub Actions job to run (default: critical-integration-tests)"
+    echo "  --platform PLATFORM        Specify the platform (e.g., ubuntu-latest)"
+    echo "  --env-file FILE            Specify the environment file (default: .env)"
+    echo "  --pull                     Pull the latest Docker image"
+    echo "  --verbose                  Display verbose output"
+    echo ""
+    echo "Available jobs:"
+    echo "  integration-tests          Run all integration tests (critical and standard sequentially)"
+    echo "  critical-integration-tests Run only critical integration tests"
+    echo "  standard-integration-tests Run only standard integration tests"
+    echo "  unit-tests                 Run unit tests"
+    echo "  lint                       Run linting"
+    echo "  quality-info               Run quality information"
+    echo ""
+    echo "Example: $0 --job unit-tests --env-file .env.test"
 }
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
-  case $1 in
-    -j|--job)
-      JOB="$2"
-      shift
-      shift
-      ;;
-    -e|--env)
-      ENV_FILE="$2"
-      shift
-      shift
-      ;;
-    -p|--pull)
-      PULL_OPTION="--pull"
-      shift
-      ;;
-    -v|--verbose)
-      VERBOSE_OPTION="--verbose"
-      shift
-      ;;
-    -h|--help)
-      show_help
-      exit 0
-      ;;
-    *)
-      echo "Unknown option: $1"
-      show_help
-      exit 1
-      ;;
-  esac
+    case $1 in
+        --help)
+            print_help
+            exit 0
+            ;;
+        --job)
+            JOB="$2"
+            shift
+            shift
+            ;;
+        --platform)
+            PLATFORM="--platform $2"
+            shift
+            shift
+            ;;
+        --env-file)
+            ENV_FILE="$2"
+            shift
+            shift
+            ;;
+        --pull)
+            PULL=true
+            shift
+            ;;
+        --verbose)
+            VERBOSE=true
+            shift
+            ;;
+        *)
+            echo "Unknown option: $1"
+            print_help
+            exit 1
+            ;;
+    esac
 done
 
-# Check if .env file exists
-if [ ! -f "$ENV_FILE" ]; then
-  echo "Error: Environment file '$ENV_FILE' not found."
-  echo "Please create this file with your required environment variables."
-  exit 1
+# Set default job if not specified
+if [ -z "$JOB" ]; then
+    JOB="$DEFAULT_JOB"
 fi
 
-# Check if act is installed
-if ! command -v act &> /dev/null; then
-  echo "Error: 'act' is not installed."
-  echo "Please install it with 'brew install act' or visit https://github.com/nektos/act"
-  exit 1
+# Set pull option
+if [ "$PULL" = true ]; then
+    PULL_OPTION="--pull"
+else
+    PULL_OPTION=""
 fi
 
-# If running integration-tests, we need to create a custom workflow for act
+# Set verbose option
+if [ "$VERBOSE" = true ]; then
+    VERBOSE_OPTION="-v"
+else
+    VERBOSE_OPTION=""
+fi
+
+# Check if Docker is running
+if ! docker info > /dev/null 2>&1; then
+    echo "Error: Docker is not running. Please start Docker and try again."
+    exit 1
+fi
+
+# Handle the special case for running all integration tests
 if [ "$JOB" = "integration-tests" ]; then
-  # Create a temporary workflow file
-  TEMP_WORKFLOW_FILE=$(mktemp)
-  cat > "$TEMP_WORKFLOW_FILE" << EOF
-name: Run All Integration Tests
-
-on:
-  workflow_dispatch:
-
-jobs:
-  integration-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18.x'
-      - name: Clean install
-        run: |
-          rm -rf node_modules package-lock.json
-          npm install
-      - run: npm run test:integration
-EOF
-
-  # Run the GitHub Action workflow locally with the custom workflow file
-  echo "Running all integration tests locally with environment from '$ENV_FILE'..."
-  echo "This simulates how all integration tests will run in GitHub Actions CI."
-  echo ""
-
-  # Execute act with the custom workflow
-  act -j integration-tests -W "$TEMP_WORKFLOW_FILE" --env-file "$ENV_FILE" $PLATFORM $PULL_OPTION $VERBOSE_OPTION
-  RESULT=$?
-
-  # Clean up the temporary file
-  rm "$TEMP_WORKFLOW_FILE"
-
-  # Check if the execution was successful
-  if [ $RESULT -eq 0 ]; then
+    echo "Running all integration tests locally with environment from '$ENV_FILE'..."
+    echo "This simulates how integration tests will run in GitHub Actions CI."
+    echo ""
+    echo "Step 1/2: Running critical integration tests..."
+    
+    act -j critical-integration-tests --env-file "$ENV_FILE" $PLATFORM $PULL_OPTION $VERBOSE_OPTION $ARCH_FLAG
+    CRITICAL_RESULT=$?
+    
+    if [ $CRITICAL_RESULT -ne 0 ]; then
+        echo "❌ Critical integration tests failed. Aborting."
+        exit $CRITICAL_RESULT
+    fi
+    
+    echo ""
+    echo "Step 2/2: Running standard integration tests..."
+    
+    act -j standard-integration-tests --env-file "$ENV_FILE" $PLATFORM $PULL_OPTION $VERBOSE_OPTION $ARCH_FLAG
+    STANDARD_RESULT=$?
+    
+    if [ $STANDARD_RESULT -ne 0 ]; then
+        echo "❌ Standard integration tests failed."
+        exit $STANDARD_RESULT
+    fi
+    
     echo ""
     echo "✅ Success! All integration tests completed successfully."
-  else
-    echo ""
-    echo "❌ Error! Integration tests failed. See above for details."
-    exit 1
-  fi
 else
-  # Run the GitHub Action workflow locally for a specific job
-  echo "Running GitHub Action job '$JOB' locally with environment from '$ENV_FILE'..."
-  echo "This simulates how the job will run in GitHub Actions CI."
-  echo ""
-
-  # Execute act with the specified options
-  act -j "$JOB" --env-file "$ENV_FILE" $PLATFORM $PULL_OPTION $VERBOSE_OPTION
-
-  # Check if the execution was successful
-  if [ $? -eq 0 ]; then
+    echo "Running GitHub Action job '$JOB' locally with environment from '$ENV_FILE'..."
+    echo "This simulates how the job will run in GitHub Actions CI."
     echo ""
-    echo "✅ Success! The job '$JOB' completed successfully."
-  else
-    echo ""
-    echo "❌ Error! The job '$JOB' failed. See above for details."
-    exit 1
-  fi
+    
+    act -j "$JOB" --env-file "$ENV_FILE" $PLATFORM $PULL_OPTION $VERBOSE_OPTION $ARCH_FLAG
+    JOB_RESULT=$?
+    
+    if [ $JOB_RESULT -ne 0 ]; then
+        echo "❌ The job '$JOB' failed."
+        exit $JOB_RESULT
+    else
+        echo ""
+        echo "✅ Success! The job '$JOB' completed successfully."
+    fi
 fi 

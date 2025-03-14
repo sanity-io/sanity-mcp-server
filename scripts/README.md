@@ -1,81 +1,92 @@
 # GitHub CI Debugging Tools
 
-This directory contains scripts to help debug and simulate GitHub Actions workflows locally.
+This directory contains scripts and tools to help debug and simulate GitHub Actions workflows locally.
 
-## Debug GitHub CI Locally
+## Overview
 
-The `debug-github-ci.sh` script allows you to run GitHub Actions workflows locally using the [act](https://github.com/nektos/act) tool. This is helpful to test how your code will behave in the GitHub Actions environment before pushing to the repository.
+The main script `debug-github-ci.sh` allows you to run GitHub Actions workflows locally using [act](https://github.com/nektos/act), which simulates the GitHub Actions environment on your local machine. This is particularly useful for debugging CI issues without having to commit and push changes to GitHub.
 
-### Prerequisites
+## Prerequisites
 
-1. Install [act](https://github.com/nektos/act):
-   ```bash
-   # macOS with Homebrew
-   brew install act
-   
-   # Linux/macOS with bash
-   curl https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash
-   ```
+- [Docker](https://www.docker.com/) must be installed and running
+- [act](https://github.com/nektos/act) must be installed (run `brew install act` on macOS)
+- A `.env` file in the project root with the necessary environment variables
 
-2. Make sure you have Docker running on your machine
+## Usage
 
-3. Ensure your `.env` file contains all necessary environment variables (same ones that exist as secrets in GitHub)
+### Using npm scripts
 
-### Usage
-
-You can run the script directly:
+The simplest way to use these debugging tools is through the npm scripts:
 
 ```bash
-./scripts/debug-github-ci.sh [options]
+# Run all integration tests (both critical and standard)
+npm run debug-github-ci:integration
+
+# Run only critical integration tests
+npm run debug-github-ci:critical
+
+# Run only standard integration tests
+npm run debug-github-ci:standard
+
+# Run unit tests
+npm run debug-github-ci:unit
+
+# Run linting
+npm run debug-github-ci:lint
 ```
 
-Or use one of the npm scripts:
+### Using the script directly
+
+For more control, you can use the script directly:
 
 ```bash
-# Run all integration tests (default job)
-npm run debug-github-ci
-
-# Run specific jobs
-npm run debug-github-ci:integration  # All integration tests
-npm run debug-github-ci:lint         # Linting checks
-npm run debug-github-ci:unit         # Unit tests
+./scripts/debug-github-ci.sh --job JOB_NAME [options]
 ```
 
-### Options
+#### Options
 
-- `-j, --job JOB` - Specify the job to run (default: integration-tests)
-- `-e, --env FILE` - Specify the environment file (default: .env)
-- `-p, --pull` - Pull Docker images before running
-- `-v, --verbose` - Enable verbose output from act
-- `-h, --help` - Display help message
+- `--help`: Display help message
+- `--job JOB_NAME`: Specify the GitHub Actions job to run (default: critical-integration-tests)
+- `--platform PLATFORM`: Specify the platform (e.g., ubuntu-latest)
+- `--env-file FILE`: Specify the environment file (default: .env)
+- `--pull`: Pull the latest Docker image
+- `--verbose`: Display verbose output
 
-### Available Jobs
+#### Available Jobs
 
-- `integration-tests` - Run all integration tests (critical, standard, and extended)
-- `critical-integration-tests` - Run only critical integration tests
-- `standard-integration-tests` - Run only standard integration tests
-- `lint` - Run linting checks
-- `unit-tests` - Run unit tests
+- `integration-tests`: Run all integration tests (critical and standard sequentially)
+- `critical-integration-tests`: Run only critical integration tests
+- `standard-integration-tests`: Run only standard integration tests
+- `unit-tests`: Run unit tests
+- `lint`: Run linting
+- `quality-info`: Run quality information
 
-### Examples
+## Examples
 
+Run critical integration tests with verbose output:
 ```bash
-# Run all integration tests with verbose output
-./scripts/debug-github-ci.sh --verbose
-
-# Run linting checks with a custom env file
-./scripts/debug-github-ci.sh --job lint --env .env.test
-
-# Run unit tests and pull the latest Docker images
-./scripts/debug-github-ci.sh --job unit-tests --pull
+./scripts/debug-github-ci.sh --job critical-integration-tests --verbose
 ```
 
-### Troubleshooting
+Run linting with a custom environment file:
+```bash
+./scripts/debug-github-ci.sh --job lint --env-file .env.local
+```
 
-If you encounter issues:
+## Troubleshooting
 
-1. Make sure Docker is running
-2. Verify your `.env` file contains all required variables
-3. Try running with `--verbose` flag for more detailed output
-4. Pull the latest Docker images with `--pull` flag
-5. Check the [act documentation](https://github.com/nektos/act) for more information 
+### M-series Mac Architecture Issues
+
+If you're using an Apple M-series chip (M1, M2, etc.), you may encounter architecture-related issues. The script automatically adds the `--container-architecture linux/amd64` flag to handle this, but you might need to ensure Docker Desktop is configured to support this emulation.
+
+### Docker Not Running
+
+Ensure Docker is running before executing the script. The script will check for this and display an error if Docker is not available.
+
+### Job Not Found
+
+Make sure the job you're trying to run exists in the GitHub Actions workflow files. You can list available jobs with `act --list`.
+
+### Environment Variables
+
+The script uses the `.env` file in the project root by default. Ensure this file contains all the necessary environment variables required by your tests. 

@@ -26,6 +26,8 @@
     "prepare": "husky",
     "debug-github-ci": "./scripts/debug-github-ci.sh",
     "debug-github-ci:integration": "./scripts/debug-github-ci.sh --job integration-tests",
+    "debug-github-ci:critical": "./scripts/debug-github-ci.sh --job critical-integration-tests",
+    "debug-github-ci:standard": "./scripts/debug-github-ci.sh --job standard-integration-tests",
     "debug-github-ci:lint": "./scripts/debug-github-ci.sh --job lint",
     "debug-github-ci:unit": "./scripts/debug-github-ci.sh --job unit-tests"
   },
