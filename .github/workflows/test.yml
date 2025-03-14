@@ -41,6 +41,7 @@ jobs:
   critical-integration-tests:
     runs-on: ubuntu-latest
     needs: unit-tests
+    environment: test
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js
@@ -52,11 +53,16 @@ jobs:
           rm -rf node_modules package-lock.json
           npm install
       - run: npm run test:integration:critical
+        env:
+          SANITY_TOKEN: ${{ secrets.SANITY_TOKEN }}
+          SANITY_PROJECT_ID: ${{ secrets.SANITY_PROJECT_ID }}
+          SANITY_DATASET: ${{ secrets.SANITY_DATASET }}
     
   standard-integration-tests:
     runs-on: ubuntu-latest
     needs: critical-integration-tests
     if: github.event_name == 'pull_request' || github.event_name == 'push'
+    environment: test
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js
@@ -68,6 +74,10 @@ jobs:
           rm -rf node_modules package-lock.json
           npm install
       - run: npm run test:integration:standard
+        env:
+          SANITY_TOKEN: ${{ secrets.SANITY_TOKEN }}
+          SANITY_PROJECT_ID: ${{ secrets.SANITY_PROJECT_ID }}
+          SANITY_DATASET: ${{ secrets.SANITY_DATASET }}
   
   # Integration tests configuration:
   # - Critical tests run in CI first for all events
