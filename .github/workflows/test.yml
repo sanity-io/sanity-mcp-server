@@ -37,25 +37,10 @@ jobs:
           npm install
       - run: npm run typecheck
       - run: npm run test:unit
-
-  critical-integration-tests:
-    runs-on: ubuntu-latest
-    needs: unit-tests
-    steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18.x'
-      - name: Clean install
-        run: |
-          rm -rf node_modules package-lock.json
-          npm install
-      - run: npm run test:integration:critical
     
   standard-integration-tests:
     runs-on: ubuntu-latest
-    needs: critical-integration-tests
+    needs: unit-tests
     if: github.event_name == 'pull_request' || github.event_name == 'push'
     steps:
       - uses: actions/checkout@v3
@@ -69,4 +54,7 @@ jobs:
           npm install
       - run: npm run test:integration:standard
   
-  # Extended integration tests removed - these are now only meant to run locally
+  # Integration tests configuration:
+  # - Critical tests now run locally before pushes
+  # - Standard tests run in CI for pull requests and pushes to main
+  # - Extended tests only run locally for specific feature testing

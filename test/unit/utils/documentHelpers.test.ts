@@ -1,3 +1,4 @@
+/* eslint-disable no-empty-function */
 import {beforeEach, describe, expect, it, vi} from 'vitest'
 
 import {

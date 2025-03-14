@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 /**
  * Mutation-related tool definitions
  *

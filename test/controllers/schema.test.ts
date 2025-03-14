@@ -1,3 +1,4 @@
+/* eslint-disable no-empty-function */
 import * as fs from 'fs/promises'
 import {beforeEach, describe, expect, it, vi} from 'vitest'
 

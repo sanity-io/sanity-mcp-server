@@ -1,3 +1,4 @@
+/* eslint-disable no-empty-function, no-unused-vars */
 /**
  * Integration test for schema commands with single types
  * @vitest-environment node

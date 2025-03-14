@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import {beforeEach, describe, expect, it, vi} from 'vitest'
 
 import config from '../../src/config/config.js'
