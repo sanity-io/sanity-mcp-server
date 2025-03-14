@@ -33,6 +33,11 @@
      - ✅ `addDocumentToRelease` in `releases.ts` (complexity 12, max 10)
    - Note: These functions will require proper refactoring in the future, but are now passing linting checks
 
+5. 🔄 **Fix GitHub Action Workflow Issues**
+   - 🔄 Update workflow file to handle Rollup dependencies issue on Linux
+   - 🔄 Fix clean installation process for CI/CD environments
+   - 🔄 Add specific Node.js setup steps to all workflows
+
 ## Medium Priority
 1. ✅ **Replace 'any' Types**
    - ✅ Replace any types in controllers (47 occurrences):
@@ -53,7 +58,7 @@
        - ✅ Replaced 'any' in catch blocks with 'unknown'
      - ✅ Replace any types in schema.ts (6 occurrences)
        - ✅ Replaced 'any' in catch blocks with 'unknown'
-       - ✅ Replaced [key: string]: any with [key: string]: unknown in SchemaTypeDetails interface
+       - ✅ Replaced 'any' in [key: string]: any with [key: string]: unknown in SchemaTypeDetails interface
    - ✅ Replace any types in utils (31 occurrences):
      - ✅ Replace any types in documentHelpers.ts (14 occurrences)
        - ✅ Replaced 'any' with SanityPatch in patch-related functions
@@ -76,11 +81,18 @@
    - ✅ Fix trailing whitespace in contextTools.ts
    - ✅ Fix trailing whitespace in groqTools.ts
 
-4. ⬜ **Review Document Helper Functions**
+4. ⬜ **Create Version Management Tooling**
+   - ⬜ Fix version numbering discrepancy between package.json and git tags
+   - ⬜ Create automated scripts to keep versions in sync
+   - ⬜ Implement proper release tagging workflow
+   - ⬜ Update release script to handle both patch and minor/major versions
+   - ⬜ Fix npm version vs. git tag inconsistency (current mismatch: package.json=0.3.1 vs tag=v0.5.0-alpha.1)
+
+5. ⬜ **Review Document Helper Functions**
    - Consider refactoring document helper functions to be more reusable
    - Improve error handling in document operations
 
-5. ⬜ **Implement Comprehensive Testing**
+6. ⬜ **Implement Comprehensive Testing**
    - Add more unit tests for type safety and edge cases
    - Test error handling scenarios thoroughly
 
