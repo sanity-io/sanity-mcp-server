@@ -11,6 +11,7 @@ import type {GetDocumentParams, GroqQueryParams, GroqQueryResult,
   GroqSpecResult} from '../types/sharedTypes.js'
 import type {ToolProvider} from '../types/toolProvider.js'
 import type {ToolDefinition} from '../types/tools.js'
+import { createErrorResponse } from '../utils/documentHelpers.js'
 
 /**
  * GROQ tools provider class
@@ -39,7 +40,12 @@ export class GroqToolProvider implements ToolProvider {
         description: 'Get the GROQ language specification',
         parameters: z.object({}),
         handler: async (): Promise<GroqSpecResult> => {
-          return await groqController.getGroqSpecification()
+          try {
+            const result = await groqController.getGroqSpecification()
+            return result
+          } catch (error) {
+            return createErrorResponse('Error retrieving GROQ specification', error)
+          }
         }
       },
       {
@@ -118,14 +124,26 @@ export class GroqToolProvider implements ToolProvider {
           ),
           query: z.string().describe('GROQ query string'),
           params: z.record(z.unknown()).optional().describe('Parameters for the GROQ query')
-        }) as z.ZodType<GroqQueryParams>,
-        handler: async (args: GroqQueryParams): Promise<GroqQueryResult> => {
-          return await groqController.searchContent(
-            args.projectId || config.projectId || '',
-            args.dataset || config.dataset || 'production',
-            args.query,
-            args.params
-          )
+        }),
+        handler: async (args) => {
+          try {
+            const projectId = args.projectId || config.projectId
+            const dataset = args.dataset || config.dataset
+            
+            if (!projectId || !dataset) {
+              throw new Error('Project ID and Dataset name are required. Please set SANITY_PROJECT_ID and SANITY_DATASET in your environment variables or provide them as parameters.')
+            }
+            
+            return await groqController.searchContent(
+              projectId,
+              dataset,
+              args.query,
+              args.params
+            )
+          } catch (error) {
+            console.error('Error executing GROQ query:', error)
+            throw error
+          }
         }
       }
     ]

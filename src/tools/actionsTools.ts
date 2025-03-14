@@ -13,6 +13,7 @@ import type {
   ReleaseDocumentIdParam} from '../types/sharedTypes.js'
 import type {ToolProvider} from '../types/toolProvider.js'
 import type {ToolDefinition} from '../types/tools.js'
+import { createErrorResponse } from '../utils/documentHelpers.js'
 
 /**
  * Actions tools provider class
@@ -38,52 +39,77 @@ export class ActionsToolProvider implements ToolProvider {
     return [
       {
         name: 'publishDocument',
-        description: 'Publish one or more draft documents',
+        description: 'Publishes a document to make it publicly available',
         parameters: z.object({
-          projectId: z.string().describe('Project ID for the Sanity project'),
-          dataset: z.string().describe('Dataset name within the project'),
-          documentId: z.union([z.string(), z.array(z.string())]).describe(
-            'The document ID or IDs to publish, must include draft. prefix if publishing a draft'
-          )
-        }) as z.ZodType<DocumentIdParam>,
-        handler: async (args: DocumentIdParam): Promise<ActionResult> => {
-          return await actionsController.publishDocument(
-            args.projectId,
-            args.dataset,
-            args.documentId
-          )
+          projectId: z.string().optional().describe(
+            'Project ID, if not provided will use the project ID from the environment'
+          ),
+          dataset: z.string().optional().describe(
+            'Dataset name, if not provided will use the dataset from the environment'
+          ),
+          documentId: z.string().describe('The ID of the document to publish'),
+        }),
+        handler: async (args) => {
+          try {
+            const result = await actionsController.publishDocument(
+              args.projectId || config.projectId || '',
+              args.dataset || config.dataset || 'production',
+              args.documentId
+            )
+            return result
+          } catch (error) {
+            return createErrorResponse('Error publishing document', error)
+          }
         }
       },
       {
         name: 'unpublishDocument',
-        description: 'Unpublish one or more documents (make them drafts only)',
+        description: 'Unpublishes a document to make it unavailable to the public',
         parameters: z.object({
-          projectId: z.string().describe('Project ID for the Sanity project'),
-          dataset: z.string().describe('Dataset name within the project'),
-          documentId: z.union([z.string(), z.array(z.string())]).describe('The document ID or IDs to unpublish')
-        }) as z.ZodType<DocumentIdParam>,
-        handler: async (args: DocumentIdParam): Promise<ActionResult> => {
-          return await actionsController.unpublishDocument(
-            args.projectId,
-            args.dataset,
-            args.documentId
-          )
+          projectId: z.string().optional().describe(
+            'Project ID, if not provided will use the project ID from the environment'
+          ),
+          dataset: z.string().optional().describe(
+            'Dataset name, if not provided will use the dataset from the environment'
+          ),
+          documentId: z.string().describe('The ID of the document to unpublish'),
+        }),
+        handler: async (args) => {
+          try {
+            const result = await actionsController.unpublishDocument(
+              args.projectId || config.projectId || '',
+              args.dataset || config.dataset || 'production',
+              args.documentId
+            )
+            return result
+          } catch (error) {
+            return createErrorResponse('Error unpublishing document', error)
+          }
         }
       },
       {
         name: 'deleteDocument',
-        description: 'Delete one or more documents including their drafts',
+        description: 'Deletes a document from the Sanity Content Lake',
         parameters: z.object({
-          projectId: z.string().describe('Project ID for the Sanity project'),
-          dataset: z.string().describe('Dataset name within the project'),
-          documentId: z.union([z.string(), z.array(z.string())]).describe('The document ID or IDs to delete')
-        }) as z.ZodType<DocumentIdParam>,
-        handler: async (args: DocumentIdParam): Promise<ActionResult> => {
-          return await actionsController.deleteDocument(
-            args.projectId,
-            args.dataset,
-            args.documentId
-          )
+          projectId: z.string().optional().describe(
+            'Project ID, if not provided will use the project ID from the environment'
+          ),
+          dataset: z.string().optional().describe(
+            'Dataset name, if not provided will use the dataset from the environment'
+          ),
+          documentId: z.string().describe('The ID of the document to delete'),
+        }),
+        handler: async (args) => {
+          try {
+            const result = await actionsController.deleteDocument(
+              args.projectId || config.projectId || '',
+              args.dataset || config.dataset || 'production',
+              [args.documentId]
+            )
+            return result
+          } catch (error) {
+            return createErrorResponse('Error deleting document', error)
+          }
         }
       },
       {
@@ -106,6 +132,36 @@ export class ActionsToolProvider implements ToolProvider {
             args.releaseId,
             args.documentId
           )
+        }
+      },
+      {
+        name: 'createDocument',
+        description: 'Creates a new document in the Sanity Content Lake',
+        parameters: z.object({
+          projectId: z.string().optional().describe(
+            'Project ID, if not provided will use the project ID from the environment'
+          ),
+          dataset: z.string().optional().describe(
+            'Dataset name, if not provided will use the dataset from the environment'
+          ),
+          document: z.record(z.any()).describe('The document to create'),
+          returnDocuments: z.boolean().optional().describe('Whether to return the created document')
+        }),
+        handler: async (args) => {
+          try {
+            if (!args.document._type) {
+              throw new Error('Document must have a _type field')
+            }
+
+            const result = await actionsController.createDocument(
+              args.projectId || config.projectId || '',
+              args.dataset || config.dataset || 'production',
+              args.document
+            )
+            return result
+          } catch (error) {
+            return createErrorResponse('Error creating document', error)
+          }
         }
       }
     ]

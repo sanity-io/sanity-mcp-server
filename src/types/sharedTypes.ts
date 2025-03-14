@@ -33,8 +33,6 @@ export interface ProjectDatasetParams {
  * Interface for document mutation parameters
  */
 export interface MutateDocumentsParams extends ProjectDatasetParams {
-  projectId: string;
-  dataset: string;
   mutations: Mutation[];
   returnDocuments?: boolean;
   options?: {
@@ -47,8 +45,6 @@ export interface MutateDocumentsParams extends ProjectDatasetParams {
  * Interface for create document parameters
  */
 export interface CreateDocumentParams extends ProjectDatasetParams {
-  projectId: string;
-  dataset: string;
   document: Record<string, any>;
   options?: {
     returnDocuments?: boolean;
@@ -60,8 +56,6 @@ export interface CreateDocumentParams extends ProjectDatasetParams {
  * Interface for update document parameters
  */
 export interface UpdateDocumentParams extends ProjectDatasetParams {
-  projectId: string;
-  dataset: string;
   documentId: string;
   document: Record<string, any>;
   options?: {
@@ -74,8 +68,6 @@ export interface UpdateDocumentParams extends ProjectDatasetParams {
  * Interface for patch document parameters
  */
 export interface PatchDocumentParams extends ProjectDatasetParams {
-  projectId: string;
-  dataset: string;
   documentId: string;
   patch: PatchOperations;
   options?: {
@@ -88,8 +80,6 @@ export interface PatchDocumentParams extends ProjectDatasetParams {
  * Interface for delete document parameters
  */
 export interface DeleteDocumentParams extends ProjectDatasetParams {
-  projectId: string;
-  dataset: string;
   documentId: string;
   options?: {
     visibility?: 'sync' | 'async' | 'deferred';
@@ -161,15 +151,11 @@ export interface SchemaTypeDetails extends SchemaType {
  */
 
 export interface GroqQueryParams extends ProjectDatasetParams {
-  projectId: string;
-  dataset: string;
   query: string;
   params?: Record<string, any>;
 }
 
 export interface GetDocumentParams extends ProjectDatasetParams {
-  projectId: string;
-  dataset: string;
   documentId: string | string[];
 }
 

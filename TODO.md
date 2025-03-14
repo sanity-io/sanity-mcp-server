@@ -1,29 +1,34 @@
 # TODO
 
 ## High Priority
-1. 🔄 **Make projectId and dataset Parameters Optional**
-   - Current implementation requires specifying projectId and dataset for every tool call
-   - Refactor to make these parameters optional and fall back to environment variables
-   - Files that need changes:
-     - Tool definition files:
-       - src/tools/actionsTools.ts
-       - src/tools/embeddingsTools.ts
-       - src/tools/groqTools.ts
-       - src/tools/mutateTools.ts
-       - src/tools/projectsTools.ts
-       - src/tools/releasesTools.ts
-       - src/tools/schemaTools.ts
-     - Controller files (adding fallbacks):
-       - src/controllers/actions.ts
-       - src/controllers/embeddings.ts
-       - src/controllers/groq.ts
-       - src/controllers/mutate.ts
-       - src/controllers/projects.ts
-       - src/controllers/releases.ts
-       - src/controllers/schema.ts
-     - Context tools:
-       - src/tools/contextTools.ts (update getInitialContext to indicate parameters are optional)
-   - **/feat/optional-project-dataset-params**
+1. 🔄 **Make projectId and dataset parameters optional** (In progress)
+   - Update interface definitions in sharedTypes.ts to make projectId and dataset optional
+   - Update tool definitions to include fallbacks to environment variables
+   - Update controller functions to handle optional parameters
+
+   **/feat/optional-project-dataset-params**
+
+   ### Implementation plan
+   1. 🔄 **Update Interface Definitions**
+      - ✅ Remove explicit projectId and dataset declarations from interfaces that extend ProjectDatasetParams
+   
+   2. 🔄 **Update Tool Definition Files**
+      - ✅ Update mutateTools.ts
+      - ✅ Update groqTools.ts (partially)
+      - ✅ Update embeddingsTools.ts
+      - ⬜ Update actionsTools.ts (remaining tools)
+      - ⬜ Update projectsTools.ts
+      - ⬜ Update releasesTools.ts
+      - ⬜ Update schemaTools.ts
+      - ⬜ Update contextTools.ts
+   
+   3. ⬜ **Fix Type Issues**
+      - ⬜ Resolve type errors in tool handlers
+      - ⬜ Ensure consistent error handling across all tools
+   
+   4. ⬜ **Testing**
+      - ⬜ Update tests to verify fallback behavior
+      - ⬜ Test with and without environment variables
 
 2. ✅ **Fix TypeScript Errors**
    - ✅ Fix interface conflicts in mutate.ts:
