@@ -6,6 +6,7 @@
  */
 import {z} from 'zod'
 
+import config from '../config/config.js'
 import * as mutateController from '../controllers/mutate.js'
 import type {
   CreateDocumentParams,
@@ -44,13 +45,17 @@ export class MutateToolProvider implements ToolProvider {
         name: 'createDocument',
         description: 'Create a new document',
         parameters: z.object({
-          projectId: z.string().describe('Project ID for the Sanity project'),
-          dataset: z.string().describe('Dataset name within the project'),
+          projectId: z.string().optional().describe(
+            'Project ID, if not provided will use the project ID from the environment'
+          ),
+          dataset: z.string().optional().describe(
+            'Dataset name, if not provided will use the dataset from the environment'
+          ),
           document: z.record(z.unknown()).describe('Document content to create'),
           options: z.object({
             returnDocuments: z.boolean().optional().describe('Whether to return created documents'),
             visibility: z.enum(['sync', 'async', 'deferred']).optional().describe('Transaction visibility')
-          }).optional().describe('Options for the create operation')
+          }).optional().describe('Additional options for document creation')
         }) as z.ZodType<CreateDocumentParams>,
         handler: async (args: CreateDocumentParams): Promise<MutateDocumentsResult> => {
           // Ensure document has a _type field
@@ -69,8 +74,8 @@ export class MutateToolProvider implements ToolProvider {
           ]
 
           return await mutateController.modifyDocuments(
-            args.projectId,
-            args.dataset,
+            args.projectId || config.projectId || '',
+            args.dataset || config.dataset || 'production',
             mutations,
             args.options?.returnDocuments || false
           )

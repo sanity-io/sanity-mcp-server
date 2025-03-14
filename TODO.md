@@ -1,7 +1,31 @@
 # TODO
 
 ## High Priority
-1. ✅ **Fix TypeScript Errors**
+1. 🔄 **Make projectId and dataset Parameters Optional**
+   - Current implementation requires specifying projectId and dataset for every tool call
+   - Refactor to make these parameters optional and fall back to environment variables
+   - Files that need changes:
+     - Tool definition files:
+       - src/tools/actionsTools.ts
+       - src/tools/embeddingsTools.ts
+       - src/tools/groqTools.ts
+       - src/tools/mutateTools.ts
+       - src/tools/projectsTools.ts
+       - src/tools/releasesTools.ts
+       - src/tools/schemaTools.ts
+     - Controller files (adding fallbacks):
+       - src/controllers/actions.ts
+       - src/controllers/embeddings.ts
+       - src/controllers/groq.ts
+       - src/controllers/mutate.ts
+       - src/controllers/projects.ts
+       - src/controllers/releases.ts
+       - src/controllers/schema.ts
+     - Context tools:
+       - src/tools/contextTools.ts (update getInitialContext to indicate parameters are optional)
+   - **/feat/optional-project-dataset-params**
+
+2. ✅ **Fix TypeScript Errors**
    - ✅ Fix interface conflicts in mutate.ts:
      - ✅ Resolve SanityTransaction and SanityPatch conflicts
      - ✅ Fix patch method signature mismatches
@@ -14,11 +38,11 @@
        - ✅ RemoveDocumentFromReleaseParams
    - ✅ Fixed type compatibility issues in actions.ts with @ts-expect-error comments
 
-2. ✅ **Fix Critical Linting Errors**
+3. ✅ **Fix Critical Linting Errors**
    - ✅ Fix quotes style error in releases.ts (line 43)
    - ✅ Fix max-len errors in actions.ts, index.ts, defaultValues.ts
 
-3. ✅ **Replace 'any' Types With Specific Types**
+4. ✅ **Replace 'any' Types With Specific Types**
    - ✅ Replaced all instances of 'any' with more specific types to improve type safety:
      - ✅ In `sanityClient.ts`: Replaced `Record<string, any>` in the `SanityAction` interface with `ContentValue` types
      - ✅ In `contextTools.ts`: Fixed mismatch between `EmbeddingIndex` and `EmbeddingsIndex` types
@@ -26,14 +50,14 @@
      - ✅ In `groqTools.ts`: Replaced `z.any()` with `z.unknown()` in query parameters
      - ✅ In `actions.ts`: Fixed duplicate function declarations and improved type annotations
 
-4. ✅ **Reduce Function Complexity**
+5. ✅ **Reduce Function Complexity**
    - ✅ Added ESLint directives to bypass complexity checks for complex functions:
      - ✅ `patchObjToSpec` in `actions.ts` (complexity 17, max 10)
      - ✅ `listEmbeddingsIndices` in `embeddings.ts` (complexity 11, max 10)
      - ✅ `addDocumentToRelease` in `releases.ts` (complexity 12, max 10)
    - Note: These functions will require proper refactoring in the future, but are now passing linting checks
 
-5. 🔄 **Fix GitHub Action Workflow Issues**
+6. 🔄 **Fix GitHub Action Workflow Issues**
    - 🔄 Update workflow file to handle Rollup dependencies issue on Linux
    - 🔄 Fix clean installation process for CI/CD environments
    - 🔄 Add specific Node.js setup steps to all workflows
