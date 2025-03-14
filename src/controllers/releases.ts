@@ -372,14 +372,15 @@ export async function removeDocumentFromRelease(
 
     return {
       success: true,
-      message: `Removed ${documentIds.length} documents from release ${releaseId}`,
+      message: `${processedIds.length} document(s) removed from release ${releaseId} successfully`,
       releaseId,
       documentIds: processedIds,
       result
     }
   } catch (error: unknown) {
     console.error('Error removing document from release:', error)
-    throw new Error(`Failed to remove document from release: ${error instanceof Error ? error.message : String(error)}`)
+    const errorMsg = error instanceof Error ? error.message : String(error)
+    throw new Error(`Failed to remove document(s) from release ${releaseId}: ${errorMsg}`)
   }
 }
 
@@ -566,7 +567,7 @@ export async function getRelease(
     }
   } catch (error: unknown) {
     console.error('Error retrieving release:', error)
-    throw new Error(`Failed to retrieve release: ${error instanceof Error ? error.message : String(error)}`)
+    throw new Error(`Failed to get release: ${error instanceof Error ? error.message : String(error)}`)
   }
 }
 

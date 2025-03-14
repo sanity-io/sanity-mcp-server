@@ -4,8 +4,8 @@ import type {
   PatchOperations,
   SanityClient,
   SanityDocument,
-  SanityPatch,
-  SanityTransaction} from '../types/sanity.js'
+  SanityMutationResult,
+  SanityPatch} from '../types/sanity.js'
 import {applyMutationDefaults} from '../utils/defaultValues.js'
 import logger from '../utils/logger.js'
 import {validateDocument, validateMutations} from '../utils/parameterValidation.js'
@@ -54,6 +54,17 @@ interface IdentifiedSanityDocumentStub extends SanityDocumentStub {
   _id: string;
 }
 
+// Define our own transaction interface that supports both ways of calling patch
+interface Transaction {
+  create: (doc: SanityDocumentStub) => Transaction;
+  createOrReplace: (doc: IdentifiedSanityDocumentStub) => Transaction;
+  createIfNotExists: (doc: IdentifiedSanityDocumentStub) => Transaction;
+  delete: (documentId: string) => Transaction;
+  patch: ((documentId: string, patchSpec: Record<string, unknown>) => Transaction) &
+         ((queryPatch: Record<string, unknown>) => Transaction);
+  commit: (options?: { visibility?: 'sync' | 'async' | 'deferred' }) => Promise<SanityMutationResult>;
+}
+
 export type Mutation =
   | CreateMutation
   | CreateOrReplaceMutation
@@ -68,7 +79,7 @@ export type Mutation =
  * @param mutation - Create mutation
  */
 function addCreateMutation(
-  transaction: SanityTransaction,
+  transaction: Transaction,
   mutation: CreateMutation
 ): void {
   transaction.create(mutation.create)
@@ -81,7 +92,7 @@ function addCreateMutation(
  * @param mutation - CreateOrReplace mutation
  */
 function addCreateOrReplaceMutation(
-  transaction: SanityTransaction,
+  transaction: Transaction,
   mutation: CreateOrReplaceMutation
 ): void {
   transaction.createOrReplace(mutation.createOrReplace)
@@ -94,7 +105,7 @@ function addCreateOrReplaceMutation(
  * @param mutation - CreateIfNotExists mutation
  */
 function addCreateIfNotExistsMutation(
-  transaction: SanityTransaction,
+  transaction: Transaction,
   mutation: CreateIfNotExistsMutation
 ): void {
   transaction.createIfNotExists(mutation.createIfNotExists)
@@ -107,7 +118,7 @@ function addCreateIfNotExistsMutation(
  * @param mutation - Delete mutation
  */
 function addDeleteMutation(
-  transaction: SanityTransaction,
+  transaction: Transaction,
   mutation: DeleteMutation
 ): void {
   transaction.delete(mutation.delete.id)
@@ -124,7 +135,7 @@ function addDeleteMutation(
  */
 function addPatchByIdMutation(
   client: SanityClient,
-  transaction: SanityTransaction,
+  transaction: Transaction,
   id: string,
   ifRevisionID?: string,
   patchOperations?: PatchOperations
@@ -146,7 +157,7 @@ function addPatchByIdMutation(
 
   // Add the patch to the transaction with the correct signature
   // First cast to unknown to avoid type compatibility errors
-  transaction.patch(id, patch as unknown as SanityPatch)
+  transaction.patch(id, patch as unknown as Record<string, unknown>)
 }
 
 /**
@@ -158,7 +169,7 @@ function addPatchByIdMutation(
  * @param patchOperations - Operations to apply in the patch
  */
 function addPatchByQueryMutation(
-  transaction: SanityTransaction,
+  transaction: Transaction,
   query: string,
   params?: Record<string, ContentValue>,
   patchOperations?: PatchOperations
@@ -167,16 +178,15 @@ function addPatchByQueryMutation(
     return
   }
 
-  // Create a patch spec object
+  // Create a patch spec object that includes the query and params directly
   const patchSpec = {
     query,
     params,
     ...patchOperations
   }
 
-  // Use a dummy documentId for query-based patches
-  // This is a workaround since the transaction.patch method requires a documentId
-  transaction.patch('query-patch', patchSpec)
+  // Call transaction.patch directly with the patch spec object
+  transaction.patch(patchSpec)
 }
 
 /**
@@ -260,7 +270,7 @@ function applyInsertOperation(patch: SanityPatch, insertOp: InsertOperation): vo
  */
 function processMutation(
   client: SanityClient,
-  transaction: SanityTransaction,
+  transaction: Transaction,
   mutation: Mutation
 ): void {
   // Handle create mutation
@@ -300,10 +310,6 @@ function processMutation(
       addPatchByIdMutation(client, transaction, id, ifRevisionID, patchOperations)
     }
   }
-
-  // Add proper type information to the document before passing to transaction
-  // First cast to unknown to avoid type compatibility errors
-  processMutation(client, transaction as unknown as SanityTransaction, mutation)
 }
 
 /**
@@ -474,7 +480,7 @@ async function modifyDocuments(
       }
 
       // Add proper type information to the document before passing to transaction
-      processMutation(client, transaction as unknown as SanityTransaction, mutation)
+      processMutation(client, transaction as unknown as Transaction, mutation)
     })
 
     // Commit the transaction with visibility option

@@ -96,6 +96,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed unused imports in releasesTools.ts:
   - Removed PublishReleaseParams and RemoveDocumentFromReleaseParams imports
   - Eliminated all TypeScript errors in the codebase
+- Fixed infinite recursion issue in mutate.ts:
+  - Removed accidental recursive call in processMutation function 
+  - Updated transaction.patch to properly handle both id-based and query-based patches
+  - Created a custom Transaction interface that supports flexible patch method signatures
+- Fixed message formatting in release controller:
+  - Updated error message formatting in removeDocumentFromRelease function to match test expectations
+  - Fixed line length issues to comply with ESLint rules
+  - Improved error message clarity by extracting error message variable
 
 ### Refactored
 - Refactored GROQ controller to reduce complexity:
