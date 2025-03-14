@@ -25,6 +25,7 @@
     "max-len": ["error", { "code": 120 }],
     "brace-style": "error"
   },
+  "ignorePatterns": ["dist/**/*", "dist/", "*.d.ts"],
   "overrides": [
     {
       "files": ["src/index.ts", "usage-example.ts"],
@@ -60,9 +61,15 @@
       }
     },
     {
-      "files": ["dist/**/*.d.ts"],
+      "files": ["dist/**/*.d.ts", "dist/**/*.js"],
       "rules": {
-        "sonarjs/cognitive-complexity": "off" // Generated declaration files can be complex
+        // Disable all rules for generated files
+        "@typescript-eslint/no-explicit-any": "off",
+        "max-len": "off",
+        "sonarjs/cognitive-complexity": "off",
+        "@typescript-eslint/no-unused-vars": "off",
+        "no-shadow": "off",
+        "max-nested-callbacks": "off"
       }
     }
   ]
