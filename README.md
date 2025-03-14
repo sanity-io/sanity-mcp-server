@@ -24,15 +24,18 @@ This server implements the MCP protocol using stdio transport, making it suitabl
 The server provides the following tools:
 
 - **GROQ Queries**
+
   - `query`: Executes GROQ queries (formerly `searchContent`)
   - `subscribeToUpdates`: Subscribes to real-time updates for documents
   - `getGroqSpecification`: Gets the GROQ query language specification
 
 - **Document Retrieval**
+
   - `getDocument`: Gets a document by ID or multiple documents by their IDs
   - `getDocuments`: Gets multiple documents by their IDs (alternative to using `getDocument` with an array)
 
 - **Document Mutations**
+
   - `createDocument`: Creates a new document
   - `updateDocument`: Updates one or more existing documents
   - `mutateDocument`: Performs multiple operations on a single document
@@ -41,6 +44,7 @@ The server provides the following tools:
   - `updatePortableText`: Updates Portable Text fields (formerly `modifyPortableTextField`)
 
 - **Document Actions**
+
   - `publishDocument`: Publishes one or more documents
   - `unpublishDocument`: Unpublishes one or more documents
   - `createRelease`: Creates a new content release
@@ -51,10 +55,12 @@ The server provides the following tools:
   - `unpublishDocumentWithRelease`: Marks one or more documents for unpublishing when a release is published
 
 - **Schema Management**
+
   - `listSchemaTypes`: Lists available schema types
   - `getTypeSchema`: Gets detailed schema for a specific type
 
 - **Embeddings and Semantic Search**
+
   - `semanticSearch`: Performs semantic search on embeddings indices
   - `listEmbeddingsIndices`: Lists available embeddings indices
 
@@ -75,6 +81,8 @@ This project is built with TypeScript. To compile the TypeScript files to JavaSc
 ```bash
 npm run build
 ```
+
+> **Important**: Before running the server, make sure to set up your environment variables as described in the [Environment Variables](#environment-variables) section below. The server requires Sanity API credentials to function properly.
 
 ### Development Mode
 
@@ -139,14 +147,29 @@ For Anthropic's Claude AI, you can configure it to use this MCP server by adding
 
 ## Environment Variables
 
-Create a `.env` file in the root directory with the following variables:
+To configure the server, you need to set up environment variables:
 
-```
-SANITY_TOKEN=your_sanity_api_token
-SANITY_PROJECT_ID=your_sanity_project_id
-SANITY_DATASET=your_sanity_dataset
-SANITY_API_VERSION=your_sanity_api_version
-```
+1. Copy the `.env.sample` file to create your own `.env` file:
+
+   ```bash
+   cp .env.sample .env
+   ```
+
+2. Edit the `.env` file and fill in your Sanity credentials:
+
+   ```
+   SANITY_TOKEN=your_sanity_api_token
+   SANITY_PROJECT_ID=your_sanity_project_id
+   SANITY_DATASET=your_sanity_dataset
+   SANITY_API_VERSION=2024-05-23  # Must be 2024-05-23 or later to support releases
+   PORT=3000  # Server port
+   ```
+
+   You can get these values from your Sanity project settings:
+
+   - `SANITY_TOKEN`: Create an API token in the Sanity management console with appropriate permissions
+   - `SANITY_PROJECT_ID`: Your Sanity project ID (found in project settings)
+   - `SANITY_DATASET`: The dataset name you want to work with (typically "production")
 
 ## Development
 
@@ -168,7 +191,6 @@ The project is organized as follows:
   - `unit/`: Unit tests
   - `integration/`: Integration tests
 - `schemas/`: Sanity schema files (not tracked in version control)
-
 
 ## License
 
