@@ -5,6 +5,7 @@
  */
 import {z} from 'zod'
 
+import config from '../config/config.js'
 import * as schemaController from '../controllers/schema.js'
 import type {
   GetSchemaParams,
@@ -14,6 +15,7 @@ import type {
 } from '../types/sharedTypes.js'
 import type {ToolProvider} from '../types/toolProvider.js'
 import type {ToolDefinition} from '../types/tools.js'
+import {createErrorResponse} from '../utils/documentHelpers.js'
 import logger from '../utils/logger.js'
 
 /**
@@ -42,45 +44,83 @@ export class SchemaToolProvider implements ToolProvider {
         name: 'getSchema',
         description: 'Get the complete schema for a project and dataset',
         parameters: z.object({
-          projectId: z.string().describe('Project ID to use for the request'),
-          dataset: z.string().describe('Dataset name to use for the request')
-        }) as z.ZodType<GetSchemaParams>,
-        handler: async (args: GetSchemaParams): Promise<SchemaTypeDetails[]> => {
-          logger.info(`Getting schema for project ${args.projectId}, dataset ${args.dataset}`)
-          return await schemaController.getSchema(args.projectId, args.dataset)
+          projectId: z.string().optional().describe(
+            'Project ID, if not provided will use the project ID from the environment'
+          ),
+          dataset: z.string().optional().describe(
+            'Dataset name, if not provided will use the dataset from the environment'
+          )
+        }),
+        handler: async (args) => {
+          try {
+            logger.info(`Getting schema for project ${args.projectId || config.projectId}, dataset ${args.dataset || config.dataset}`)
+            const result = await schemaController.getSchema(
+              args.projectId || config.projectId || '', 
+              args.dataset || config.dataset || 'production'
+            )
+            return result
+          } catch (error) {
+            return createErrorResponse('Error retrieving schema', error)
+          }
         }
       },
       {
         name: 'listSchemaTypes',
         description: 'List all schema types for a project and dataset',
         parameters: z.object({
-          projectId: z.string().describe('Project ID to use for the request'),
-          dataset: z.string().describe('Dataset name to use for the request'),
+          projectId: z.string().optional().describe(
+            'Project ID, if not provided will use the project ID from the environment'
+          ),
+          dataset: z.string().optional().describe(
+            'Dataset name, if not provided will use the dataset from the environment'
+          ),
           allTypes: z.boolean().optional().describe('Whether to include all types or only document types')
-        }) as z.ZodType<ListSchemaTypesParams>,
-        handler: async (args: ListSchemaTypesParams): Promise<SchemaTypeDetails[]> => {
-          logger.info(
-            `Listing schema types for project ${args.projectId}, dataset ${args.dataset}, ` +
-            `allTypes=${args.allTypes || false}`
-          )
-          return await schemaController.listSchemaTypes(args.projectId, args.dataset, {allTypes: args.allTypes})
+        }),
+        handler: async (args) => {
+          try {
+            logger.info(
+              `Listing schema types for project ${args.projectId || config.projectId}, dataset ${args.dataset || config.dataset}, ` +
+              `allTypes=${args.allTypes || false}`
+            )
+            const result = await schemaController.listSchemaTypes(
+              args.projectId || config.projectId || '',
+              args.dataset || config.dataset || 'production',
+              {allTypes: args.allTypes}
+            )
+            return result
+          } catch (error) {
+            return createErrorResponse('Error listing schema types', error)
+          }
         }
       },
       {
         name: 'getTypeSchema',
         description: 'Get the schema for a specific type',
         parameters: z.object({
-          projectId: z.string().describe('Project ID to use for the request'),
-          dataset: z.string().describe('Dataset name to use for the request'),
+          projectId: z.string().optional().describe(
+            'Project ID, if not provided will use the project ID from the environment'
+          ),
+          dataset: z.string().optional().describe(
+            'Dataset name, if not provided will use the dataset from the environment'
+          ),
           typeName: z.string().describe('The type name to get the schema for')
-        }) as z.ZodType<GetTypeSchemaParams>,
-        handler: async (args: GetTypeSchemaParams): Promise<SchemaTypeDetails> => {
-          if (!args.typeName) {
-            throw new Error('Type name is required')
-          }
+        }),
+        handler: async (args) => {
+          try {
+            if (!args.typeName) {
+              throw new Error('Type name is required')
+            }
 
-          logger.info(`Getting schema for type ${args.typeName} in project ${args.projectId}, dataset ${args.dataset}`)
-          return await schemaController.getTypeSchema(args.projectId, args.dataset, args.typeName)
+            logger.info(`Getting schema for type ${args.typeName} in project ${args.projectId || config.projectId}, dataset ${args.dataset || config.dataset}`)
+            const result = await schemaController.getTypeSchema(
+              args.projectId || config.projectId || '',
+              args.dataset || config.dataset || 'production',
+              args.typeName
+            )
+            return result
+          } catch (error) {
+            return createErrorResponse('Error retrieving type schema', error)
+          }
         }
       }
     ]

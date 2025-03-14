@@ -5,10 +5,12 @@
  */
 import {z} from 'zod'
 
+import config from '../config/config.js'
 import * as projectsController from '../controllers/projects.js'
 import type {ListStudiosParams} from '../types/sharedTypes.js'
 import type {ToolProvider} from '../types/toolProvider.js'
 import type {ToolDefinition} from '../types/tools.js'
+import {createErrorResponse} from '../utils/documentHelpers.js'
 
 /**
  * Projects tools provider class
@@ -37,7 +39,12 @@ export class ProjectsToolProvider implements ToolProvider {
         description: 'List all organizations and their projects that the user has access to',
         parameters: z.object({}),
         handler: async () => {
-          return await projectsController.listOrganizationsAndProjects()
+          try {
+            const result = await projectsController.listOrganizationsAndProjects()
+            return result
+          } catch (error) {
+            return createErrorResponse('Error listing organizations and projects', error)
+          }
         }
       },
       {
@@ -46,8 +53,13 @@ export class ProjectsToolProvider implements ToolProvider {
         parameters: z.object({
           projectId: z.string().describe('ID of the project to list studios for')
         }),
-        handler: async (args: ListStudiosParams) => {
-          return await projectsController.listStudios(args.projectId)
+        handler: async (args) => {
+          try {
+            const result = await projectsController.listStudios(args.projectId)
+            return result
+          } catch (error) {
+            return createErrorResponse('Error listing studios', error)
+          }
         }
       }
     ]

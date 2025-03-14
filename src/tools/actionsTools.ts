@@ -124,14 +124,19 @@ export class ActionsToolProvider implements ToolProvider {
           ),
           releaseId: z.string().describe('The release ID to unpublish with'),
           documentId: z.union([z.string(), z.array(z.string())]).describe('The document ID or IDs to unpublish')
-        }) as z.ZodType<ReleaseDocumentIdParam>,
-        handler: async (args: ReleaseDocumentIdParam): Promise<ActionResult> => {
-          return await actionsController.unpublishDocumentWithRelease(
-            args.projectId || config.projectId || '',
-            args.dataset || config.dataset || 'production',
-            args.releaseId,
-            args.documentId
-          )
+        }),
+        handler: async (args) => {
+          try {
+            const result = await actionsController.unpublishDocumentWithRelease(
+              args.projectId || config.projectId || '',
+              args.dataset || config.dataset || 'production',
+              args.releaseId,
+              args.documentId
+            )
+            return result
+          } catch (error) {
+            return createErrorResponse('Error unpublishing document with release', error)
+          }
         }
       },
       {

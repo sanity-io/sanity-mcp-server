@@ -5,6 +5,7 @@
  */
 import {z} from 'zod'
 
+import config from '../config/config.js'
 import * as releasesController from '../controllers/releases.js'
 import type {
   AddDocumentToReleaseParams,
@@ -15,6 +16,7 @@ import type {
 } from '../types/sharedTypes.js'
 import type {ToolProvider} from '../types/toolProvider.js'
 import type {ToolDefinition} from '../types/tools.js'
+import {createErrorResponse} from '../utils/documentHelpers.js'
 
 /**
  * Releases tools provider class
@@ -42,116 +44,134 @@ export class ReleasesToolProvider implements ToolProvider {
         name: 'createRelease',
         description: 'Creates a new content release',
         parameters: z.object({
-          projectId: z.string().describe('Project ID for the Sanity project'),
-          dataset: z.string().describe('Dataset name within the project'),
+          projectId: z.string().optional().describe(
+            'Project ID, if not provided will use the project ID from the environment'
+          ),
+          dataset: z.string().optional().describe(
+            'Dataset name, if not provided will use the dataset from the environment'
+          ),
           title: z.string().describe('Title for the release'),
           description: z.string().optional().describe('Optional description for the release')
         }),
-        handler: async (args: CreateReleaseParams) => {
-          const projectId = args.projectId
-          const dataset = args.dataset
-
-          if (!projectId) {
-            throw new Error('Project ID is required. Please provide it as a parameter or set it in the environment.')
+        handler: async (args) => {
+          try {
+            const result = await releasesController.createRelease(
+              args.projectId || config.projectId || '',
+              args.dataset || config.dataset || 'production',
+              args.title,
+              args.description
+            )
+            return result
+          } catch (error) {
+            return createErrorResponse('Error creating release', error)
           }
-
-          return await releasesController.createRelease(
-            projectId,
-            dataset,
-            args.title,
-            args.description
-          )
         }
       },
       {
         name: 'listReleases',
         description: 'Lists all content releases',
         parameters: z.object({
-          projectId: z.string().describe('Project ID for the Sanity project'),
-          dataset: z.string().describe('Dataset name within the project')
+          projectId: z.string().optional().describe(
+            'Project ID, if not provided will use the project ID from the environment'
+          ),
+          dataset: z.string().optional().describe(
+            'Dataset name, if not provided will use the dataset from the environment'
+          ),
+          includeArchived: z.boolean().optional().describe('Whether to include archived releases')
         }),
-        handler: async (args: ListReleasesParams) => {
-          const projectId = args.projectId
-          const dataset = args.dataset
-
-          if (!projectId) {
-            throw new Error('Project ID is required. Please provide it as a parameter or set it in the environment.')
+        handler: async (args) => {
+          try {
+            const result = await releasesController.listReleases(
+              args.projectId || config.projectId || '',
+              args.dataset || config.dataset || 'production'
+            )
+            return result
+          } catch (error) {
+            return createErrorResponse('Error listing releases', error)
           }
-
-          return await releasesController.listReleases(projectId, dataset)
         }
       },
       {
         name: 'updateRelease',
         description: 'Updates an existing content release',
         parameters: z.object({
-          projectId: z.string().describe('Project ID for the Sanity project'),
-          dataset: z.string().describe('Dataset name within the project'),
+          projectId: z.string().optional().describe(
+            'Project ID, if not provided will use the project ID from the environment'
+          ),
+          dataset: z.string().optional().describe(
+            'Dataset name, if not provided will use the dataset from the environment'
+          ),
           releaseId: z.string().describe('ID of the release to update'),
           title: z.string().optional().describe('New title for the release'),
           description: z.string().optional().describe('New description for the release')
         }),
-        handler: async (args: UpdateReleaseParams) => {
-          const projectId = args.projectId
-          const dataset = args.dataset
-
-          if (!projectId) {
-            throw new Error('Project ID is required. Please provide it as a parameter or set it in the environment.')
+        handler: async (args) => {
+          try {
+            const result = await releasesController.updateRelease(
+              args.projectId || config.projectId || '',
+              args.dataset || config.dataset || 'production',
+              args.releaseId,
+              {
+                title: args.title,
+                description: args.description
+              }
+            )
+            return result
+          } catch (error) {
+            return createErrorResponse('Error updating release', error)
           }
-
-          return await releasesController.updateRelease(
-            projectId,
-            dataset,
-            args.releaseId,
-            {
-              title: args.title,
-              description: args.description
-            }
-          )
         }
       },
       {
         name: 'archiveRelease',
         description: 'Archives a content release',
         parameters: z.object({
-          projectId: z.string().describe('Project ID for the Sanity project'),
-          dataset: z.string().describe('Dataset name within the project'),
+          projectId: z.string().optional().describe(
+            'Project ID, if not provided will use the project ID from the environment'
+          ),
+          dataset: z.string().optional().describe(
+            'Dataset name, if not provided will use the dataset from the environment'
+          ),
           releaseId: z.string().describe('ID of the release to archive')
         }),
-        handler: async (args: ReleaseIdParam) => {
-          const projectId = args.projectId
-          const dataset = args.dataset
-
-          if (!projectId) {
-            throw new Error('Project ID is required. Please provide it as a parameter or set it in the environment.')
+        handler: async (args) => {
+          try {
+            const result = await releasesController.archiveRelease(
+              args.projectId || config.projectId || '',
+              args.dataset || config.dataset || 'production',
+              args.releaseId
+            )
+            return result
+          } catch (error) {
+            return createErrorResponse('Error archiving release', error)
           }
-
-          return await releasesController.archiveRelease(projectId, dataset, args.releaseId)
         }
       },
       {
         name: 'addDocumentToRelease',
         description: 'Adds a document to a release',
         parameters: z.object({
-          projectId: z.string().describe('Project ID for the Sanity project'),
-          dataset: z.string().describe('Dataset name within the project'),
+          projectId: z.string().optional().describe(
+            'Project ID, if not provided will use the project ID from the environment'
+          ),
+          dataset: z.string().optional().describe(
+            'Dataset name, if not provided will use the dataset from the environment'
+          ),
           releaseId: z.string().describe('ID of the release to add the document to'),
-          documentId: z.string().describe('ID of the document to add to the release')
+          documentId: z.string().describe('ID of the document to add')
         }),
-        handler: async (args: AddDocumentToReleaseParams) => {
-          const projectId = args.projectId
-          const dataset = args.dataset
-
-          if (!projectId) {
-            throw new Error('Project ID is required. Please provide it as a parameter or set it in the environment.')
+        handler: async (args) => {
+          try {
+            const result = await releasesController.addDocumentToRelease(
+              args.projectId || config.projectId || '',
+              args.dataset || config.dataset || 'production',
+              args.releaseId,
+              args.documentId
+            )
+            return result
+          } catch (error) {
+            return createErrorResponse('Error adding document to release', error)
           }
-
-          return await releasesController.addDocumentToRelease(
-            projectId,
-            dataset,
-            args.releaseId,
-            args.documentId
-          )
         }
       }
     ]
