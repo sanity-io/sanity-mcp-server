@@ -7,9 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Improved documentation in README.md with clear instructions for copying and configuring the .env file
+- Added a prominent note in the Building and Running section reminding users to set up environment variables before running the server
+
 ## [0.5.0-alpha.1] - 2024-05-12
 
 ### Fixed
+
 - TypeScript errors fixed by adding `.js` extensions to imports and removing unused imports.
 - Addressed ESLint warnings across the codebase.
 - Fixed TypeScript errors in schema.ts file
@@ -24,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Removed PublishReleaseParams and RemoveDocumentFromReleaseParams imports
   - Eliminated all TypeScript errors in the codebase
 - Fixed infinite recursion issue in mutate.ts:
-  - Removed accidental recursive call in processMutation function 
+  - Removed accidental recursive call in processMutation function
   - Updated transaction.patch to properly handle both id-based and query-based patches
   - Created a custom Transaction interface that supports flexible patch method signatures
 - Fixed message formatting in release controller:
@@ -33,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Improved error message clarity by extracting error message variable
 
 ### Changed
+
 - Improved code quality and maintainability:
   - Fixed variable shadowing in groq.ts
   - Removed unused imports and variables
@@ -60,6 +67,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - Enhanced test coverage for controllers:
   - Added comprehensive tests for `createDocument` and `deleteDocument` functions in the `actions` controller
   - Implemented proper mocking for Sanity client transactions in test environment
@@ -77,6 +85,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New 'test:source' npm script for running tests without linting during development, allowing functionality verification without being blocked by linting errors
 
 ### Changed
+
 - Consolidated npm test scripts for better developer experience:
   - Simplified test command structure by removing redundant scripts
   - Ensured `test:full` runs linting, typechecking, and all tests in the correct order
@@ -106,11 +115,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Ensured proper ordering of all test steps (lint → typecheck → unit → controllers → integration)
 
 ### Fixed
+
 - Fixed extended integration tests configuration to correctly find and run tests:
   - Added explicit reporters configuration to the Vitest config
   - Ensured test files are properly discovered in the extended integration tests directory
 
 ### Refactored
+
 - Refactored GROQ controller to reduce complexity:
   - Split `searchContent` function into smaller helper functions for better readability.
   - Refactored `query` function to reuse these helper functions.
@@ -131,6 +142,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.3.0] - 2024-03-07
 
 ### Added
+
 - New endpoint for listing schema types.
 - Support for embedding documents.
 - Expanded documentation.
@@ -141,12 +153,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Schema introspection capabilities
 
 ### Changed
+
 - Enhanced error handling.
 - Improved type safety.
 - Improved error handling across all controllers
 - Enhanced validation for API parameters
 
 ### Fixed
+
 - Several critical bugs related to document retrieval.
 - Authentication edge cases.
 - Fixed issues with document reference handling
@@ -155,21 +169,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.0] - 2024-02-20
 
 ### Added
+
 - Search functionality.
 - Document history tracking.
 
 ### Changed
+
 - Refactored mutation controller.
 
 ## [0.1.0] - 2024-01-15
 
 ### Added
+
 - Initial release with core functionality.
 - Basic CRUD operations.
 - Authentication and authorization.
 
 ## [0.2.6] - 2025-03-08
+
 ### Fixed
+
 - Improved developer workflow and test reliability:
   - Updated TypeScript configuration to improve developer experience
   - Modified `tsconfig.json` to allow dot notation for index signatures
@@ -188,6 +207,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fixed release limit issues in standard integration tests
 
 ### Improved
+
 - Quality dashboard and reporting:
   - Fixed dashboard display issue showing "0/0 NOT RUN" for tests
   - Added default values for test categories when tests fail to execute
@@ -199,7 +219,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Enhanced error handling for environment variable issues
 
 ## [0.2.3] - 2023-11-06
+
 ### Added
+
 - GitHub Pages quality report workflow and visualization
   - Created automated GitHub Actions workflow for generating and publishing quality reports
   - Implemented HTML-based quality report with interactive charts and metrics
@@ -210,6 +232,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Enhanced error handling and visualization in the quality report
 
 ### Fixed
+
 - TypeScript errors in multiple files:
   - Fixed `src/controllers/embeddings.ts` - removed unused imports and variables, fixed index signature access
   - Fixed `src/config/config.ts` - resolved module import issues and replaced `import.meta.url` with `path.resolve()`
@@ -221,7 +244,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed GitHub Actions workflow for quality report generation with improved HTML generation process
 
 ## [0.2.0] - 2025-03-07
+
 ### Added
+
 - GitHub Pages workflow for quality reports
   - Automated generation and publishing of quality metrics to GitHub Pages
   - Interactive dashboard showing code quality trends over time
@@ -247,6 +272,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Type validation utilities for ensuring consistency between schemas and implementations
 
 ### Changed
+
 - Improved error handling in controllers with more descriptive error messages
 - Enhanced type safety by using validation utilities instead of inline checks
 - Updated mutate controller to use parameter validation and default values
@@ -254,13 +280,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Adopted Sanity's ESLint and TypeScript configurations for better code quality
 
 ## [0.1.5] - 2025-03-14
+
 ### Changed
+
 - Reorganized project structure by moving configuration files to a dedicated `config/` directory
   - Moved `tsconfig.json` to `config/tsconfig.json`
   - Moved `vitest.config.ts` to `config/vitest.config.ts`
   - Updated npm scripts to reference new file locations
 
 ### Added
+
 - Unified type definitions across controllers and tools
   - Created shared interfaces in `src/types/sharedTypes.ts`
   - Updated tool definitions to use shared parameter interfaces
@@ -269,7 +298,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Implemented type conversion for parameters that need it (e.g., string to string[])
 
 ## [0.1.4] - 2025-03-07
+
 ### Added
+
 - Central logger utility redirecting all output to stderr to avoid MCP protocol interference
 - Comprehensive integration test for the Sanity MCP server
 - New TODO list with prioritized improvements
@@ -302,6 +333,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - NDJSON format storage for quality metrics history
 
 ### Changed
+
 - Fixed schema tools to mark `projectId` and `dataset` as required parameters
 - Enhanced JSON response formatting for complex objects
 - Improved error handling for MCP tool execution
@@ -310,6 +342,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Made tests more resilient by using consistent document ID tracking between operations
 
 ### Fixed
+
 - Fixed MCP protocol communication by ensuring clean stdout channel
 - Fixed schema tools parameter requirements to match implementation
 - Fixed JSON response formatting for complex objects
@@ -319,8 +352,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed workflow syntax issues with command substitution in GitHub Actions
 
 ## [0.1.3] - 2025-03-07
+
 ### Fixed
-- Enhanced type safety with proper interfaces for SanityDocument, SanityPatch, and SanityTransaction 
+
+- Enhanced type safety with proper interfaces for SanityDocument, SanityPatch, and SanityTransaction
 - Fixed compatibility issues with @sanity/client types
 - Improved error handling with consistent error response formats
 - Fixed transaction patch type conflicts
@@ -329,6 +364,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed GROQ controller test compatibility by conditionally handling fetch parameters
 
 ### Code Quality
+
 - Reduced cognitive complexity across multiple controllers
 - TSLint report: 381 warnings (0 errors) after disabling strict linting in test files
 - Updated ESLint configuration to be more lenient with test files
@@ -336,7 +372,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved type safety across the codebase, particularly in sanity.ts and documentHelpers.ts
 
 ## [0.1.2] - 2025-03-07
+
 ### Added
+
 - Utility module `documentHelpers.ts` for common document operations
 - Added new interfaces in `sanity.ts`:
   - `InsertOperation`: Type-safe interface for array insert operations
@@ -358,6 +396,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `quality:full-report`: Run analysis and generate dashboard
 
 ### Changed
+
 - Refactored `applyPatchOperations` function in `documentHelpers.ts` to improve type safety and preserve backward compatibility
   - Added proper type safety using the new `PatchOperations` interface
   - Maintained consistent parameter order to prevent breaking existing tests
@@ -376,18 +415,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Quality scripts and output moved to `scripts/quality/` directory
 
 ### Removed
+
 - Removed `modifyPortableTextField` functionality and related code from controllers, tools, and tests
 - `PortableTextOperation` interface
 - `mutateTextField` tool which was no longer being used
 - Removed redundant `PortableTextOperation` interfaces from type definitions
 
 ### Fixed
+
 - Fixed type definitions in controllers to ensure backward compatibility with existing tests
 - Improved error handling consistency across controllers
 - Converted variable declarations from 'let' to 'const' where appropriate
 
 ## [0.1.1] - 2024-10-25
+
 ### Added
+
 - `find-complex-functions.js` script to identify functions with high cognitive complexity
 - Configured ESLint with SonarJS plugin to enforce cognitive complexity limits
 - Initial implementation of Content Releases API
@@ -396,6 +439,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for release versions and history
 
 ### Changed
+
 - Refactored tools architecture to use specialized tool providers for each domain area
 - Created a central tools registry in the `src/tools/index.ts` file
 - Improved modularity and organization of tool definitions
@@ -403,31 +447,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactored tools architecture to use specialized tool providers for each domain area
 
 ### Fixed
+
 - Fixed tests for the new tools structure
 - Ensured tool names are consistent across all provider implementations
 
 ## [0.1.0] - 2025-03-07
 
 ### Added
+
 - Integration tests for release document workflow
 - Integration tests for array parameter deserialization
 
 ### Changed
+
 - Updated all document-related API endpoints to handle both single document IDs and arrays of document IDs consistently
 - Standardized parameter naming across all functions to use `documentId` for both single IDs and arrays of IDs
 - Enhanced transaction handling for operations involving multiple documents
 
 ### Fixed
+
 - Fixed the schema command for single types
 - Fixed TypeScript errors in test files
 - Improved error handling when operations fail with empty arrays or missing required fields
 - Resolved serialization issues for arrays over the protocol
 
 ### Removed
+
 - Redundant endpoints for single and multiple document operations
 
 ## [0.2.0] - 2025-03-07
+
 ### Fixed
+
 - Fixed transaction.patch method calls to use the correct signature
 - Used type assertions to work around type incompatibilities in mutate.ts
 - Improved type safety in actions.ts by replacing 'any' with more specific types where possible
@@ -444,12 +495,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved type safety in defaultValues.ts by replacing 'any' with 'unknown' in applyDefaults function
 
 ## Enhanced Type Safety
+
 - Improved type safety in `groqTools.ts` by replacing `z.any()` with `z.unknown()` in Zod schemas
 - Improved type safety in `mutateTools.ts` by replacing `z.any()` with `z.unknown()` in Zod schemas
 - Fixed type mismatch in `contextTools.ts` between `EmbeddingIndex` and `EmbeddingsIndex`
 - Fixed import sorting in tools files
 
 ## Remaining Issues
+
 - Several functions have high complexity and need refactoring:
   - `patchObjToSpec` in `actions.ts`
   - `listEmbeddingsIndices` in `embeddings.ts`
@@ -459,6 +512,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## 2023-XX-XX
 
 ### Added
+
 - Enhanced error handling in `schema.ts` by replacing 'any' with 'unknown' in catch blocks
 - Improved type safety in `schema.ts` by using 'unknown' instead of 'any' for dynamic properties
 - Improved type safety in `documentHelpers.ts` by replacing 'any' with specific types for patch operations
@@ -472,6 +526,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added ESLint directives to bypass complexity checks on complex functions that would require significant refactoring
 
 ### Fixed
+
 - Resolved conflict between `EmbeddingIndex` and `EmbeddingsIndex` types in `contextTools.ts`
 - Fixed TransactionLike interface to match implementation requirements
 - Improved error handling by using more specific type guards
@@ -479,5 +534,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Addressed all remaining ESLint errors by selectively disabling complexity checks for complex functions
 
 ### Changed
+
 - Standardized type definitions for parameters across controllers
 - Improved function return type specificity across the codebase
