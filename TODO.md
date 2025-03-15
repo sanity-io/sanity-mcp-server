@@ -14,7 +14,7 @@
    
    2. ✅ **Update Tool Definition Files**
       - ✅ Update mutateTools.ts
-      - ✅ Update groqTools.ts (partially)
+      - ✅ Update groqTools.ts 
       - ✅ Update embeddingsTools.ts
       - ✅ Update actionsTools.ts
       - ✅ Update projectsTools.ts
@@ -22,13 +22,15 @@
       - ✅ Update schemaTools.ts
       - ✅ Verify contextTools.ts (already using config properly)
    
-   3. 🔄 **Fix Type Issues**
-      - ⬜ Resolve type errors in tool handlers
-      - ⬜ Ensure consistent error handling across all tools
+   3. ✅ **Fix Type Issues**
+      - ✅ Resolve type errors in tool handlers (groqTools.ts)
+      - ✅ Replace z.any() with z.unknown() for better type safety
+      - ✅ Ensure consistent error handling across all tools
    
-   4. ⬜ **Testing**
-      - ⬜ Update tests to verify fallback behavior
-      - ⬜ Test with and without environment variables
+   4. ✅ **Testing**
+      - ✅ Create test file to verify fallback behavior
+      - ✅ Test with and without environment variables
+      - ✅ Test error cases when no values are available
 
 ## Medium Priority
 1. ⬜ **Improve Error Handling**

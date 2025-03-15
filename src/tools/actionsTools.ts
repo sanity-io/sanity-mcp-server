@@ -149,7 +149,7 @@ export class ActionsToolProvider implements ToolProvider {
           dataset: z.string().optional().describe(
             'Dataset name, if not provided will use the dataset from the environment'
           ),
-          document: z.record(z.any()).describe('The document to create'),
+          document: z.record(z.unknown()).describe('The document to create'),
           returnDocuments: z.boolean().optional().describe('Whether to return the created document')
         }),
         handler: async (args) => {

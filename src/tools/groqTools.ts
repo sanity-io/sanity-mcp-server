@@ -8,10 +8,11 @@ import {z} from 'zod'
 import config from '../config/config.js'
 import * as groqController from '../controllers/groq.js'
 import type {GetDocumentParams, GroqQueryParams, GroqQueryResult,
-  GroqSpecResult} from '../types/sharedTypes.js'
+  GroqSpecResult, GroqSpecification} from '../types/sharedTypes.js'
 import type {ToolProvider} from '../types/toolProvider.js'
 import type {ToolDefinition} from '../types/tools.js'
-import { createErrorResponse } from '../utils/documentHelpers.js'
+import {createErrorResponse} from '../utils/documentHelpers.js'
+import logger from '../utils/logger.js'
 
 /**
  * GROQ tools provider class
@@ -44,7 +45,25 @@ export class GroqToolProvider implements ToolProvider {
             const result = await groqController.getGroqSpecification()
             return result
           } catch (error) {
-            return createErrorResponse('Error retrieving GROQ specification', error)
+            // Return a minimal valid GroqSpecResult with error information
+            logger.error('Error retrieving GROQ specification:', error)
+            
+            const fallbackSpec: GroqSpecification = {
+              name: 'GROQ',
+              version: 'unknown',
+              description: 'Error retrieving specification',
+              coreFeatures: [],
+              queryStructure: [],
+              operators: [],
+              examples: [],
+              functions: [],
+              resources: []
+            }
+            
+            return {
+              specification: fallbackSpec,
+              source: `Error: ${error instanceof Error ? error.message : String(error)}`
+            }
           }
         }
       },
@@ -56,8 +75,19 @@ export class GroqToolProvider implements ToolProvider {
           dataset: z.string().describe('Dataset name within the project'),
           query: z.string().describe('GROQ query to run'),
           params: z.record(z.unknown()).optional().describe('Optional parameters for the GROQ query')
-        }) as z.ZodType<GroqQueryParams>,
-        handler: async (args: GroqQueryParams): Promise<GroqQueryResult> => {
+        }),
+        handler: async (args) => {
+          // Ensure we have required values
+          if (!args.projectId) {
+            throw new Error('Project ID is required')
+          }
+          if (!args.dataset) {
+            throw new Error('Dataset is required')
+          }
+          if (!args.query) {
+            throw new Error('Query is required')
+          }
+          
           return await groqController.searchContent(
             args.projectId,
             args.dataset,
@@ -71,17 +101,22 @@ export class GroqToolProvider implements ToolProvider {
         description: 'Run a GROQ query against the dataset',
         parameters: z.object({
           projectId: z.string().describe('Project ID for the Sanity project'),
-          dataset: z
-            .string()
-            .optional()
-            .describe('Sanity dataset. Uses default dataset if omitted.'),
-          query: z.string().optional().describe('Get examples specifically for this query'),
+          dataset: z.string().optional().describe('Sanity dataset. Uses default dataset if omitted.'),
+          query: z.string().describe('GROQ query to run'),
           params: z.record(z.unknown()).optional().describe('Optional parameters for the GROQ query')
-        }) as z.ZodType<GroqQueryParams>,
-        handler: async (args: GroqQueryParams): Promise<GroqQueryResult> => {
+        }),
+        handler: async (args) => {
+          // Ensure we have required values
+          if (!args.projectId) {
+            throw new Error('Project ID is required')
+          }
+          
+          // Use a default dataset if not provided
+          const dataset = args.dataset || 'production'
+          
           return await groqController.searchContent(
             args.projectId,
-            args.dataset,
+            dataset,
             args.query,
             args.params || {}
           )
@@ -96,8 +131,16 @@ export class GroqToolProvider implements ToolProvider {
           documentId: z.union([z.string(), z.array(z.string())]).describe(
             'ID or array of IDs of the document(s) to retrieve'
           )
-        }) as z.ZodType<GetDocumentParams>,
-        handler: async (args: GetDocumentParams): Promise<GroqQueryResult> => {
+        }),
+        handler: async (args) => {
+          // Ensure we have required values
+          if (!args.projectId) {
+            throw new Error('Project ID is required')
+          }
+          if (!args.dataset) {
+            throw new Error('Dataset is required')
+          }
+          
           const {projectId, dataset, documentId} = args
 
           if (Array.isArray(documentId)) {
@@ -131,7 +174,10 @@ export class GroqToolProvider implements ToolProvider {
             const dataset = args.dataset || config.dataset
             
             if (!projectId || !dataset) {
-              throw new Error('Project ID and Dataset name are required. Please set SANITY_PROJECT_ID and SANITY_DATASET in your environment variables or provide them as parameters.')
+              throw new Error(
+                'Project ID and Dataset name are required. ' +
+                'Please set SANITY_PROJECT_ID and SANITY_DATASET in your environment variables or provide them as parameters.'
+              )
             }
             
             return await groqController.searchContent(
@@ -141,7 +187,7 @@ export class GroqToolProvider implements ToolProvider {
               args.params
             )
           } catch (error) {
-            console.error('Error executing GROQ query:', error)
+            logger.error('Error executing GROQ query:', error)
             throw error
           }
         }
