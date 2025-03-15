@@ -7,11 +7,9 @@ import {z} from 'zod'
 
 import config from '../config/config.js'
 import * as groqController from '../controllers/groq.js'
-import type {GetDocumentParams, GroqQueryParams, GroqQueryResult,
-  GroqSpecResult, GroqSpecification} from '../types/sharedTypes.js'
+import type {GroqSpecResult, GroqSpecification} from '../types/sharedTypes.js'
 import type {ToolProvider} from '../types/toolProvider.js'
 import type {ToolDefinition} from '../types/tools.js'
-import {createErrorResponse} from '../utils/documentHelpers.js'
 import logger from '../utils/logger.js'
 
 /**
@@ -152,7 +150,12 @@ export class GroqToolProvider implements ToolProvider {
             )
           }
 
-          return await groqController.searchContent(projectId, dataset, '*[_id == $documentId][0]', {documentId})
+          return await groqController.searchContent(
+            projectId,
+            dataset,
+            '*[_id == $documentId][0]',
+            {documentId}
+          )
         }
       },
       {
@@ -174,10 +177,10 @@ export class GroqToolProvider implements ToolProvider {
             const dataset = args.dataset || config.dataset
             
             if (!projectId || !dataset) {
-              throw new Error(
-                'Project ID and Dataset name are required. ' +
-                'Please set SANITY_PROJECT_ID and SANITY_DATASET in your environment variables or provide them as parameters.'
-              )
+              const errorMsg = 'Project ID and Dataset name are required. ' +
+                'Please set SANITY_PROJECT_ID and SANITY_DATASET in your environment variables ' +
+                'or provide them as parameters.'
+              throw new Error(errorMsg)
             }
             
             return await groqController.searchContent(

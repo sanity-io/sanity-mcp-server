@@ -1,13 +1,11 @@
 /**
  * Projects-related tool definitions
  *
- * This file defines all the MCP tool definitions related to projects and organizations
+ * This file defines all the MCP tool definitions related to Sanity projects
  */
 import {z} from 'zod'
 
-import config from '../config/config.js'
 import * as projectsController from '../controllers/projects.js'
-import type {ListStudiosParams} from '../types/sharedTypes.js'
 import type {ToolProvider} from '../types/toolProvider.js'
 import type {ToolDefinition} from '../types/tools.js'
 import {createErrorResponse} from '../utils/documentHelpers.js'
@@ -36,29 +34,29 @@ export class ProjectsToolProvider implements ToolProvider {
     return [
       {
         name: 'listOrganizationsAndProjects',
-        description: 'List all organizations and their projects that the user has access to',
+        description: 'List all organizations and their projects for the current user',
         parameters: z.object({}),
         handler: async () => {
           try {
             const result = await projectsController.listOrganizationsAndProjects()
             return result
           } catch (error) {
-            return createErrorResponse('Error listing organizations and projects', error)
+            return createErrorResponse('Error listing organizations and projects', error as Error)
           }
         }
       },
       {
         name: 'listStudios',
-        description: 'List all studios for a specific project',
+        description: 'List all studios for a project',
         parameters: z.object({
-          projectId: z.string().describe('ID of the project to list studios for')
+          projectId: z.string().describe('Sanity project ID')
         }),
         handler: async (args) => {
           try {
             const result = await projectsController.listStudios(args.projectId)
             return result
           } catch (error) {
-            return createErrorResponse('Error listing studios', error)
+            return createErrorResponse('Error listing studios', error as Error)
           }
         }
       }

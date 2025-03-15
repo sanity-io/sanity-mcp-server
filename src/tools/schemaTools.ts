@@ -1,22 +1,15 @@
 /**
  * Schema-related tool definitions
  *
- * This file defines all the MCP tool definitions related to schema operations
+ * This file defines all the MCP tool definitions related to Sanity schema
  */
 import {z} from 'zod'
 
 import config from '../config/config.js'
 import * as schemaController from '../controllers/schema.js'
-import type {
-  GetSchemaParams,
-  GetTypeSchemaParams,
-  ListSchemaTypesParams,
-  SchemaTypeDetails
-} from '../types/sharedTypes.js'
 import type {ToolProvider} from '../types/toolProvider.js'
 import type {ToolDefinition} from '../types/tools.js'
 import {createErrorResponse} from '../utils/documentHelpers.js'
-import logger from '../utils/logger.js'
 
 /**
  * Schema tools provider class
@@ -42,7 +35,7 @@ export class SchemaToolProvider implements ToolProvider {
     return [
       {
         name: 'getSchema',
-        description: 'Get the complete schema for a project and dataset',
+        description: 'Get the complete schema for a dataset',
         parameters: z.object({
           projectId: z.string().optional().describe(
             'Project ID, if not provided will use the project ID from the environment'
@@ -53,20 +46,19 @@ export class SchemaToolProvider implements ToolProvider {
         }),
         handler: async (args) => {
           try {
-            logger.info(`Getting schema for project ${args.projectId || config.projectId}, dataset ${args.dataset || config.dataset}`)
             const result = await schemaController.getSchema(
-              args.projectId || config.projectId || '', 
+              args.projectId || config.projectId || '',
               args.dataset || config.dataset || 'production'
             )
             return result
           } catch (error) {
-            return createErrorResponse('Error retrieving schema', error)
+            return createErrorResponse('Error retrieving schema', error as Error)
           }
         }
       },
       {
         name: 'listSchemaTypes',
-        description: 'List all schema types for a project and dataset',
+        description: 'List all schema types for a dataset',
         parameters: z.object({
           projectId: z.string().optional().describe(
             'Project ID, if not provided will use the project ID from the environment'
@@ -74,22 +66,18 @@ export class SchemaToolProvider implements ToolProvider {
           dataset: z.string().optional().describe(
             'Dataset name, if not provided will use the dataset from the environment'
           ),
-          allTypes: z.boolean().optional().describe('Whether to include all types or only document types')
+          includeDetails: z.boolean().optional().describe('Whether to include detailed type information')
         }),
         handler: async (args) => {
           try {
-            logger.info(
-              `Listing schema types for project ${args.projectId || config.projectId}, dataset ${args.dataset || config.dataset}, ` +
-              `allTypes=${args.allTypes || false}`
-            )
             const result = await schemaController.listSchemaTypes(
               args.projectId || config.projectId || '',
               args.dataset || config.dataset || 'production',
-              {allTypes: args.allTypes}
+              args.includeDetails
             )
             return result
           } catch (error) {
-            return createErrorResponse('Error listing schema types', error)
+            return createErrorResponse('Error listing schema types', error as Error)
           }
         }
       },
@@ -103,15 +91,10 @@ export class SchemaToolProvider implements ToolProvider {
           dataset: z.string().optional().describe(
             'Dataset name, if not provided will use the dataset from the environment'
           ),
-          typeName: z.string().describe('The type name to get the schema for')
+          typeName: z.string().describe('The name of the type to get schema for')
         }),
         handler: async (args) => {
           try {
-            if (!args.typeName) {
-              throw new Error('Type name is required')
-            }
-
-            logger.info(`Getting schema for type ${args.typeName} in project ${args.projectId || config.projectId}, dataset ${args.dataset || config.dataset}`)
             const result = await schemaController.getTypeSchema(
               args.projectId || config.projectId || '',
               args.dataset || config.dataset || 'production',
@@ -119,7 +102,7 @@ export class SchemaToolProvider implements ToolProvider {
             )
             return result
           } catch (error) {
-            return createErrorResponse('Error retrieving type schema', error)
+            return createErrorResponse('Error retrieving type schema', error as Error)
           }
         }
       }

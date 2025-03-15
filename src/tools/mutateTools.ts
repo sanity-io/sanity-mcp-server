@@ -8,14 +8,6 @@ import {z} from 'zod'
 
 import config from '../config/config.js'
 import * as mutateController from '../controllers/mutate.js'
-import type {
-  CreateDocumentParams,
-  DeleteDocumentParams,
-  MutateDocumentsParams,
-  MutateDocumentsResult,
-  PatchDocumentParams,
-  UpdateDocumentParams
-} from '../types/sharedTypes.js'
 import type {ToolProvider} from '../types/toolProvider.js'
 import type {ToolDefinition} from '../types/tools.js'
 
@@ -51,55 +43,61 @@ export class MutateToolProvider implements ToolProvider {
           dataset: z.string().optional().describe(
             'Dataset name, if not provided will use the dataset from the environment'
           ),
-          document: z.record(z.unknown()).describe('Document content to create'),
-          options: z.object({
-            returnDocuments: z.boolean().optional().describe('Whether to return created documents'),
-            visibility: z.enum(['sync', 'async', 'deferred']).optional().describe('Transaction visibility')
-          }).optional().describe('Additional options for document creation')
-        }) as z.ZodType<CreateDocumentParams>,
-        handler: async (args: CreateDocumentParams): Promise<MutateDocumentsResult> => {
+          document: z.record(z.unknown()).describe('Document to create'),
+          returnDocuments: z.boolean().optional().describe('Whether to return created documents')
+        }),
+        handler: async (args) => {
           // Ensure document has a _type field
           if (!args.document._type) {
             throw new Error('Document must have a _type field')
           }
 
-          // Create the mutation with proper typing
-          const mutations = [
-            {
-              create: {
-                _type: args.document._type,
-                ...args.document
-              }
-            }
-          ]
+          // Construct mutations array
+          const mutations = [{create: args.document}]
 
+          // Call modifyDocuments with the mutations
           return await mutateController.modifyDocuments(
             args.projectId || config.projectId || '',
             args.dataset || config.dataset || 'production',
             mutations,
-            args.options?.returnDocuments || false
+            args.returnDocuments || false
           )
         }
       },
       {
-        name: 'mutateDocument',
-        description: 'Apply mutations to documents',
+        name: 'modifyDocuments',
+        description: 'Apply multiple mutations to documents',
         parameters: z.object({
-          projectId: z.string().describe('Project ID for the Sanity project'),
-          dataset: z.string().describe('Dataset name within the project'),
+          projectId: z.string().optional().describe(
+            'Project ID, if not provided will use the project ID from the environment'
+          ),
+          dataset: z.string().optional().describe(
+            'Dataset name, if not provided will use the dataset from the environment'
+          ),
           mutations: z.array(
             z.union([
-              z.object({create: z.object({_type: z.string()}).passthrough()}),
-              z.object({createOrReplace: z.object({_id: z.string(), _type: z.string()}).passthrough()}),
-              z.object({createIfNotExists: z.object({_id: z.string(), _type: z.string()}).passthrough()}),
-              z.object({delete: z.object({id: z.string()})}),
+              z.object({
+                create: z.record(z.unknown())
+              }),
+              z.object({
+                createIfNotExists: z.record(z.unknown())
+              }),
+              z.object({
+                createOrReplace: z.record(z.unknown())
+              }),
+              z.object({
+                delete: z.object({
+                  id: z.string()
+                })
+              }),
               z.object({
                 patch: z.object({
                   id: z.string(),
+                  query: z.string().optional(),
                   ifRevisionID: z.string().optional(),
+                  unset: z.union([z.string(), z.array(z.string())]).optional(),
                   set: z.record(z.unknown()).optional(),
                   setIfMissing: z.record(z.unknown()).optional(),
-                  unset: z.union([z.string(), z.array(z.string())]).optional(),
                   inc: z.record(z.number()).optional(),
                   dec: z.record(z.number()).optional(),
                   insert: z.unknown().optional(),
@@ -110,10 +108,10 @@ export class MutateToolProvider implements ToolProvider {
           ).describe('Array of mutation objects'),
           returnDocuments: z.boolean().optional().describe('Whether to return modified documents')
         }),
-        handler: async (args: MutateDocumentsParams): Promise<MutateDocumentsResult> => {
+        handler: async (args) => {
           return await mutateController.modifyDocuments(
-            args.projectId,
-            args.dataset,
+            args.projectId || config.projectId || '',
+            args.dataset || config.dataset || 'production',
             args.mutations,
             args.returnDocuments || false
           )
@@ -123,22 +121,26 @@ export class MutateToolProvider implements ToolProvider {
         name: 'updateDocument',
         description: 'Update an existing document',
         parameters: z.object({
-          projectId: z.string().describe('Project ID for the Sanity project'),
-          dataset: z.string().describe('Dataset name within the project'),
+          projectId: z.string().optional().describe(
+            'Project ID, if not provided will use the project ID from the environment'
+          ),
+          dataset: z.string().optional().describe(
+            'Dataset name, if not provided will use the dataset from the environment'
+          ),
           documentId: z.string().describe('ID of the document to update'),
           document: z.record(z.unknown()).describe('Document content to update with'),
           options: z.object({
             returnDocuments: z.boolean().optional().describe('Whether to return updated documents'),
             visibility: z.enum(['sync', 'async', 'deferred']).optional().describe('Transaction visibility')
           }).optional().describe('Options for the update operation')
-        }) as z.ZodType<UpdateDocumentParams>,
-        handler: async (args: UpdateDocumentParams): Promise<MutateDocumentsResult> => {
+        }),
+        handler: async (args) => {
           // Ensure document has a _type field
           if (!args.document._type) {
             throw new Error('Document must have a _type field')
           }
 
-          // Make sure _id is included in the documen
+          // Make sure _id is included in the document
           const documentWithId = {
             _id: args.documentId,
             _type: args.document._type,
@@ -147,31 +149,37 @@ export class MutateToolProvider implements ToolProvider {
 
           const mutations = [{createOrReplace: documentWithId}]
           return await mutateController.modifyDocuments(
-            args.projectId,
-            args.dataset,
+            args.projectId || config.projectId || '',
+            args.dataset || config.dataset || 'production',
             mutations,
-            args.options?.returnDocuments || false
+            args.options?.returnDocuments || false,
+            {visibility: args.options?.visibility}
           )
         }
       },
       {
         name: 'patchDocument',
-        description: 'Patch an existing document with partial updates',
+        description: 'Apply a patch to a document',
         parameters: z.object({
-          projectId: z.string().describe('Project ID for the Sanity project'),
-          dataset: z.string().describe('Dataset name within the project'),
+          projectId: z.string().optional().describe(
+            'Project ID, if not provided will use the project ID from the environment'
+          ),
+          dataset: z.string().optional().describe(
+            'Dataset name, if not provided will use the dataset from the environment'
+          ),
           documentId: z.string().describe('ID of the document to patch'),
           patch: z.object({
             set: z.record(z.unknown()).optional().describe('Fields to set'),
-            setIfMissing: z.record(z.unknown()).optional().describe('Fields to set if they are missing'),
-            unset: z.array(z.string()).optional().describe('Fields to unset')
+            setIfMissing: z.record(z.unknown()).optional().describe('Fields to set if missing'),
+            unset: z.union([z.string(), z.array(z.string())]).optional().describe('Fields to unset'),
+            inc: z.record(z.number()).optional().describe('Fields to increment'),
+            dec: z.record(z.number()).optional().describe('Fields to decrement'),
+            insert: z.unknown().optional().describe('Insert operation'),
+            diffMatchPatch: z.record(z.string()).optional().describe('Diff match patch operations')
           }).describe('Patch operations to apply'),
-          options: z.object({
-            returnDocuments: z.boolean().optional().describe('Whether to return patched documents'),
-            visibility: z.enum(['sync', 'async', 'deferred']).optional().describe('Transaction visibility')
-          }).optional().describe('Options for the patch operation')
-        }) as z.ZodType<PatchDocumentParams>,
-        handler: async (args: PatchDocumentParams): Promise<MutateDocumentsResult> => {
+          returnDocuments: z.boolean().optional().describe('Whether to return patched documents')
+        }),
+        handler: async (args) => {
           const mutations = [
             {
               patch: {
@@ -182,10 +190,10 @@ export class MutateToolProvider implements ToolProvider {
           ]
 
           return await mutateController.modifyDocuments(
-            args.projectId,
-            args.dataset,
+            args.projectId || config.projectId || '',
+            args.dataset || config.dataset || 'production',
             mutations,
-            args.options?.returnDocuments || false
+            args.returnDocuments || false
           )
         }
       },
@@ -193,66 +201,29 @@ export class MutateToolProvider implements ToolProvider {
         name: 'deleteDocument',
         description: 'Delete a document',
         parameters: z.object({
-          projectId: z.string().describe('Project ID for the Sanity project'),
-          dataset: z.string().describe('Dataset name within the project'),
+          projectId: z.string().optional().describe(
+            'Project ID, if not provided will use the project ID from the environment'
+          ),
+          dataset: z.string().optional().describe(
+            'Dataset name, if not provided will use the dataset from the environment'
+          ),
           documentId: z.string().describe('ID of the document to delete'),
-          options: z.object({
-            visibility: z.enum(['sync', 'async', 'deferred']).optional().describe('Transaction visibility')
-          }).optional().describe('Options for the delete operation')
-        }) as z.ZodType<DeleteDocumentParams>,
-        handler: async (args: DeleteDocumentParams): Promise<MutateDocumentsResult> => {
+          returnDocuments: z.boolean().optional().describe('Whether to return deleted documents')
+        }),
+        handler: async (args) => {
           const mutations = [
             {
-              delete: {id: args.documentId}
+              delete: {
+                id: args.documentId
+              }
             }
           ]
 
           return await mutateController.modifyDocuments(
-            args.projectId,
-            args.dataset,
+            args.projectId || config.projectId || '',
+            args.dataset || config.dataset || 'production',
             mutations,
-            false
-          )
-        }
-      },
-      {
-        name: 'batchMutations',
-        description: 'Execute a batch of mutations',
-        parameters: z.object({
-          projectId: z.string().describe('Project ID for the Sanity project'),
-          dataset: z.string().describe('Dataset name within the project'),
-          mutations: z.array(
-            z.union([
-              z.object({create: z.object({_type: z.string()}).passthrough()}),
-              z.object({createOrReplace: z.object({_id: z.string(), _type: z.string()}).passthrough()}),
-              z.object({createIfNotExists: z.object({_id: z.string(), _type: z.string()}).passthrough()}),
-              z.object({delete: z.object({id: z.string()})}),
-              z.object({
-                patch: z.object({
-                  id: z.string(),
-                  ifRevisionID: z.string().optional(),
-                  set: z.record(z.unknown()).optional(),
-                  setIfMissing: z.record(z.unknown()).optional(),
-                  unset: z.union([z.string(), z.array(z.string())]).optional(),
-                  inc: z.record(z.number()).optional(),
-                  dec: z.record(z.number()).optional(),
-                  insert: z.unknown().optional(),
-                  diffMatchPatch: z.record(z.string()).optional()
-                })
-              })
-            ])
-          ).describe('Array of mutation objects'),
-          options: z.object({
-            returnDocuments: z.boolean().optional().describe('Whether to return modified documents'),
-            visibility: z.enum(['sync', 'async', 'deferred']).optional().describe('Transaction visibility')
-          }).optional().describe('Options for the batch operation')
-        }),
-        handler: async (args: MutateDocumentsParams): Promise<MutateDocumentsResult> => {
-          return await mutateController.modifyDocuments(
-            args.projectId,
-            args.dataset,
-            args.mutations,
-            args.options?.returnDocuments || false
+            args.returnDocuments || false
           )
         }
       }

@@ -7,13 +7,9 @@ import {z} from 'zod'
 
 import config from '../config/config.js'
 import * as actionsController from '../controllers/actions.js'
-import type {
-  ActionResult,
-  DocumentIdParam,
-  ReleaseDocumentIdParam} from '../types/sharedTypes.js'
 import type {ToolProvider} from '../types/toolProvider.js'
 import type {ToolDefinition} from '../types/tools.js'
-import { createErrorResponse } from '../utils/documentHelpers.js'
+import {createErrorResponse} from '../utils/documentHelpers.js'
 
 /**
  * Actions tools provider class
@@ -58,7 +54,7 @@ export class ActionsToolProvider implements ToolProvider {
             )
             return result
           } catch (error) {
-            return createErrorResponse('Error publishing document', error)
+            return createErrorResponse('Error publishing document', error as Error)
           }
         }
       },
@@ -83,7 +79,7 @@ export class ActionsToolProvider implements ToolProvider {
             )
             return result
           } catch (error) {
-            return createErrorResponse('Error unpublishing document', error)
+            return createErrorResponse('Error unpublishing document', error as Error)
           }
         }
       },
@@ -108,7 +104,7 @@ export class ActionsToolProvider implements ToolProvider {
             )
             return result
           } catch (error) {
-            return createErrorResponse('Error deleting document', error)
+            return createErrorResponse('Error deleting document', error as Error)
           }
         }
       },
@@ -135,7 +131,7 @@ export class ActionsToolProvider implements ToolProvider {
             )
             return result
           } catch (error) {
-            return createErrorResponse('Error unpublishing document with release', error)
+            return createErrorResponse('Error unpublishing document with release', error as Error)
           }
         }
       },
@@ -165,7 +161,7 @@ export class ActionsToolProvider implements ToolProvider {
             )
             return result
           } catch (error) {
-            return createErrorResponse('Error creating document', error)
+            return createErrorResponse('Error creating document', error as Error)
           }
         }
       }

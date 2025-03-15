@@ -1,19 +1,12 @@
 /**
  * Releases-related tool definitions
  *
- * This file defines all the MCP tool definitions related to content releases
+ * This file defines all the MCP tool definitions related to Sanity releases
  */
 import {z} from 'zod'
 
 import config from '../config/config.js'
 import * as releasesController from '../controllers/releases.js'
-import type {
-  AddDocumentToReleaseParams,
-  CreateReleaseParams,
-  ListReleasesParams,
-  ReleaseIdParam,
-  UpdateReleaseParams
-} from '../types/sharedTypes.js'
 import type {ToolProvider} from '../types/toolProvider.js'
 import type {ToolDefinition} from '../types/tools.js'
 import {createErrorResponse} from '../utils/documentHelpers.js'
@@ -42,7 +35,7 @@ export class ReleasesToolProvider implements ToolProvider {
     return [
       {
         name: 'createRelease',
-        description: 'Creates a new content release',
+        description: 'Create a new release',
         parameters: z.object({
           projectId: z.string().optional().describe(
             'Project ID, if not provided will use the project ID from the environment'
@@ -51,7 +44,7 @@ export class ReleasesToolProvider implements ToolProvider {
             'Dataset name, if not provided will use the dataset from the environment'
           ),
           title: z.string().describe('Title for the release'),
-          description: z.string().optional().describe('Optional description for the release')
+          description: z.string().optional().describe('Description of the release')
         }),
         handler: async (args) => {
           try {
@@ -63,21 +56,20 @@ export class ReleasesToolProvider implements ToolProvider {
             )
             return result
           } catch (error) {
-            return createErrorResponse('Error creating release', error)
+            return createErrorResponse('Error creating release', error as Error)
           }
         }
       },
       {
         name: 'listReleases',
-        description: 'Lists all content releases',
+        description: 'List all releases for a project and dataset',
         parameters: z.object({
           projectId: z.string().optional().describe(
             'Project ID, if not provided will use the project ID from the environment'
           ),
           dataset: z.string().optional().describe(
             'Dataset name, if not provided will use the dataset from the environment'
-          ),
-          includeArchived: z.boolean().optional().describe('Whether to include archived releases')
+          )
         }),
         handler: async (args) => {
           try {
@@ -87,13 +79,13 @@ export class ReleasesToolProvider implements ToolProvider {
             )
             return result
           } catch (error) {
-            return createErrorResponse('Error listing releases', error)
+            return createErrorResponse('Error listing releases', error as Error)
           }
         }
       },
       {
         name: 'updateRelease',
-        description: 'Updates an existing content release',
+        description: 'Update a release',
         parameters: z.object({
           projectId: z.string().optional().describe(
             'Project ID, if not provided will use the project ID from the environment'
@@ -118,13 +110,13 @@ export class ReleasesToolProvider implements ToolProvider {
             )
             return result
           } catch (error) {
-            return createErrorResponse('Error updating release', error)
+            return createErrorResponse('Error updating release', error as Error)
           }
         }
       },
       {
         name: 'archiveRelease',
-        description: 'Archives a content release',
+        description: 'Archive a release',
         parameters: z.object({
           projectId: z.string().optional().describe(
             'Project ID, if not provided will use the project ID from the environment'
@@ -143,13 +135,13 @@ export class ReleasesToolProvider implements ToolProvider {
             )
             return result
           } catch (error) {
-            return createErrorResponse('Error archiving release', error)
+            return createErrorResponse('Error archiving release', error as Error)
           }
         }
       },
       {
         name: 'addDocumentToRelease',
-        description: 'Adds a document to a release',
+        description: 'Add documents to a release',
         parameters: z.object({
           projectId: z.string().optional().describe(
             'Project ID, if not provided will use the project ID from the environment'
@@ -157,8 +149,8 @@ export class ReleasesToolProvider implements ToolProvider {
           dataset: z.string().optional().describe(
             'Dataset name, if not provided will use the dataset from the environment'
           ),
-          releaseId: z.string().describe('ID of the release to add the document to'),
-          documentId: z.string().describe('ID of the document to add')
+          releaseId: z.string().describe('ID of the release to add documents to'),
+          documentIds: z.union([z.string(), z.array(z.string())]).describe('ID or array of IDs of documents to add')
         }),
         handler: async (args) => {
           try {
@@ -166,11 +158,11 @@ export class ReleasesToolProvider implements ToolProvider {
               args.projectId || config.projectId || '',
               args.dataset || config.dataset || 'production',
               args.releaseId,
-              args.documentId
+              args.documentIds
             )
             return result
           } catch (error) {
-            return createErrorResponse('Error adding document to release', error)
+            return createErrorResponse('Error adding document to release', error as Error)
           }
         }
       }

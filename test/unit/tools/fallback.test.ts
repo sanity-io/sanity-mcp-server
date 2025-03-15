@@ -5,10 +5,10 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest'
 
 import config from '../../../src/config/config.js'
-import {GroqToolProvider} from '../../../src/tools/groqTools.js'
-import {ActionsToolProvider} from '../../../src/tools/actionsTools.js'
-import * as groqController from '../../../src/controllers/groq.js'
 import * as actionsController from '../../../src/controllers/actions.js'
+import * as groqController from '../../../src/controllers/groq.js'
+import {ActionsToolProvider} from '../../../src/tools/actionsTools.js'
+import {GroqToolProvider} from '../../../src/tools/groqTools.js'
 
 // Create mock implementations
 vi.mock('../../../src/controllers/groq.js', () => ({
@@ -53,10 +53,12 @@ describe('Optional parameters fallback behavior', () => {
       const tools = GroqToolProvider.getToolDefinitionsStatic()
       
       // Find the searchContent tool
-      const searchTool = tools.find(tool => tool.name === 'searchContent')
+      const searchTool = tools.find((tool) => tool.name === 'searchContent')
       // Ensure the tool was found
       expect(searchTool).toBeDefined()
-      if (!searchTool) return // Guard clause for TypeScript
+      if (!searchTool) {
+        return
+      } // Guard clause for TypeScript
       
       // Call the handler with explicit values
       await searchTool.handler({
@@ -79,10 +81,12 @@ describe('Optional parameters fallback behavior', () => {
       const tools = GroqToolProvider.getToolDefinitionsStatic()
       
       // Find the searchContent tool
-      const searchTool = tools.find(tool => tool.name === 'searchContent')
+      const searchTool = tools.find((tool) => tool.name === 'searchContent')
       // Ensure the tool was found
       expect(searchTool).toBeDefined()
-      if (!searchTool) return // Guard clause for TypeScript
+      if (!searchTool) {
+        return
+      } // Guard clause for TypeScript
       
       // Call the handler without projectId and dataset
       await searchTool.handler({
@@ -107,10 +111,12 @@ describe('Optional parameters fallback behavior', () => {
       const tools = GroqToolProvider.getToolDefinitionsStatic()
       
       // Find the searchContent tool
-      const searchTool = tools.find(tool => tool.name === 'searchContent')
+      const searchTool = tools.find((tool) => tool.name === 'searchContent')
       // Ensure the tool was found
       expect(searchTool).toBeDefined()
-      if (!searchTool) return // Guard clause for TypeScript
+      if (!searchTool) {
+        return
+      } // Guard clause for TypeScript
       
       // Call the handler without projectId and dataset, expect error
       await expect(searchTool.handler({
@@ -125,10 +131,12 @@ describe('Optional parameters fallback behavior', () => {
       const tools = ActionsToolProvider.getToolDefinitionsStatic()
       
       // Find the publishDocument tool
-      const publishTool = tools.find(tool => tool.name === 'publishDocument')
+      const publishTool = tools.find((tool) => tool.name === 'publishDocument')
       // Ensure the tool was found
       expect(publishTool).toBeDefined()
-      if (!publishTool) return // Guard clause for TypeScript
+      if (!publishTool) {
+        return
+      } // Guard clause for TypeScript
       
       // Call the handler with explicit values
       await publishTool.handler({
@@ -150,10 +158,12 @@ describe('Optional parameters fallback behavior', () => {
       const tools = ActionsToolProvider.getToolDefinitionsStatic()
       
       // Find the publishDocument tool
-      const publishTool = tools.find(tool => tool.name === 'publishDocument')
+      const publishTool = tools.find((tool) => tool.name === 'publishDocument')
       // Ensure the tool was found
       expect(publishTool).toBeDefined()
-      if (!publishTool) return // Guard clause for TypeScript
+      if (!publishTool) {
+        return
+      } // Guard clause for TypeScript
       
       // Call the handler without projectId and dataset
       await publishTool.handler({
