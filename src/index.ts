@@ -2,8 +2,6 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { registerExampleTools } from "./tools/example/index.js";
 
-const USER_AGENT = "weather-app/1.0";
-
 // Create server instance
 const server = new McpServer({
   name: "sanity",
