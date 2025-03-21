@@ -1,8 +1,9 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { registerAllPrompts } from "./prompts/index.js";
-import { registerAllResources } from "./resources/index.js";
-import { registerAllTools } from "./tools/index.js";
+import { registerAllPrompts } from "./prompts/register.js";
+import { registerAllResources } from "./resources/register.js";
+import { registerAllTools } from "./tools/register.js";
+
 
 async function initializeServer() {
 
@@ -36,4 +37,3 @@ async function main() {
 }
 
 main();
-
