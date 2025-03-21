@@ -4,7 +4,9 @@
     "sanity-mcp": "./build/index.js"
   },
   "scripts": {
-    "build": "tsc && chmod 755 build/index.js"
+    "build": "tsc && chmod 755 build/index.js",
+    "start": "node build/index.js",
+    "dev": "nodemon --watch 'src/**/*.ts' --exec 'npm run build && npm start'"
   },
   "files": [
     "build"
@@ -16,6 +18,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.13.11",
+    "nodemon": "^3.1.0",
     "typescript": "^5.8.2"
   }
 }
