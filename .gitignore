@@ -1,15 +1,22 @@
-# Secrets
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build output
+build/
+dist/
+out/
+
+# Environment variables
 .env
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*.local
 
-# Built files
-build
-
-# Dependencies
-node_modules
-
-# Logs
-*.log
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
