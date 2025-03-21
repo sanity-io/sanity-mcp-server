@@ -1,0 +1,254 @@
+[
+  {
+    "name": "author",
+    "type": "document",
+    "attributes": {
+      "_id": {
+        "type": "objectAttribute",
+        "value": { "type": "string" }
+      },
+      "name": {
+        "type": "objectAttribute",
+        "value": { "type": "string" }
+      },
+      "bio": {
+        "type": "objectAttribute",
+        "value": { "type": "text" },
+        "optional": true
+      },
+      "image": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "object",
+          "attributes": {
+            "asset": {
+              "type": "objectAttribute",
+              "value": {
+                "type": "reference",
+                "to": { "type": "sanity.imageAsset" }
+              }
+            },
+            "crop": {
+              "type": "objectAttribute",
+              "value": {
+                "type": "object",
+                "attributes": {
+                  "top": { "type": "objectAttribute", "value": { "type": "number" } },
+                  "bottom": { "type": "objectAttribute", "value": { "type": "number" } },
+                  "left": { "type": "objectAttribute", "value": { "type": "number" } },
+                  "right": { "type": "objectAttribute", "value": { "type": "number" } }
+                }
+              },
+              "optional": true
+            }
+          }
+        },
+        "optional": true
+      }
+    }
+  },
+  {
+    "name": "post",
+    "type": "document",
+    "attributes": {
+      "_id": {
+        "type": "objectAttribute",
+        "value": { "type": "string" }
+      },
+      "title": {
+        "type": "objectAttribute",
+        "value": { "type": "string" }
+      },
+      "slug": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "object",
+          "attributes": {
+            "current": {
+              "type": "objectAttribute",
+              "value": { "type": "string" }
+            }
+          }
+        }
+      },
+      "content": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "array",
+          "of": {
+            "type": "union",
+            "of": [
+              {
+                "type": "object",
+                "attributes": {
+                  "children": {
+                    "type": "objectAttribute",
+                    "value": {
+                      "type": "array",
+                      "of": {
+                        "type": "object",
+                        "attributes": {
+                          "text": {
+                            "type": "objectAttribute",
+                            "value": { "type": "string" }
+                          },
+                          "marks": {
+                            "type": "objectAttribute",
+                            "value": {
+                              "type": "array",
+                              "of": { "type": "string" }
+                            },
+                            "optional": true
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "style": {
+                    "type": "objectAttribute",
+                    "value": { "type": "string" }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "author": {
+        "type": "objectAttribute",
+        "value": { 
+          "type": "reference",
+          "to": { "type": "author" }
+        }
+      },
+      "categories": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "array",
+          "of": {
+            "type": "reference",
+            "to": { "type": "category" }
+          }
+        },
+        "optional": true
+      },
+      "publishedAt": {
+        "type": "objectAttribute",
+        "value": { "type": "datetime" },
+        "optional": true
+      }
+    }
+  },
+  {
+    "name": "category",
+    "type": "document",
+    "attributes": {
+      "_id": {
+        "type": "objectAttribute",
+        "value": { "type": "string" }
+      },
+      "name": {
+        "type": "objectAttribute",
+        "value": { "type": "string" }
+      },
+      "description": {
+        "type": "objectAttribute",
+        "value": { "type": "text" },
+        "optional": true
+      }
+    }
+  },
+  {
+    "name": "sanity.imageAsset",
+    "type": "type",
+    "value": {
+      "type": "object",
+      "attributes": {
+        "_type": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string",
+            "value": "sanity.imageAsset"
+          }
+        },
+        "url": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string"
+          },
+          "optional": true
+        },
+        "metadata": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "object",
+            "attributes": {
+              "dimensions": {
+                "type": "objectAttribute",
+                "value": {
+                  "type": "object",
+                  "attributes": {
+                    "height": {
+                      "type": "objectAttribute",
+                      "value": { "type": "number" }
+                    },
+                    "width": {
+                      "type": "objectAttribute",
+                      "value": { "type": "number" }
+                    },
+                    "aspectRatio": {
+                      "type": "objectAttribute",
+                      "value": { "type": "number" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "optional": true
+        }
+      }
+    }
+  },
+  {
+    "name": "comment",
+    "type": "type",
+    "value": {
+      "type": "object",
+      "attributes": {
+        "_type": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string",
+            "value": "comment"
+          }
+        },
+        "author": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string"
+          }
+        },
+        "email": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string"
+          },
+          "optional": true
+        },
+        "content": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "text"
+          }
+        },
+        "createdAt": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "datetime"
+          }
+        }
+      }
+    }
+  }
+]
