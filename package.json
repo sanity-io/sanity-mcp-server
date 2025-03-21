@@ -11,6 +11,7 @@
   ],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.7.0",
+    "@sanity/client": "^6.28.3",
     "zod": "^3.24.2"
   },
   "devDependencies": {
