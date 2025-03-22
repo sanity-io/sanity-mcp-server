@@ -8,6 +8,7 @@ import { registerDocumentTools } from "./documents/register.js";
  * Register all tools with for the MCP server
  */
 export function registerAllTools(server: McpServer) {
+  //registerExampleTools(server);
   registerConfigTools(server);
   registerGroqTools(server);
   registerVersionTools(server);

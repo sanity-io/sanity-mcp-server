@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { getDocumentById } from "./getDocumentById.js";
-import { GetDocumentParams, GetDocumentsParams } from "./schema.js";
 import { getDocumentsByIds } from "./getDocumentsByIds.js";
+import { GetDocumentParams, GetDocumentsParams } from "./schema.js";
 
 export async function registerDocumentRetrivalTools(server: McpServer) {
   server.tool(
