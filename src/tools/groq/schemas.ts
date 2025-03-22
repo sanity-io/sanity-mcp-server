@@ -52,4 +52,22 @@ export const GroqQueryParamsSchema = z.object({
 /**
  * Type for GROQ query parameters
  */
-export type GroqQueryParams = z.infer<typeof GroqQueryParamsSchema>; 
+export type GroqQueryParams = z.infer<typeof GroqQueryParamsSchema>;
+
+/**
+ * Parameter definitions for execute_groq_query tool
+ */
+export const executeGroqQueryParams = {
+  query: z
+    .string()
+    .describe("The GROQ query to execute"),
+  params: z
+    .record(z.any())
+    .optional()
+    .describe("Optional parameters to use in the GROQ query")
+};
+
+/**
+ * Zod schema for execute_groq_query tool parameters
+ */
+export const ExecuteGroqQuerySchema = z.object(executeGroqQueryParams); 

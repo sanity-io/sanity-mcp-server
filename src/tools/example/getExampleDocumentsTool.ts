@@ -109,7 +109,7 @@ const exampleDocs = {
 };
 
 /**
- * Tool implementation for getting example documents
+ * Example of how to implement a tool function. Here we could fetch documents from Sanity using the sanityClient.
  */
 export async function getExampleDocumentsTool(
   args: GetExampleDocumentsParams,
