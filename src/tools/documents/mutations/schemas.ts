@@ -3,7 +3,7 @@ import { z } from "zod";
 /**
  * Base mutation options schema matching Sanity's BaseMutationOptions
  */
-const baseMutationOptionsSchema = z.object({
+const BaseMutationOptionsSchema = z.object({
   visibility: z.enum(['sync', 'async', 'deferred'])
     .optional()
     .describe("Visibility mode for the mutation"),
@@ -59,7 +59,7 @@ export const createDocumentParams = {
   }).catchall(z.any())
     .describe("The document to create. Must include _type field and can include any other fields."),
   
-  options: baseMutationOptionsSchema
+  options: BaseMutationOptionsSchema
     .optional()
     .describe("Additional options for the create operation")
 };
@@ -74,7 +74,7 @@ export const createMultipleDocumentsParams = {
     }).catchall(z.any())
   ).describe("Array of documents to create. Each document must include _type field."),
   
-  options: baseMutationOptionsSchema
+  options: BaseMutationOptionsSchema
     .optional()
     .describe("Additional options for the create operation")
 };
@@ -120,7 +120,7 @@ const PatchOperationsSchema = z.object({
 /**
  * Schema for updating an existing document
  */
-export const updateDocumentParams = {
+export const patchDocumentParams = {
   // The document ID to update
   id: z.string()
     .describe("The ID of the document to update"),
@@ -129,9 +129,35 @@ export const updateDocumentParams = {
   patch: PatchOperationsSchema
     .describe("The patch operations to perform on the document"),
     
-  options: baseMutationOptionsSchema
+  options: BaseMutationOptionsSchema
     .optional()
     .describe("Additional options for the update operation")
+};
+
+/**
+ * Schema for patching multiple documents
+ */
+export const patchMultipleDocumentsParams = {
+  // Either provide an array of IDs or a GROQ query
+  ids: z.array(z.string())
+    .optional()
+    .describe("Array of document IDs to patch"),
+  
+  query: z.string()
+    .optional()
+    .describe("GROQ query to select documents to patch"),
+  
+  params: z.record(z.any())
+    .optional()
+    .describe("Parameters for the GROQ query"),
+
+  // The patch operations to perform
+  patch: PatchOperationsSchema
+    .describe("The patch operations to perform on the documents"),
+    
+  options: BaseMutationOptionsSchema
+    .optional()
+    .describe("Additional options for the patch operation")
 };
 
 /**
@@ -141,7 +167,7 @@ export const deleteDocumentParams = {
   id: z.string()
     .describe("The ID of the document to delete"),
     
-  options: baseMutationOptionsSchema
+  options: BaseMutationOptionsSchema
     .optional()
     .describe("Additional options for the delete operation")
 };
@@ -163,7 +189,7 @@ export const deleteMultipleDocumentsParams = {
     .optional()
     .describe("Parameters for the GROQ query"),
 
-  options: baseMutationOptionsSchema
+  options: BaseMutationOptionsSchema
     .optional()
     .describe("Additional options for the delete operation")
 };
@@ -171,7 +197,18 @@ export const deleteMultipleDocumentsParams = {
 // Create the full schemas from the params for type inference
 const CreateDocumentSchema = z.object(createDocumentParams);
 const CreateMultipleDocumentsSchema = z.object(createMultipleDocumentsParams);
-const UpdateDocumentSchema = z.object(updateDocumentParams);
+const PatchDocumentSchema = z.object(patchDocumentParams);
+const PatchMultipleDocumentsSchema = z.object(patchMultipleDocumentsParams)
+  .refine(
+    (data) => !!(data.ids || data.query),
+    "Either ids or query must be provided"
+  ).refine(
+    (data) => !(data.ids && data.query),
+    "Cannot provide both ids and query"
+  ).refine(
+    (data) => !(data.query && !data.params && data.query.includes('$')),
+    "Query contains parameters but no params object was provided"
+  );
 const DeleteDocumentSchema = z.object(deleteDocumentParams);
 const DeleteMultipleDocumentsSchema = z.object(deleteMultipleDocumentsParams)
   .refine(
@@ -198,7 +235,12 @@ export type CreateMultipleDocumentsParams = z.infer<typeof CreateMultipleDocumen
 /**
  * Type for update document parameters
  */
-export type UpdateDocumentParams = z.infer<typeof UpdateDocumentSchema>;
+export type PatchDocumentParams = z.infer<typeof PatchDocumentSchema>;
+
+/**
+ * Type for patch multiple documents parameters
+ */
+export type PatchMultipleDocumentsParams = z.infer<typeof PatchMultipleDocumentsSchema>;
 
 /**
  * Type for delete document parameters

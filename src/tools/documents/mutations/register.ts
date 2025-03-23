@@ -3,14 +3,14 @@ import { createDocumentTool } from "./createDocument.js";
 import { createMultipleDocumentsTool } from "./createMultipleDocuments.js";
 import { deleteDocumentTool } from "./deleteDocument.js";
 import { deleteMultipleDocumentsTool } from "./deleteMultipleDocuments.js";
+import { patchDocumentTool } from "./patchDocument.js";
 import {
   createDocumentParams,
   createMultipleDocumentsParams,
   deleteDocumentParams,
   deleteMultipleDocumentsParams,
-  updateDocumentParams,
+  patchDocumentParams
 } from "./schemas.js";
-import { updateDocumentTool } from "./updateDocument.js";
 
 /**
  * Register all document mutation tools with the MCP server
@@ -31,10 +31,10 @@ export function registerDocumentMutationTools(server: McpServer) {
   );
 
   server.tool(
-    "update_document",
-    "Update an existing document in the Sanity dataset",
-    updateDocumentParams,
-    updateDocumentTool
+    "patch_document",
+    "Patch an existing document in the Sanity dataset",
+    patchDocumentParams,
+    patchDocumentTool
   );
 
   server.tool(

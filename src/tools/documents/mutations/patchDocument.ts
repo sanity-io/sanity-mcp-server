@@ -1,12 +1,12 @@
 import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
 import { sanityClient } from "../../../config/sanity.js";
-import { UpdateDocumentParams } from "./schemas.js";
+import { PatchDocumentParams } from "./schemas.js";
 
 /**
  * Tool for updating an existing document in the Sanity dataset
  */
-export async function updateDocumentTool(
-  args: UpdateDocumentParams,
+export async function patchDocumentTool(
+  args: PatchDocumentParams,
   extra: RequestHandlerExtra
 ) {
   try {
