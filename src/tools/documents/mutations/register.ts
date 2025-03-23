@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { createDocumentTool } from "./createDocument.js";
-import { createDocumentParams, updateDocumentParams } from "./schemas.js";
+import { deleteDocumentTool } from "./deleteDocument.js";
+import { createDocumentParams, deleteDocumentParams, updateDocumentParams } from "./schemas.js";
 import { updateDocumentTool } from "./updateDocument.js";
 
 /**
@@ -19,5 +20,12 @@ export function registerDocumentMutationTools(server: McpServer) {
     "Update an existing document in the Sanity dataset",
     updateDocumentParams,
     updateDocumentTool
+  );
+
+  server.tool(
+    "delete_document",
+    "Delete a document from the Sanity dataset",
+    deleteDocumentParams,
+    deleteDocumentTool
   );
 }

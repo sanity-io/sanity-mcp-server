@@ -51,6 +51,14 @@ export const PatchOperationsSchema = z.object({
 );
 
 /**
+ * Schema for deleting a document
+ */
+export const deleteDocumentParams = {
+  id: z.string()
+    .describe("The ID of the document to delete")
+};
+
+/**
  * Schema for updating an existing document
  */
 export const updateDocumentParams = {
@@ -74,6 +82,11 @@ export const CreateDocumentSchema = z.object(createDocumentParams);
 export const UpdateDocumentSchema = z.object(updateDocumentParams);
 
 /**
+ * Zod schema for delete_document tool parameters
+ */
+export const DeleteDocumentSchema = z.object(deleteDocumentParams);
+
+/**
  * Type for create document parameters
  */
 export type CreateDocumentParams = z.infer<typeof CreateDocumentSchema>;
@@ -81,4 +94,9 @@ export type CreateDocumentParams = z.infer<typeof CreateDocumentSchema>;
 /**
  * Type for update document parameters
  */
-export type UpdateDocumentParams = z.infer<typeof UpdateDocumentSchema>; 
+export type UpdateDocumentParams = z.infer<typeof UpdateDocumentSchema>;
+
+/**
+ * Type for delete document parameters
+ */
+export type DeleteDocumentParams = z.infer<typeof DeleteDocumentSchema>; 
