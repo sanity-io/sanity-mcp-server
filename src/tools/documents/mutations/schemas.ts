@@ -1,21 +1,88 @@
 import { z } from "zod";
 
 /**
+ * Base mutation options schema matching Sanity's BaseMutationOptions
+ */
+const baseMutationOptionsSchema = z.object({
+  visibility: z.enum(['sync', 'async', 'deferred'])
+    .optional()
+    .describe("Visibility mode for the mutation"),
+  
+  returnDocuments: z.boolean()
+    .optional()
+    .describe("Whether to return the created/modified documents"),
+  
+  returnFirst: z.boolean()
+    .optional()
+    .describe("Whether to return only the first document"),
+  
+  dryRun: z.boolean()
+    .optional()
+    .describe("Whether to perform a dry run without actually modifying data"),
+  
+  autoGenerateArrayKeys: z.boolean()
+    .optional()
+    .describe("Whether to automatically generate keys for array items"),
+  
+  skipCrossDatasetReferenceValidation: z.boolean()
+    .optional()
+    .describe("Whether to skip validation of cross-dataset references"),
+  
+  transactionId: z.string()
+    .optional()
+    .describe("ID of the transaction this mutation is part of"),
+  
+  // From RequestOptions
+  timeout: z.number()
+    .optional()
+    .describe("Timeout in milliseconds for the operation"),
+  
+  token: z.string()
+    .optional()
+    .describe("Authentication token to use for this request"),
+  
+  tag: z.string()
+    .optional()
+    .describe("Tag for the request"),
+  
+  headers: z.record(z.string())
+    .optional()
+    .describe("Additional headers for the request"),
+});
+
+/**
  * Schema for creating a new document
  */
 export const createDocumentParams = {
-  document: z
-    .object({
+  document: z.object({
+    _type: z.string().describe("The type of document to create")
+  }).catchall(z.any())
+    .describe("The document to create. Must include _type field and can include any other fields."),
+  
+  options: baseMutationOptionsSchema
+    .optional()
+    .describe("Additional options for the create operation")
+};
+
+/**
+ * Schema for creating multiple documents
+ */
+export const createMultipleDocumentsParams = {
+  documents: z.array(
+    z.object({
       _type: z.string().describe("The type of document to create")
-    })
-    .catchall(z.any())
-    .describe("The document to create. Must include _type field and can include any other fields. Please ensure that the document is valid according to the schema for the _type.")
+    }).catchall(z.any())
+  ).describe("Array of documents to create. Each document must include _type field."),
+  
+  options: baseMutationOptionsSchema
+    .optional()
+    .describe("Additional options for the create operation")
 };
 
 /**
  * Schema for patch operations in Sanity
  */
-export const PatchOperationsSchema = z.object({
+const PatchOperationsSchema = z.object({
   // Set fields to specific values
   set: z.record(z.any())
     .optional()
@@ -51,11 +118,32 @@ export const PatchOperationsSchema = z.object({
 );
 
 /**
+ * Schema for updating an existing document
+ */
+export const updateDocumentParams = {
+  // The document ID to update
+  id: z.string()
+    .describe("The ID of the document to update"),
+  
+  // The patch operations to perform
+  patch: PatchOperationsSchema
+    .describe("The patch operations to perform on the document"),
+    
+  options: baseMutationOptionsSchema
+    .optional()
+    .describe("Additional options for the update operation")
+};
+
+/**
  * Schema for deleting a document
  */
 export const deleteDocumentParams = {
   id: z.string()
-    .describe("The ID of the document to delete")
+    .describe("The ID of the document to delete"),
+    
+  options: baseMutationOptionsSchema
+    .optional()
+    .describe("Additional options for the delete operation")
 };
 
 /**
@@ -75,60 +163,17 @@ export const deleteMultipleDocumentsParams = {
     .optional()
     .describe("Parameters for the GROQ query"),
 
-  // Optional mutation options
-  options: z.object({
-    visibility: z.enum(['sync', 'async', 'deferred'])
-      .optional()
-      .describe("Visibility mode for the mutation"),
-    
-    returnDocuments: z.boolean()
-      .optional()
-      .describe("Whether to return the deleted documents"),
-    
-    dryRun: z.boolean()
-      .optional()
-      .describe("Whether to perform a dry run without actually deleting"),
-    
-    timeout: z.number()
-      .optional()
-      .describe("Timeout in milliseconds for the operation"),
-  })
+  options: baseMutationOptionsSchema
     .optional()
     .describe("Additional options for the delete operation")
 };
 
-/**
- * Schema for updating an existing document
- */
-export const updateDocumentParams = {
-  // The document ID to update
-  id: z.string()
-    .describe("The ID of the document to update"),
-  
-  // The patch operations to perform
-  patch: PatchOperationsSchema
-    .describe("The patch operations to perform on the document")
-};
-
-/**
- * Zod schema for create_document tool parameters
- */
-export const CreateDocumentSchema = z.object(createDocumentParams);
-
-/**
- * Zod schema for update_document tool parameters
- */
-export const UpdateDocumentSchema = z.object(updateDocumentParams);
-
-/**
- * Zod schema for delete_document tool parameters
- */
-export const DeleteDocumentSchema = z.object(deleteDocumentParams);
-
-/**
- * Zod schema for delete_multiple_documents tool parameters
- */
-export const DeleteMultipleDocumentsSchema = z.object(deleteMultipleDocumentsParams)
+// Create the full schemas from the params for type inference
+const CreateDocumentSchema = z.object(createDocumentParams);
+const CreateMultipleDocumentsSchema = z.object(createMultipleDocumentsParams);
+const UpdateDocumentSchema = z.object(updateDocumentParams);
+const DeleteDocumentSchema = z.object(deleteDocumentParams);
+const DeleteMultipleDocumentsSchema = z.object(deleteMultipleDocumentsParams)
   .refine(
     (data) => !!(data.ids || data.query),
     "Either ids or query must be provided"
@@ -144,6 +189,11 @@ export const DeleteMultipleDocumentsSchema = z.object(deleteMultipleDocumentsPar
  * Type for create document parameters
  */
 export type CreateDocumentParams = z.infer<typeof CreateDocumentSchema>;
+
+/**
+ * Type for create multiple documents parameters
+ */
+export type CreateMultipleDocumentsParams = z.infer<typeof CreateMultipleDocumentsSchema>;
 
 /**
  * Type for update document parameters
