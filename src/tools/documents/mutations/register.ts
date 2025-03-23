@@ -1,7 +1,8 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { createDocumentTool } from "./createDocument.js";
 import { deleteDocumentTool } from "./deleteDocument.js";
-import { createDocumentParams, deleteDocumentParams, updateDocumentParams } from "./schemas.js";
+import { deleteMultipleDocumentsTool } from "./deleteMultipleDocuments.js";
+import { createDocumentParams, deleteDocumentParams, deleteMultipleDocumentsParams, updateDocumentParams } from "./schemas.js";
 import { updateDocumentTool } from "./updateDocument.js";
 
 /**
@@ -27,5 +28,12 @@ export function registerDocumentMutationTools(server: McpServer) {
     "Delete a document from the Sanity dataset",
     deleteDocumentParams,
     deleteDocumentTool
+  );
+
+  server.tool(
+    "delete_multiple_documents",
+    "Delete multiple documents from the Sanity dataset using multiple IDs or a GROQ query",
+    deleteMultipleDocumentsParams,
+    deleteMultipleDocumentsTool
   );
 }
