@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { executeGroqQueryTool } from "./executeGroqQueryTool.js";
-import { getGroqSpecificationTool } from "./getGroqSpecificationTool.js";
+import { executeGroqQueryTool } from "./executeGroqQuery.js";
+import { getGroqSpecificationTool } from "./getGroqSpecification.js";
 import { executeGroqQueryParams } from "./schemas.js";
 
 /**
