@@ -20,11 +20,4 @@ export function registerGroqTools(server: McpServer) {
     executeGroqQueryParams,
     executeGroqQueryTool,
   );
-
-  server.tool(
-    "execute_groq_query",
-    "Execute a GROQ query against the Sanity dataset",
-    executeGroqQueryParams,
-    executeGroqQueryTool
-  );
 }
