@@ -11,13 +11,13 @@ export function registerGroqTools(server: McpServer) {
     "get_groq_specification",
     "Get the GROQ language specification",
     {},
-    getGroqSpecificationTool
+    getGroqSpecificationTool,
   );
 
   server.tool(
     "execute_groq_query",
     "Execute a GROQ query against the Sanity dataset",
     executeGroqQueryParams,
-    executeGroqQueryTool
+    executeGroqQueryTool,
   );
 }

@@ -1,8 +1,8 @@
-import { createClient } from '@sanity/client';
-import { env } from './env.js';
+import { createClient } from "@sanity/client";
+import { env } from "./env.js";
 
 if (!env.success) {
-  throw new Error('Environment variables are not properly configured');
+  throw new Error("Environment variables are not properly configured");
 }
 
 // Create a singleton instance of the Sanity client
