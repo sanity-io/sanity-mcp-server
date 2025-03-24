@@ -1,6 +1,12 @@
 import { z } from "zod";
 
 /**
+ * Enum for document mutation operations
+ */
+const DocumentOperationEnum = z.enum(['create', 'createOrReplace', 'createIfNotExists', 'patch', 'delete']);
+type DocumentOperation = z.infer<typeof DocumentOperationEnum>;
+
+/**
  * Base mutation options schema matching Sanity's BaseMutationOptions
  */
 const BaseMutationOptionsSchema = z.object({
@@ -72,7 +78,7 @@ export const createMultipleDocumentsParams = {
     z.object({
       _type: z.string().describe("The type of document to create")
     }).catchall(z.any())
-  ).describe("Array of documents to create. Each document must include _type field."),
+  ).min(1).describe("Array of documents to create. Each document must include _type field."),
   
   options: BaseMutationOptionsSchema
     .optional()
@@ -196,7 +202,7 @@ export const deleteMultipleDocumentsParams = {
 
 export const modifyMultipleDocumentsParams = {
   mutations: z.array(z.object({
-    operation: z.enum(['create', 'createOrReplace', 'createIfNotExists', 'patch', 'delete']),
+    operation: DocumentOperationEnum,
     document: z.object({
       _id: z.string(),
       _type: z.string()
@@ -217,7 +223,7 @@ export const modifyMultipleDocumentsParams = {
 };
 
 export const modifyDocumentParams = {
-  operation: z.enum(['create', 'createOrReplace', 'createIfNotExists', 'patch', 'delete']),
+  operation: DocumentOperationEnum,
   document: z.object({
     _id: z.string(),
     _type: z.string()
