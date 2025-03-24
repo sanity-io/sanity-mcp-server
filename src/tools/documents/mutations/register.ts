@@ -3,12 +3,14 @@ import { createDocumentTool } from "./createDocument.js";
 import { createMultipleDocumentsTool } from "./createMultipleDocuments.js";
 import { deleteDocumentTool } from "./deleteDocument.js";
 import { deleteMultipleDocumentsTool } from "./deleteMultipleDocuments.js";
+import { modifyMultipleDocumentsTool } from "./modifyMultipleDocuments.js";
 import { patchDocumentTool } from "./patchDocument.js";
 import {
   createDocumentParams,
   createMultipleDocumentsParams,
   deleteDocumentParams,
   deleteMultipleDocumentsParams,
+  modifyMultipleDocumentsParams,
   patchDocumentParams
 } from "./schemas.js";
 
@@ -49,5 +51,12 @@ export function registerDocumentMutationTools(server: McpServer) {
     "Delete multiple documents from the Sanity dataset using IDs or a GROQ query",
     deleteMultipleDocumentsParams,
     deleteMultipleDocumentsTool
+  );
+
+  server.tool(
+    "modify_multiple_documents",
+    "Apply multiple mutations (create, patch, delete) to documents in a single transaction",
+    modifyMultipleDocumentsParams,
+    modifyMultipleDocumentsTool
   );
 }
