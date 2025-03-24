@@ -14,16 +14,17 @@ export async function deleteDocumentTool(
     
     // Delete the document using the sanity client with just the ID
     const result = await sanityClient.delete(id);
+    const text = JSON.stringify({
+      operation: "delete",
+      documentId: id,
+      result
+    }, null, 2);
     
     return {
       content: [
         {
           type: "text" as const,
-          text: JSON.stringify({
-            operation: "delete",
-            documentId: id,
-            result
-          }, null, 2),
+          text: text,
         },
       ],
     };

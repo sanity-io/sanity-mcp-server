@@ -43,16 +43,17 @@ export async function modifyDocumentTool(
     }
 
     const result = await transaction.commit(args.options);
+    const text = JSON.stringify({
+      operation: args.operation,
+      document: args.document,
+      result
+    }, null, 2);
 
     return {
       content: [
         {
           type: "text" as const,
-          text: JSON.stringify({
-            operation: args.operation,
-            document: args.document,
-            result
-          }, null, 2),
+          text: text,
         },
       ],
     };

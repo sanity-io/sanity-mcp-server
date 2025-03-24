@@ -15,15 +15,16 @@ export async function createDocumentTool(
     
     // Create the document using the sanity client
     const result = await sanityClient.create(document);
+    const text = JSON.stringify({
+      operation: "create",
+      document: result
+    }, null, 2);
     
     return {
       content: [
         {
           type: "text" as const,
-          text: JSON.stringify({
-            operation: "create",
-            document: result
-          }, null, 2),
+          text: text,
         },
       ],
     };

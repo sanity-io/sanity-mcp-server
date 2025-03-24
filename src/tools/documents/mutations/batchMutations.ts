@@ -40,15 +40,16 @@ export async function batchMutationsTool(
     }
 
     const result = await transaction.commit(args.options);
-
+    const text = JSON.stringify({
+      mutations: args.mutations,
+      result
+    }, null, 2);
+    
     return {
       content: [
         {
           type: "text" as const,
-          text: JSON.stringify({
-            mutations: args.mutations,
-            result
-          }, null, 2),
+          text: text,
         },
       ],
     };

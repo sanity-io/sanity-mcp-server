@@ -28,17 +28,19 @@ export async function deleteMultipleDocumentsTool(
     
     // Delete the documents using the sanity client
     const result = await sanityClient.delete(selection, options || {});
+  
+    const text = JSON.stringify({
+      operation: "delete_multiple",
+      selection,
+      options,
+      result
+    }, null, 2);
     
     return {
       content: [
         {
           type: "text" as const,
-          text: JSON.stringify({
-            operation: "delete_multiple",
-            selection,
-            options,
-            result
-          }, null, 2),
+          text: text,
         },
       ],
     };

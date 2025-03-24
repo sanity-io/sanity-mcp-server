@@ -43,17 +43,18 @@ export async function patchDocumentTool(
     
     // Commit the patch
     const result = await patchBuilder.commit();
+    const text = JSON.stringify({
+      operation: "update",
+      documentId: id,
+      appliedPatch: patch,
+      document: result
+    }, null, 2);
     
     return {
       content: [
         {
           type: "text" as const,
-          text: JSON.stringify({
-            operation: "update",
-            documentId: id,
-            appliedPatch: patch,
-            document: result
-          }, null, 2),
+          text: text,
         },
       ],
     };

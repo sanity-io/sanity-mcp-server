@@ -60,16 +60,17 @@ export async function modifyMultipleDocumentsTool(
 
     // Commit the transaction
     const result = await transaction.commit();
+    const text = JSON.stringify({
+      operation: "transaction",
+      mutations: args.mutations,
+      results: result
+    }, null, 2);
 
     return {
       content: [
         {
           type: "text" as const,
-          text: JSON.stringify({
-            operation: "transaction",
-            mutations: args.mutations,
-            results: result
-          }, null, 2),
+          text: text,
         },
       ],
     };

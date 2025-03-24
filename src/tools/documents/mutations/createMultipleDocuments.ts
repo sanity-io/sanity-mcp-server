@@ -22,17 +22,18 @@ export async function createMultipleDocumentsTool(
     
     // Commit the transaction with the provided options
     const result = await transaction.commit(options || {});
+    const text = JSON.stringify({
+      operation: "create_multiple",
+      documentsCount: documents.length,
+      options,
+      result
+    }, null, 2);
     
     return {
       content: [
         {
           type: "text" as const,
-          text: JSON.stringify({
-            operation: "create_multiple",
-            documentsCount: documents.length,
-            options,
-            result
-          }, null, 2),
+          text: text,
         },
       ],
     };
