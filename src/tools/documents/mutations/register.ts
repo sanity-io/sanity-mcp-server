@@ -1,4 +1,5 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { batchMutationsTool } from "./batchMutations.js";
 import { createDocumentTool } from "./createDocument.js";
 import { createMultipleDocumentsTool } from "./createMultipleDocuments.js";
 import { deleteDocumentTool } from "./deleteDocument.js";
@@ -7,6 +8,7 @@ import { modifyDocumentTool } from "./modifyDocument.js";
 import { modifyMultipleDocumentsTool } from "./modifyMultipleDocuments.js";
 import { patchDocumentTool } from "./patchDocument.js";
 import {
+  batchMutationsParams,
   createDocumentParams,
   createMultipleDocumentsParams,
   deleteDocumentParams,
@@ -67,5 +69,12 @@ export function registerDocumentMutationTools(server: McpServer) {
     "Apply multiple mutations (create, patch, delete) to documents in a single transaction",
     modifyMultipleDocumentsParams,
     modifyMultipleDocumentsTool
+  );
+
+  server.tool(
+    "batch_mutations",
+    "Perform multiple mutations (create, createOrReplace, createIfNotExists, patch, delete) in a single transaction",
+    batchMutationsParams,
+    batchMutationsTool
   );
 }

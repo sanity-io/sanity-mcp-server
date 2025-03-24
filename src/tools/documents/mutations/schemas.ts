@@ -298,4 +298,44 @@ export type DeleteDocumentParams = z.infer<typeof DeleteDocumentSchema>;
 export type DeleteMultipleDocumentsParams = z.infer<typeof DeleteMultipleDocumentsSchema>;
 
 export type ModifyMultipleDocumentsParams = z.infer<typeof ModifyMultipleDocumentsSchema>;
-export type ModifyDocumentParams = z.infer<typeof ModifyDocumentSchema>; 
+export type ModifyDocumentParams = z.infer<typeof ModifyDocumentSchema>;
+
+export const batchMutationsParams = {
+  mutations: z.array(z.object({
+    create: z.object({
+      _type: z.string()
+    }).catchall(z.any()).optional(),
+    createOrReplace: z.object({
+      _id: z.string(),
+      _type: z.string()
+    }).catchall(z.any()).optional(),
+    createIfNotExists: z.object({
+      _id: z.string(),
+      _type: z.string()
+    }).catchall(z.any()).optional(),
+    delete: z.object({
+      id: z.string()
+    }).optional(),
+    patch: z.object({
+      id: z.string(),
+      set: z.record(z.any()).optional(),
+      setIfMissing: z.record(z.any()).optional(),
+      unset: z.array(z.string()).optional(),
+      inc: z.record(z.number()).optional(),
+      dec: z.record(z.number()).optional(),
+      ifRevisionId: z.string().optional()
+    }).optional()
+  }).refine(
+    data => Object.keys(data).length === 1,
+    "Each mutation must specify exactly one operation"
+  )).min(1),
+  
+  options: BaseMutationOptionsSchema
+    .optional()
+    .describe("Additional options for the batch operation")
+};
+
+// Create schema for type inference
+const BatchMutationsSchema = z.object(batchMutationsParams);
+
+export type BatchMutationsParams = z.infer<typeof BatchMutationsSchema>; 
