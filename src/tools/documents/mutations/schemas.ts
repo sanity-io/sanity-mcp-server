@@ -216,6 +216,25 @@ export const modifyMultipleDocumentsParams = {
     .describe("Additional options for the transaction")
 };
 
+export const modifyDocumentParams = {
+  operation: z.enum(['create', 'createOrReplace', 'createIfNotExists', 'patch', 'delete']),
+  document: z.object({
+    _id: z.string(),
+    _type: z.string()
+  }).passthrough(),
+  patch: z.object({
+    set: z.record(z.any()).optional(),
+    setIfMissing: z.record(z.any()).optional(),
+    unset: z.array(z.string()).optional(),
+    inc: z.record(z.number()).optional(),
+    dec: z.record(z.number()).optional(),
+    ifRevisionId: z.string().optional()
+  }).optional(),
+  options: BaseMutationOptionsSchema
+    .optional()
+    .describe("Additional options for the mutation")
+};
+
 // Create the full schemas from the params for type inference
 const CreateDocumentSchema = z.object(createDocumentParams);
 const CreateMultipleDocumentsSchema = z.object(createMultipleDocumentsParams);
@@ -246,6 +265,7 @@ const DeleteMultipleDocumentsSchema = z.object(deleteMultipleDocumentsParams)
 
 // Create schema for type inference
 const ModifyMultipleDocumentsSchema = z.object(modifyMultipleDocumentsParams);
+const ModifyDocumentSchema = z.object(modifyDocumentParams);
 
 /**
  * Type for create document parameters
@@ -277,4 +297,5 @@ export type DeleteDocumentParams = z.infer<typeof DeleteDocumentSchema>;
  */
 export type DeleteMultipleDocumentsParams = z.infer<typeof DeleteMultipleDocumentsSchema>;
 
-export type ModifyMultipleDocumentsParams = z.infer<typeof ModifyMultipleDocumentsSchema>; 
+export type ModifyMultipleDocumentsParams = z.infer<typeof ModifyMultipleDocumentsSchema>;
+export type ModifyDocumentParams = z.infer<typeof ModifyDocumentSchema>; 
