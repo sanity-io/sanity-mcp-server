@@ -78,7 +78,7 @@ export const createMultipleDocumentsParams = {
     z.object({
       _type: z.string().describe("The type of document to create")
     }).catchall(z.any())
-  ).min(1).describe("Array of documents to create. Each document must include _type field."),
+  ).min(1).describe("Array of documents to create. Each document must include _type field. Must be at least one document."),
   
   options: BaseMutationOptionsSchema
     .optional()
