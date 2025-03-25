@@ -26,11 +26,13 @@ export async function executeGroqQueryTool(
       resultCount: Array.isArray(result) ? result.length : 1
     };
 
+    const responseText = JSON.stringify(response, null, 2);
+
     return {
       content: [
         {
           type: "text" as const,
-          text: JSON.stringify(response, null, 2),
+          text: responseText,
         },
       ],
     };
