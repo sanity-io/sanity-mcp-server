@@ -7,6 +7,7 @@ const envSchema = z.object({
   SANITY_PROJECT_ID: z.string().describe("Sanity project ID"),
   SANITY_DATASET: z.string().describe("The dataset"),
   SANITY_API_VERSION: z.string().describe("Sanity API version"),
+  SANITY_API_HOST: z.string().describe("Sanity API host"),
 });
 
 export const env = envSchema.safeParse(process.env);
