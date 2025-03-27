@@ -64,7 +64,6 @@ export async function listEmbeddingsIndicesTool(
       ],
     };
   } catch (error) {
-    console.error("Error details:", error);
     return {
       content: [
         {
