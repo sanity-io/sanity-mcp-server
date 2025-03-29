@@ -8,9 +8,17 @@ import { registerAllTools } from "./tools/register.js";
 async function initializeServer() {
 
   const server = new McpServer({
-    name: "sanity",
-    version: "1.0.0",
-  });
+      name: "sanity",
+      version: "1.0.0",
+    },
+    {
+      capabilities: {
+        tools: {
+          listChanged: false
+        }
+      }
+    }
+  );
 
   // Initialize Tools
   registerAllTools(server);
