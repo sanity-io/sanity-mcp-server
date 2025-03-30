@@ -15,7 +15,9 @@ export async function getSanityConfigTool(
 Project ID: ${config.projectId}
 Dataset: ${config.dataset}
 API Version: ${config.apiVersion}
-Using CDN: ${config.useCdn}`,
+Using CDN: ${config.useCdn}
+Perspective: ${config.perspective}
+`,
       },
     ],
   };
