@@ -20,12 +20,16 @@ export async function createMultipleDocumentsTool(
       transaction.create(doc);
     });
     
-    // Commit the transaction with the provided options
-    const result = await transaction.commit(options || {});
+    // Commit the transaction with autoGenerateArrayKeys enabled and any additional options
+    const result = await transaction.commit({
+      autoGenerateArrayKeys: true,
+      ...options
+    });
+    
     const text = JSON.stringify({
       operation: "create_multiple",
       documentsCount: documents.length,
-      options,
+      options: { autoGenerateArrayKeys: true, ...options },
       result
     }, null, 2);
     
