@@ -24,21 +24,21 @@ import {
 export function registerDocumentMutationTools(server: McpServer) {
   server.tool(
     "create_document",
-    "Create a new document in the Sanity dataset",
+    "Create a new document in the Sanity dataset. Always check the schema for the document type before creating.",
     createDocumentParams,
     createDocumentTool,
   );
 
   server.tool(
     "create_multiple_documents",
-    "Create multiple documents in the Sanity dataset in a single transaction",
+    "Create multiple documents in the Sanity dataset in a single transaction. Always check the schema for the document type before creating.",
     createMultipleDocumentsParams,
     createMultipleDocumentsTool,
   );
 
   server.tool(
     "patch_document",
-    "Patch an existing document in the Sanity dataset",
+    "Patch an existing document in the Sanity dataset. Always check the schema for the document type you are patching.",
     patchDocumentParams,
     patchDocumentTool
   );
