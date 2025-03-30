@@ -13,4 +13,5 @@ export const sanityClient = createClient({
   apiVersion: env.data.SANITY_API_VERSION,
   token: env.data.SANITY_API_TOKEN,
   useCdn: false,
+  perspective: env.data.SANITY_PERSPECTIVE // This defaults to 'drafts' if not set in env
 });
