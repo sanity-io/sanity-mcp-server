@@ -7,6 +7,7 @@ import { registerProjectsTools } from "./projects/register.js";
 import { registerSchemaTools } from "./schema/register.js";
 import { registerDatasetsTools } from "./datasets/register.js";
 import { registerReleasesTools } from "./releases/register.js";
+import { registerEmbeddingsTools } from "./embeddings/register.js";
 
 /**
  * Register all tools with for the MCP server
@@ -21,4 +22,5 @@ export function registerAllTools(server: McpServer) {
   registerSchemaTools(server);
   registerDatasetsTools(server);
   registerReleasesTools(server);
+  registerEmbeddingsTools(server);
 }
