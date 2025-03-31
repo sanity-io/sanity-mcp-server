@@ -2,7 +2,14 @@ import { z } from "zod";
 
 // Common dataset parameters
 const datasetBaseParams = {
-  name: z.string().describe("The name of the dataset"),
+  name: z
+    .string()
+    .regex(
+      /^[a-z0-9_-]+$/,
+      "The name of the dataset can only contain lowercase characters, numbers, underscores and dashes"
+    )
+    .describe("The name of the dataset"),
+
   aclMode: z
     .enum(["private", "public"])
     .optional()
