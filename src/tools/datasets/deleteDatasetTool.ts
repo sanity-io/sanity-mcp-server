@@ -32,7 +32,7 @@ export async function deleteDatasetTool(
       content: [
         {
           type: "text" as const,
-          text: `Error creating dataset: ${error}`,
+          text: `Error deleting dataset: ${error}`,
         },
       ],
     };
