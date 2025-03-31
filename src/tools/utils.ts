@@ -1,7 +1,14 @@
+import { nanoid } from "nanoid";
+
 export const enum DocumentCategory {
   Drafts = "drafts",
   Versions = "versions",
   Published = "published",
+}
+
+export function generateReleaseId(): string {
+  const id = nanoid(8);
+  return `r${id}`;
 }
 
 // lazy category and id extraction from document id

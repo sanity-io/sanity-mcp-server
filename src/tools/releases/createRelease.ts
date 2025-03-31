@@ -7,17 +7,13 @@ import { actionRequest } from "../documents/actions/actionRequest.js";
 import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { sanityClient } from "../../config/sanity.js";
 import { ReleaseActionBodyType, ReleaseParamsType } from "./schema.js";
+import { generateReleaseId } from "../utils.js";
 
 export async function createRelease(
   args: ReleaseParamsType,
 ): Promise<CallToolResult> {
   try {
-    await actionRequest<ReleaseActionBodyType[], any>(sanityClient, [
-      {
-        actionType: "sanity.action.release.create",
-        ...args,
-      },
-    ]);
+    await createReleaseAction(sanityClient, args);
 
     return {
       content: [
@@ -43,13 +39,18 @@ export async function createRelease(
 
 export async function createReleaseAction(
   client: SanityClient,
-  releaseReq: ReleaseActionBodyType,
+  releaseReq: ReleaseParamsType,
 ): Promise<SingleActionResult | MultipleActionResult> {
   try {
-    const res = await actionRequest<ReleaseActionBodyType, SingleActionResult>(
-      client,
-      releaseReq,
-    );
+    // TODO: handle id conflict
+    const releaseId = generateReleaseId();
+    const res = await actionRequest<ReleaseActionBodyType[], any>(client, [
+      {
+        actionType: "sanity.action.release.create",
+        releaseId: releaseId,
+        ...releaseReq,
+      },
+    ]);
     return res;
   } catch (e: unknown) {
     throw e;
