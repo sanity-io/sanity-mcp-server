@@ -39,6 +39,7 @@ export async function executeGroqQueryTool(
   } catch (error: any) {
     // Handle errors gracefully
     return {
+      isError: true,
       content: [
         {
           type: "text" as const,

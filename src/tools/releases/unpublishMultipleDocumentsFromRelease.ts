@@ -38,6 +38,7 @@ export async function unpublishMultipleDocumentsFromRelease(
     };
   } catch (error: unknown) {
     return {
+      isError: true,
       content: [
         {
           type: "text",

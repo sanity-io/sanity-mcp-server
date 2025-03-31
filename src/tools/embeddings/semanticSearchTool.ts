@@ -57,6 +57,7 @@ export async function semanticSearchTool(
     };
   } catch (error) {
     return {
+      isError: true,
       content: [
         {
           type: "text" as const,

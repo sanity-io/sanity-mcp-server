@@ -27,6 +27,7 @@ export async function publishDocument(
     };
   } catch (e: unknown) {
     return {
+      isError: true,
       content: [
         {
           type: "text",

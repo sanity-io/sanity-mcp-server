@@ -27,6 +27,7 @@ export async function unpublishDocument(
     };
   } catch (e: unknown) {
     return {
+      isError: true,
       content: [
         {
           type: "text",

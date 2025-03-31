@@ -59,6 +59,7 @@ export async function modifyDocumentTool(
     };
   } catch (error: any) {
     return {
+      isError: true,
       content: [
         {
           type: "text" as const,

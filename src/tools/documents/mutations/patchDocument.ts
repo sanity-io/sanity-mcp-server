@@ -61,6 +61,7 @@ export async function patchDocumentTool(
   } catch (error: any) {
     // Handle errors gracefully
     return {
+      isError: true,
       content: [
         {
           type: "text" as const,

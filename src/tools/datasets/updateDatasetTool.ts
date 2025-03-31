@@ -30,10 +30,11 @@ export async function updateDatasetTool(
     };
   } catch (error) {
     return {
+      isError: true,
       content: [
         {
           type: "text" as const,
-          text: `Error creating dataset: ${error}`,
+          text: `Error updating dataset: ${error}`,
         },
       ],
     };

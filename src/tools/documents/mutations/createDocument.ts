@@ -31,6 +31,7 @@ export async function createDocumentTool(
   } catch (error: any) {
     // Handle errors gracefully
     return {
+      isError: true,
       content: [
         {
           type: "text" as const,

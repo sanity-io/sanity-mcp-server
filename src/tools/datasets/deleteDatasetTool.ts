@@ -28,10 +28,11 @@ export async function deleteDatasetTool(
     };
   } catch (error) {
     return {
+      isError: true,
       content: [
         {
           type: "text" as const,
-          text: `Error creating dataset: ${error}`,
+          text: `Error deleting dataset: ${error}`,
         },
       ],
     };

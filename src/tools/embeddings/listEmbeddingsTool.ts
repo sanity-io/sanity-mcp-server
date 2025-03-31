@@ -65,6 +65,7 @@ export async function listEmbeddingsIndicesTool(
     };
   } catch (error) {
     return {
+      isError: true,
       content: [
         {
           type: "text" as const,

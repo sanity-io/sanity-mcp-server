@@ -28,6 +28,7 @@ export async function listAllReleases(): Promise<CallToolResult> {
     };
   } catch (e: unknown) {
     return {
+      isError: true,
       content: [
         {
           type: "text",
