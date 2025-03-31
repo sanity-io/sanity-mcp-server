@@ -6,7 +6,7 @@ import { createDocumentVersionSchema, discardDocumentVersionSchema } from "./sch
 export function registerVersionTools(server: McpServer) {
   // Register create document version tool
   server.tool(
-    "create-document-version",
+    "create_document_version",
     "Creates a version of a document in a specific release. This allows tracking document changes and managing content releases.",
     createDocumentVersionSchema,
     createDocumentVersionToolHandler
@@ -14,7 +14,7 @@ export function registerVersionTools(server: McpServer) {
 
   // Register discard document version tool
   server.tool(
-    "discard-document-version",
+    "discard_document_version",
     "Discards a specific version of a document. This removes the version from the release history, with an option to permanently purge it.",
     discardDocumentVersionSchema,
     discardDocumentVersionToolHandler
