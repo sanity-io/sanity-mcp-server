@@ -15,6 +15,7 @@
     "@modelcontextprotocol/sdk": "^1.7.0",
     "@sanity/client": "^6.28.3",
     "dotenv": "^16.4.7",
+    "nanoid": "^5.1.5",
     "zod": "^3.24.2"
   },
   "devDependencies": {
