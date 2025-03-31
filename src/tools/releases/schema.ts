@@ -9,7 +9,7 @@ const ReleaseMetadata = z
     title: z.string().describe("title of the release").optional(),
     description: z.string().describe("release description").optional(),
     releaseType: ReleaseType.describe(
-      "type of the release, wheter it should be schedulaed as soon as posible, unscheduled or scheduled",
+      "type of the release, wheter it should be schedulaed as soon as posible, undecided or scheduled",
     ).optional(),
     intendedPublishAt: z
       .string()
