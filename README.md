@@ -25,7 +25,8 @@ To connect Claude Desktop to this MCP server, your configuration should look lik
         "SANITY_DATASET": "",
         "SANITY_API_TOKEN": "",
         "SANITY_API_HOST": "https://api.sanity.io",
-        "SANITY_API_VERSION": "vX"
+        "SANITY_API_VERSION": "vX",
+        "SANITY_PERSPECTIVE": "drafts"
       }
     }
   }

@@ -8,6 +8,10 @@ const envSchema = z.object({
   SANITY_DATASET: z.string().describe("The dataset"),
   SANITY_API_VERSION: z.string().describe("Sanity API version"),
   SANITY_API_HOST: z.string().describe("Sanity API host"),
+  SANITY_PERSPECTIVE: z.union([
+    z.enum(['published', 'drafts', 'raw']),
+    z.array(z.string())
+  ]).optional().default('drafts').describe("Sanity perspective - can be 'published', 'drafts', 'raw' or an array of release IDs."),
 });
 
 export const env = envSchema.safeParse(process.env);
