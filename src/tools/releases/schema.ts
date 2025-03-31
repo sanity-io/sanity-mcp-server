@@ -18,10 +18,7 @@ const ReleaseMetadata = z
       .describe("publish time if release type is scheduled"),
   })
   .refine(
-    (data) => {
-      // thruthy check on intendedPublishAt
-      return data.releaseType === "scheduled" && data.intendedPublishAt;
-    },
+    (data) => !(data.releaseType === "scheduled" && !data.intendedPublishAt),
     {
       message: "intendedPublishAt is required when releaseType is 'scheduled'",
       path: ["intendedPublishAt"],
