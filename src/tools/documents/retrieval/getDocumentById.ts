@@ -23,6 +23,7 @@ export async function getDocumentById(
     };
   } catch (e: unknown) {
     return {
+      isError: true,
       content: [
         {
           type: "text",

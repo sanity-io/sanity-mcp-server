@@ -27,6 +27,7 @@ export async function addMultipleDocumentsToRelease(
     };
   } catch (error: unknown) {
     return {
+      isError: true,
       content: [
         {
           type: "text",

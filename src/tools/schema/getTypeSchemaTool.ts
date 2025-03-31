@@ -40,6 +40,7 @@ export async function getTypeSchemaTool(
     };
   } catch (error) {
     return {
+      isError: true,
       content: [
         {
           type: "text" as const,

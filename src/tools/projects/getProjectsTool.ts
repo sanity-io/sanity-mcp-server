@@ -54,6 +54,7 @@ export async function getProjectsTool(args: {}, extra: RequestHandlerExtra) {
     };
   } catch (error: any) {
     return {
+      isError: true,
       content: [
         {
           type: "text" as const,

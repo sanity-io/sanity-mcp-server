@@ -76,6 +76,7 @@ export async function modifyMultipleDocumentsTool(
     };
   } catch (error: any) {
     return {
+      isError: true,
       content: [
         {
           type: "text" as const,

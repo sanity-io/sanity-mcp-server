@@ -30,6 +30,7 @@ export async function unpublishMultipleDocuments(
     };
   } catch (e: unknown) {
     return {
+      isError: true,
       content: [
         {
           type: "text",

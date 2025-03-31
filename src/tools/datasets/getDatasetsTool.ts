@@ -44,6 +44,7 @@ export async function getDatasetsTool(args: {}, extra: RequestHandlerExtra) {
     };
   } catch (error) {
     return {
+      isError: true,
       content: [
         {
           type: "text" as const,

@@ -32,6 +32,7 @@ export async function listSchemaTypesTool(
     };
   } catch (error) {
     return {
+      isError: true,
       content: [
         {
           type: "text" as const,

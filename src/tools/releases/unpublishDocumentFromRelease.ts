@@ -46,6 +46,7 @@ export async function unpublishDocumentFromRelease(
     };
   } catch (error: unknown) {
     return {
+      isError: true,
       content: [
         {
           type: "text",

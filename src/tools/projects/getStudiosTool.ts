@@ -59,6 +59,7 @@ export async function getStudiosTool(
     };
   } catch (error) {
     return {
+      isError: true,
       content: [
         {
           type: "text" as const,

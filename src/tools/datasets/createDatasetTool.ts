@@ -30,6 +30,7 @@ export async function createDatasetTool(
     };
   } catch (error) {
     return {
+      isError: true,
       content: [
         {
           type: "text" as const,

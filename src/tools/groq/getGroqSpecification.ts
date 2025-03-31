@@ -155,7 +155,14 @@ export async function getGroqSpecificationTool(args: {}, extra: RequestHandlerEx
       source
     };
   } catch (error) {
-    console.error('Error fetching GROQ specification:', error);
-    throw error;
+    return {
+      isError: true,
+      content: [
+        {
+          type: "text" as const,
+          text: `Error fetching GROQ specification: ${error}`,
+        },
+      ],
+    };
   }
 } 

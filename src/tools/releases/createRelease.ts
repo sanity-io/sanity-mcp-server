@@ -30,6 +30,7 @@ export async function createRelease(
   } catch (error: unknown) {
     console.log(error);
     return {
+      isError: true,
       content: [
         {
           type: "text",
