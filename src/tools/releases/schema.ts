@@ -18,9 +18,10 @@ const ReleaseMetadata = z
       .describe("publish time if release type is scheduled"),
   })
   .refine(
-    (data) =>
-      data.releaseType === ReleaseType.Values.scheduled &&
-      !data.intendedPublishAt,
+    (data) => {
+      // thruthy check on intendedPublishAt
+      return data.releaseType === "scheduled" && data.intendedPublishAt;
+    },
     {
       message: "intendedPublishAt is required when releaseType is 'scheduled'",
       path: ["intendedPublishAt"],
@@ -35,7 +36,6 @@ export const ReleaseActionBody = z.object({
 });
 
 export const Release = {
-  releaseId: z.string().describe("id for the new release"),
   metadata: ReleaseMetadata.optional().describe("metadata about the release"),
 };
 
@@ -60,8 +60,8 @@ export type ReleaseDocumentParamsType = z.infer<
   typeof ReleaseDocumentParamsSchema
 >;
 
-// Export the type for ReleaseActionBody
 export type ReleaseActionBodyType = z.infer<typeof ReleaseActionBody>;
+export type ReleaseActionRequest = Omit<ReleaseActionBodyType, "releaseId">;
 export type UnpublishActionBodyType = z.infer<
   typeof UnpublishDocumentParamsSchema
 >;
