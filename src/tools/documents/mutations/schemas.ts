@@ -65,6 +65,11 @@ export const createDocumentParams = {
   }).catchall(z.any())
     .describe("The document to create. Must include _type field and can include any other fields."),
   
+  publish: z.boolean()
+    .optional()
+    .default(false)
+    .describe("Whether to create as published document (true) or draft (false). Defaults to false (draft)."),
+
   options: BaseMutationOptionsSchema
     .optional()
     .describe("Additional options for the create operation")
@@ -79,6 +84,11 @@ export const createMultipleDocumentsParams = {
       _type: z.string().describe("The type of document to create")
     }).catchall(z.any())
   ).min(1).describe("Array of documents to create. Each document must include _type field. Must be at least one document."),
+  
+  publish: z.boolean()
+    .optional()
+    .default(false)
+    .describe("Whether to also published a document during creation(true) Should only be true if specifically requested by the user."),
   
   options: BaseMutationOptionsSchema
     .optional()

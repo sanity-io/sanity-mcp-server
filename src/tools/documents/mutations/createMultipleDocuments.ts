@@ -1,4 +1,5 @@
 import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
+import { randomUUID } from "crypto";
 import { sanityClient } from "../../../config/sanity.js";
 import type { CreateMultipleDocumentsParams } from "./schemas.js";
 
@@ -10,14 +11,19 @@ export async function createMultipleDocumentsTool(
   extra: RequestHandlerExtra
 ) {
   try {
-    const { documents, options } = args;
+    const { documents, options, publish } = args;
     
     // Create a transaction for all documents
     const transaction = sanityClient.transaction();
     
-    // Add each document creation to the transaction
+    // Add each document creation to the transaction with appropriate IDs
     documents.forEach(doc => {
-      transaction.create(doc);
+      const documentId = randomUUID();
+      const documentWithId = {
+        ...doc,
+        _id: publish ? documentId : `drafts.${documentId}`
+      };
+      transaction.create(documentWithId);
     });
     
     // Commit the transaction with autoGenerateArrayKeys enabled and any additional options
