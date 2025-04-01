@@ -71,3 +71,8 @@ export const executeGroqQueryParams = {
  * Zod schema for execute_groq_query tool parameters
  */
 export const ExecuteGroqQuerySchema = z.object(executeGroqQueryParams); 
+
+/**
+ * Type for execute_groq_query tool parameters
+ */
+export type ExecuteGroqQueryParams = z.infer<typeof ExecuteGroqQuerySchema>;

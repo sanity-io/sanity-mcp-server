@@ -1,9 +1,6 @@
 import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
-import type { z } from "zod";
 import { sanityClient } from "../../config/sanity.js";
-import type { ExecuteGroqQuerySchema } from "./schemas.js";
-
-type ExecuteGroqQueryParams = z.infer<typeof ExecuteGroqQuerySchema>;
+import { ExecuteGroqQueryParams } from "./schemas.js";
 
 /**
  * Tool for executing arbitrary GROQ queries against the Sanity dataset
