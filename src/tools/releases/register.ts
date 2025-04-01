@@ -7,6 +7,7 @@ import {
   UnpublishDocument,
   UnpublishMultipleDocuments,
   Release,
+  ListReleaseDocumentsParams,
 } from "./schema.js";
 import { unpublishDocumentFromRelease } from "./unpublishDocumentFromRelease.js";
 import { addMultipleDocumentsToRelease } from "./addMultipleDocumentsToRelease.js";
@@ -47,6 +48,7 @@ export function registerReleasesTools(server: McpServer) {
   server.tool(
     "list_release_documents",
     "List all releases documents",
-    listAllReleases,
+    ListReleaseDocumentsParams,
+    listAllReleases
   );
 }
