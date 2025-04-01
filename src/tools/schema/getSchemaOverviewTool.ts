@@ -20,7 +20,7 @@ export async function getSchemaOverviewTool(
               ? `Schema type overview: \n${toJsonString(
                   schemaTypes.sanitySchema.schemaOverview
                 )}`
-              : "No custom schema types found.",
+              : "No types found in the current schema.",
         },
       ],
     };
@@ -46,20 +46,29 @@ type GetSchemaOverviewParams = {
    * The type name to filter the schema by.
    */
   typeName?: string;
+  /**
+   * If true, only include the schema overview without details about the fields
+   */
+  lite?: boolean;
 };
 export async function getSchemaOverview({
   schemaId,
   typeName,
+  lite,
 }: GetSchemaOverviewParams) {
   const schemaString: string = await sanityClient.fetch(
     "*[_id == $schemaId][0].schema",
-    { schemaId: schemaId ?? "sanity.workspace.schema" }
+    {
+      schemaId: schemaId ?? "sanity.workspace.schema.default",
+    }
   );
 
   let schema = JSON.parse(schemaString) as ManifestSchemaType[];
 
-  schema = schema.filter(
-    (documentOrObject) => !documentOrObject.type.startsWith("sanity.")
+  schema = schema.filter((documentOrObject) =>
+    ["sanity.", "assist."].some(
+      (prefix) => !documentOrObject.type.startsWith(prefix)
+    )
   );
 
   // If a specific type name is provided, filter the schema to only include that type
@@ -71,5 +80,5 @@ export async function getSchemaOverview({
     schema = typeSchema;
   }
 
-  return generateSchemaOverview(schema);
+  return generateSchemaOverview(schema, { lite });
 }
