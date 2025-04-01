@@ -12,8 +12,8 @@ importers:
         specifier: ^1.7.0
         version: 1.8.0
       '@sanity/client':
-        specifier: ^6.28.3
-        version: 6.28.3
+        specifier: 6.28.3-instruct.5
+        version: 6.28.3-instruct.5
       dotenv:
         specifier: ^16.4.7
         version: 16.4.7
@@ -40,8 +40,8 @@ packages:
     resolution: {integrity: sha512-e06W7SwrontJDHwCawNO5SGxG+nU9AAx+jpHHZqGl/WrDBdWOpvirC+s58VpJTB5QemI4jTRcjWT4Pt3Q1NPQQ==}
     engines: {node: '>=18'}
 
-  '@sanity/client@6.28.3':
-    resolution: {integrity: sha512-/W/w0pl0wx1vn6RKUaOTNHVcBDvBcjZk6agpl4vwTCxvNQhh74nY9xk+/heap3KriSHp95ilChv/qVYMz2/l3w==}
+  '@sanity/client@6.28.3-instruct.5':
+    resolution: {integrity: sha512-ZgdskllJk/LOh86AubEltvkWs4CgNriJEHu4U1I3e5JeEAzmYDXbOmYMrdzMsenfKO8ZrXZ7QKyotBbdM9NxIQ==}
     engines: {node: '>=14.18'}
 
   '@sanity/eventsource@5.0.2':
@@ -619,7 +619,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@sanity/client@6.28.3':
+  '@sanity/client@6.28.3-instruct.5':
     dependencies:
       '@sanity/eventsource': 5.0.2
       get-it: 8.6.7
