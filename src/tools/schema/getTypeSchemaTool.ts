@@ -1,18 +1,40 @@
 import { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
 import { sanityClient } from "../../config/sanity.js";
-import { GetSchemaParams, GetSchemaParamsType } from "./schema.js";
+import { getSchemaOverview } from "./getSchemaOverviewTool.js";
+import { GetSchemaParamsType } from "./schema.js";
+import { toJsonString } from "./toJson.js";
+
 export async function getTypeSchemaTool(
   args: GetSchemaParamsType,
   extra: RequestHandlerExtra
 ) {
   try {
-    const formattedFields = await getSchema(args.type);
+    const allSchemas = await getSchemaOverview({
+      typeName: args.type,
+      schemaId: args.schemaId,
+    });
+
+    const schema =
+      allSchemas.sanitySchema.schemaOverview.typesSummary.type.find(
+        (type) => type.type === args.type
+      );
+
+    if (!schema) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: `No schema found for type ${args.type}.`,
+          },
+        ],
+      };
+    }
 
     return {
       content: [
         {
           type: "text" as const,
-          text: `Schema for type ${args.type}:\n${formattedFields}`,
+          text: `Schema for type ${args.type}:\n${toJsonString(schema)}`,
         },
       ],
     };

@@ -1,5 +1,5 @@
-import { SanityClient } from "@sanity/client";
 import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import { SanityClient } from "@sanity/client";
 import { sanityClient } from "../../config/sanity.js";
 import { ListReleaseDocumentsParamsType } from "./schemas.js";
 export async function listAllReleases(
