@@ -21,7 +21,7 @@ export async function getInitialContextTool(
       await Promise.all([
         getSanityConfigTool({}, extra),
         getDatasetsTool({}, extra),
-        getSchemaOverview({}),
+        getSchemaOverview({ lite: true }),
         listEmbeddingsIndicesTool({}, extra),
         listReleases(sanityClient),
       ]);
