@@ -3,8 +3,8 @@ import { getSanityConfigTool } from "./getSanityConfigTool.js";
 
 export function registerConfigTools(server: McpServer) {
   server.tool(
-    "get-sanity-config",
-    "Get current Sanity configuration information from environment variables",
+    "get_sanity_config",
+    "Get current Sanity configuration information from environment variables. Covers projectId, dataset, apiVersion, useCdn and perspective",
     {},
     getSanityConfigTool
   );
