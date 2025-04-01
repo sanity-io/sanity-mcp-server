@@ -1,10 +1,12 @@
 import { SanityClient } from "@sanity/client";
 import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { sanityClient } from "../../config/sanity.js";
-
-export async function listAllReleases(): Promise<CallToolResult> {
+import { ListReleaseDocumentsParamsType } from "./schema.js";
+export async function listAllReleases(
+  args: ListReleaseDocumentsParamsType
+): Promise<CallToolResult> {
   try {
-    let res = await listReleases(sanityClient);
+    let res = await listReleases(sanityClient, args.includeAll);
     if (!res) {
       return {
         content: [
@@ -40,8 +42,11 @@ export async function listAllReleases(): Promise<CallToolResult> {
 }
 export async function listReleases(
   client: SanityClient,
+  includeAll: boolean = false
 ): Promise<Record<string, string>[]> {
-  const query = "releases::all()";
+  const query = includeAll
+    ? "releases::all()"
+    : 'releases::all()[state == "active"]';
   const params = {};
 
   try {
