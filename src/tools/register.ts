@@ -46,10 +46,8 @@ function createContextCheckingServer(server: McpServer): McpServer {
  * Register all tools with for the MCP server
  */
 export function registerAllTools(server: McpServer) {
-  // Create a proxy server that adds initial context check to all tools
   const wrappedServer = createContextCheckingServer(server);
 
-  //registerExampleTools(wrappedServer);
   registerContextTools(wrappedServer);
   registerConfigTools(wrappedServer);
   registerGroqTools(wrappedServer);
