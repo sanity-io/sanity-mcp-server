@@ -48,7 +48,7 @@ export function registerReleasesTools(server: McpServer) {
   server.tool(
     "list_release_documents",
     "List all releases documents",
-    listAllReleases,
+    ListReleaseDocumentsParams,
     listAllReleases
   );
 }
