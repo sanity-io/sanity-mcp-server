@@ -6,26 +6,14 @@ export async function listSchemaTypesTool(
   extra: RequestHandlerExtra
 ) {
   try {
-    const query = `array::unique(*[]._type)`;
-    const types = await sanityClient.fetch(query);
-
-    if (!Array.isArray(types)) {
-      throw new Error("Unexpected response format: expected an array.");
-    }
-
-    const userTypes = types.filter(
-      (type) =>
-        typeof type === "string" &&
-        !type.startsWith("system.") &&
-        !type.startsWith("sanity.")
-    );
+    const schemaTypes = await getSchemaTypes();
 
     return {
       content: [
         {
           type: "text" as const,
-          text: userTypes.length
-            ? `Schema types: ${userTypes.join(", ")}`
+          text: schemaTypes.length
+            ? `Schema types: ${schemaTypes.join(", ")}`
             : "No custom schema types found.",
         },
       ],
@@ -40,5 +28,27 @@ export async function listSchemaTypesTool(
         },
       ],
     };
+  }
+}
+
+export async function getSchemaTypes() {
+  try {
+    const query = `array::unique(*[]._type)`;
+    const types = await sanityClient.fetch(query);
+
+    if (!Array.isArray(types)) {
+      throw new Error("Unexpected response format: expected an array.");
+    }
+
+    const userTypes = types.filter(
+      (type) =>
+        typeof type === "string" &&
+        !type.startsWith("system.") &&
+        !type.startsWith("sanity.")
+    );
+
+    return userTypes;
+  } catch (error) {
+    throw new Error(`Error fetching schema types: ${error}`);
   }
 }
