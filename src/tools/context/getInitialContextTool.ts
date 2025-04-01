@@ -1,10 +1,11 @@
 import { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
 import { sanityClient } from "../../config/sanity.js";
 import { getDatasetsTool } from "../datasets/getDatasetsTool.js";
-import { listSchemaTypesTool } from "../schema/listSchemaTypesTool.js";
+import { getSchemaTypes } from "../schema/listSchemaTypesTool.js";
 import { listEmbeddingsIndicesTool } from "../embeddings/listEmbeddingsTool.js";
-import { listAllReleases } from "../releases/listReleaseDocuments.js";
+import { listReleases } from "../releases/listReleaseDocuments.js";
 import { getSanityConfigTool } from "../config/getSanityConfigTool.js";
+import { getSchema } from "../schema/getTypeSchemaTool.js";
 
 let contextInitialized = false;
 
@@ -19,10 +20,23 @@ export async function getInitialContextTool(
   try {
     const config = await getSanityConfigTool({}, extra);
     const datasets = await getDatasetsTool({}, extra);
-    const schemaTypes = await listSchemaTypesTool({}, extra);
+    const schemaTypes = await getSchemaTypes();
+    const schemaTypesText = `Available schema types: ${schemaTypes.join(", ")}`;
+    const schemaPromises = schemaTypes.map(async (type) => {
+      try {
+        const schema = await getSchema(type);
+        return `\nSchema for type ${type}:\n${schema}`;
+      } catch (error) {
+        return `\nError getting schema for type ${type}: ${error}`;
+      }
+    });
+
+    const resolvedSchemas = await Promise.all(schemaPromises);
+    const schemaText = schemaTypesText + resolvedSchemas.join("\n");
+
     const embeddings = await listEmbeddingsIndicesTool({}, extra);
-    //TODO: only active releases should be listed
-    const releases = await listAllReleases();
+    const activeReleases = await listReleases(sanityClient);
+    const activeReleasesText = JSON.stringify(activeReleases);
 
     contextInitialized = true;
 
@@ -32,11 +46,12 @@ CONFIG & DATASETS
 ${config.content[0].text}
 ${datasets.content[0].text}
 
-SCHEMA TYPES: ${schemaTypes.content[0].text}
+SCHEMA:
+${schemaText}
 
 EMBEDDINGS: ${embeddings.content[0].text}
 
-RELEASES: ${releases.content[0].text}`;
+ACTIVE RELEASES: ${activeReleasesText}`;
 
     return {
       content: [
