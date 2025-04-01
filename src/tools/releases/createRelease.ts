@@ -1,25 +1,23 @@
-import {
-  MultipleActionResult,
-  SanityClient,
-  SingleActionResult,
-} from "@sanity/client";
-import { actionRequest } from "../documents/actions/actionRequest.js";
 import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import {
+  SanityClient
+} from "@sanity/client";
 import { sanityClient } from "../../config/sanity.js";
-import { ReleaseActionBodyType, ReleaseParamsType } from "./schema.js";
+import { actionRequest } from "../documents/actions/actionRequest.js";
 import { generateReleaseId } from "../utils.js";
+import { ReleaseActionBodyType, ReleaseParamsType } from "./schema.js";
 
 export async function createRelease(
   args: ReleaseParamsType,
 ): Promise<CallToolResult> {
   try {
-    await createReleaseAction(sanityClient, args);
+    const releaseId = await createReleaseAction(sanityClient, args);
 
     return {
       content: [
         {
           type: "text",
-          text: "Successfully created a release",
+          text: `Successfully created a release with releaseId ${releaseId}`,
         },
       ],
     };
@@ -40,18 +38,18 @@ export async function createRelease(
 export async function createReleaseAction(
   client: SanityClient,
   releaseReq: ReleaseParamsType,
-): Promise<SingleActionResult | MultipleActionResult> {
+): Promise<String> {
   try {
     // TODO: handle id conflict
     const releaseId = generateReleaseId();
-    const res = await actionRequest<ReleaseActionBodyType[], any>(client, [
+    await actionRequest<ReleaseActionBodyType[], any>(client, [
       {
         actionType: "sanity.action.release.create",
         releaseId: releaseId,
         ...releaseReq,
       },
     ]);
-    return res;
+    return releaseId;
   } catch (e: unknown) {
     throw e;
   }
