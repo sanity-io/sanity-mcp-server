@@ -3,6 +3,24 @@ import { z } from "zod";
 // Define the release type enum values
 const ReleaseType = z.enum(["asap", "undecided", "scheduled"]);
 
+export const ListReleaseDocumentsParams = {
+  includeAll: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe(
+      "If true, list all releases, otherwise list only active releases"
+    ),
+};
+
+export const ListReleaseDocumentsParamsSchema = z.object(
+  ListReleaseDocumentsParams
+);
+
+export type ListReleaseDocumentsParamsType = z.infer<
+  typeof ListReleaseDocumentsParamsSchema
+>;
+
 // Define the metadata schema
 const ReleaseMetadata = z
   .object({
