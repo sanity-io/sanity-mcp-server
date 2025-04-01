@@ -60,7 +60,15 @@ export type GroqQueryParams = z.infer<typeof GroqQueryParamsSchema>;
 export const executeGroqQueryParams = {
   query: z
     .string()
-    .describe("The GROQ query to execute"),
+    .describe(`The GROQ query to execute. Follow these guidelines when writing GROQ queries:
+- Pay close attention to syntax, especially for projections
+- When creating computed/aliased fields in projections, the field name MUST be a string literal with quotes
+- Example of INCORRECT syntax: *[_type == "author"]{ _id, title: name }
+- Example of CORRECT syntax: *[_type == "author"]{ _id, "title": name }
+- Missing quotes around field names in projections will cause "string literal expected" errors
+- Always wrap computed field names in double quotes: "fieldName": value
+- Regular (non-computed) field selections don't need quotes: _id, name, publishedAt
+- Check your queries carefully before submitting them`),
   params: z
     .record(z.any())
     .optional()
