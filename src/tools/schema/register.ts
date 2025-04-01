@@ -1,18 +1,18 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { listSchemaTypesTool } from "./listSchemaTypesTool.js";
-import { GetSchemaParams } from "./schema.js";
+import { getSchemaOverviewTool } from "./getSchemaOverviewTool.js";
 import { getTypeSchemaTool } from "./getTypeSchemaTool.js";
+import { GetSchemaParams } from "./schema.js";
 
 export function registerSchemaTools(server: McpServer) {
   server.tool(
-    "list_schema_types",
-    "List all schema types in the dataset",
+    "get_schema_overview",
+    "Get a concise overview of the schema types",
     {},
-    listSchemaTypesTool
+    getSchemaOverviewTool
   );
   server.tool(
-    "get_type_schema",
-    "Get detailed schema for a specific type",
+    "get_type_schema_details",
+    "Get detailed schema details for a specific type, including all fields and their descriptions",
     GetSchemaParams,
     getTypeSchemaTool
   );

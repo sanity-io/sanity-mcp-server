@@ -1,11 +1,10 @@
 import { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
 import { sanityClient } from "../../config/sanity.js";
+import { getSanityConfigTool } from "../config/getSanityConfigTool.js";
 import { getDatasetsTool } from "../datasets/getDatasetsTool.js";
-import { getSchemaTypes } from "../schema/listSchemaTypesTool.js";
 import { listEmbeddingsIndicesTool } from "../embeddings/listEmbeddingsTool.js";
 import { listReleases } from "../releases/listReleaseDocuments.js";
-import { getSanityConfigTool } from "../config/getSanityConfigTool.js";
-import { getSchema } from "../schema/getTypeSchemaTool.js";
+import { getSchemaOverview } from "../schema/getSchemaOverviewTool.js";
 
 let contextInitialized = false;
 
@@ -18,24 +17,20 @@ export async function getInitialContextTool(
   extra: RequestHandlerExtra
 ) {
   try {
-    const config = await getSanityConfigTool({}, extra);
-    const datasets = await getDatasetsTool({}, extra);
-    const schemaTypes = await getSchemaTypes();
-    const schemaTypesText = `Available schema types: ${schemaTypes.join(", ")}`;
-    const schemaPromises = schemaTypes.map(async (type) => {
-      try {
-        const schema = await getSchema(type);
-        return `\nSchema for type ${type}:\n${schema}`;
-      } catch (error) {
-        return `\nError getting schema for type ${type}: ${error}`;
-      }
-    });
+    const [config, datasets, schemaTypes, embeddings, activeReleases] =
+      await Promise.all([
+        getSanityConfigTool({}, extra),
+        getDatasetsTool({}, extra),
+        getSchemaOverview({}),
+        listEmbeddingsIndicesTool({}, extra),
+        listReleases(sanityClient),
+      ]);
+    let schemaTypesText = [
+      "Overview of the of available schema types and its fields:",
+      JSON.stringify(schemaTypes, null, 1),
+      "If you need more information about a specific schema type, you can use the `getSchema` tool.",
+    ].join("\n\n");
 
-    const resolvedSchemas = await Promise.all(schemaPromises);
-    const schemaText = schemaTypesText + resolvedSchemas.join("\n");
-
-    const embeddings = await listEmbeddingsIndicesTool({}, extra);
-    const activeReleases = await listReleases(sanityClient);
     const activeReleasesText = JSON.stringify(activeReleases);
 
     contextInitialized = true;
@@ -47,9 +42,10 @@ ${config.content[0].text}
 ${datasets.content[0].text}
 
 SCHEMA:
-${schemaText}
+${schemaTypesText}
 
-EMBEDDINGS: ${embeddings.content[0].text}
+EMBEDDINGS: 
+${embeddings.content[0].text}
 
 ACTIVE RELEASES: ${activeReleasesText}`;
 
