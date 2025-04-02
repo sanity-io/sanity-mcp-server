@@ -66,7 +66,7 @@ export async function getSchemaOverview({
   let schema = JSON.parse(schemaString) as ManifestSchemaType[];
 
   schema = schema.filter((documentOrObject) =>
-    ["sanity.", "assist."].some(
+    ["sanity.", "assist."].every(
       (prefix) => !documentOrObject.type.startsWith(prefix)
     )
   );

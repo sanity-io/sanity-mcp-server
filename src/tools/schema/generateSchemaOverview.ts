@@ -26,8 +26,10 @@ export function generateSchemaOverview(
   options?: FormatOptions
 ) {
   // Filter out types that start with "sanity."
-  const filteredSchema = schema.filter(
-    (type) => !type.name?.startsWith("sanity.")
+  const filteredSchema = schema.filter((documentOrObject) =>
+    ["sanity.", "assist."].every(
+      (prefix) => !documentOrObject.type.startsWith(prefix)
+    )
   );
 
   // Create a schema overview section
