@@ -1,4 +1,4 @@
-import { nanoid } from "nanoid";
+import { customAlphabet } from "nanoid";
 
 export const enum DocumentCategory {
   Drafts = "drafts",
@@ -6,8 +6,11 @@ export const enum DocumentCategory {
   Published = "published",
 }
 
+const alphabet = "abcdefghijklmnopqrstuvwxyz";
+
 export function generateReleaseId(): string {
-  const id = nanoid(8);
+  const idGen = customAlphabet(`${alphabet}${alphabet.toUpperCase()}123456789`);
+  const id = idGen(8);
   return `r${id}`;
 }
 
