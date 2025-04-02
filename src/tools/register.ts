@@ -1,16 +1,15 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
 import { registerConfigTools } from "./config/register.js";
-import { registerGroqTools } from "./groq/register.js";
-import { registerVersionTools } from "./version/register.js";
-import { registerDocumentTools } from "./documents/register.js";
-import { registerProjectsTools } from "./projects/register.js";
-import { registerSchemaTools } from "./schema/register.js";
-import { registerDatasetsTools } from "./datasets/register.js";
-import { registerReleasesTools } from "./releases/register.js";
-import { registerEmbeddingsTools } from "./embeddings/register.js";
-import { registerContextTools } from "./context/register.js";
 import { enforceInitialContextMiddleware } from "./context/middleware.js";
+import { registerContextTools } from "./context/register.js";
+import { registerDatasetsTools } from "./datasets/register.js";
+import { registerDocumentTools } from "./documents/register.js";
+import { registerEmbeddingsTools } from "./embeddings/register.js";
+import { registerGroqTools } from "./groq/register.js";
+import { registerProjectsTools } from "./projects/register.js";
+import { registerReleasesTools } from "./releases/register.js";
+import { registerSchemaTools } from "./schema/register.js";
 
 function createContextCheckingServer(server: McpServer): McpServer {
   const originalTool = server.tool;
@@ -51,7 +50,6 @@ export function registerAllTools(server: McpServer) {
   registerContextTools(wrappedServer);
   registerConfigTools(wrappedServer);
   registerGroqTools(wrappedServer);
-  registerVersionTools(wrappedServer);
   registerDocumentTools(wrappedServer);
   registerProjectsTools(wrappedServer);
   registerSchemaTools(wrappedServer);
