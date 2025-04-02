@@ -1,5 +1,5 @@
 import { RawRequestOptions, SanityClient } from "@sanity/client";
-import { env } from "../../../config/env.js";
+import { sanityClient } from "../../../config/sanity.js";
 
 type ActionVersionDiscard = "sanity.action.document.version.discard";
 
@@ -23,9 +23,9 @@ export async function discardDocumentVersion(
     ...createReq,
   };
 
-  let dataset = env.data!!.SANITY_DATASET;
+  const dataset = sanityClient.config().dataset;
 
-  let options: RawRequestOptions = {
+  const options: RawRequestOptions = {
     uri: `/data/actions/${dataset}`,
     body: { actions: [action] },
   };

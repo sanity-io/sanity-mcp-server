@@ -1,5 +1,4 @@
 import { RawRequestOptions, SanityClient } from "@sanity/client";
-import { env } from "../../../config/env.js";
 
 type ActionVersionReplace = "sanity.action.document.version.replace";
 
@@ -27,9 +26,9 @@ export async function replaceDocumentVersion(
     ...createReq,
   };
 
-  let dataset = env.data!!.SANITY_DATASET;
+  const dataset = client.config().dataset;
 
-  let options: RawRequestOptions = {
+  const options: RawRequestOptions = {
     uri: `/data/actions/${dataset}`,
     body: { actions: [action] },
   };
