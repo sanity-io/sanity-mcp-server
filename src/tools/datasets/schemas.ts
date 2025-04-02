@@ -4,17 +4,20 @@ import { z } from "zod";
 const datasetBaseParams = {
   name: z
     .string()
-    .regex(
-      /^[a-z0-9_-]+$/,
-      "The name of the dataset can only contain lowercase characters, numbers, underscores and dashes"
+    .transform((name) => name.toLowerCase().replace(/[^a-z0-9_-]/g, ""))
+    .refine(
+      (name) => name.length > 0,
+      "Dataset name cannot be empty after transformation. Please include at least one letter, number, underscore, or dash."
     )
-    .describe("The name of the dataset"),
+    .describe(
+      "The name of the dataset (will be automatically formatted to match requirements)"
+    ),
 
   aclMode: z
     .enum(["private", "public"])
     .optional()
     .describe("The ACL mode for the dataset"),
-} as const;
+};
 
 // Create dataset schema
 export const createDatasetParams = {
@@ -34,7 +37,14 @@ export type UpdateDatasetParams = z.infer<typeof UpdateDatasetSchema>;
 
 // Delete dataset schema
 export const deleteDatasetParams = {
-  dataset: z.string().describe("The name of the dataset to delete"),
-} as const;
+  dataset: z
+    .string()
+    .transform((name) => name.toLowerCase().replace(/[^a-z0-9_-]/g, ""))
+    .refine(
+      (name) => name.length > 0,
+      "Dataset name cannot be empty after transformation. Please include at least one letter, number, underscore, or dash."
+    )
+    .describe("The name of the dataset to delete"),
+};
 const DeleteDatasetSchema = z.object(deleteDatasetParams);
 export type DeleteDatasetParams = z.infer<typeof DeleteDatasetSchema>;
