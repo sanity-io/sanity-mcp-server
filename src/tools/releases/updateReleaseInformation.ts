@@ -4,13 +4,8 @@ import {
   actionRequest,
   ActionTypes,
 } from "../documents/actions/actionRequest.js";
-import { generateReleaseId, parseReleaseId } from "../utils.js";
-import {
-  ReleaseActionBodyType,
-  ReleaseMetadataType,
-  ReleaseMetadataUpdateType,
-  ReleaseParamsType,
-} from "./schema.js";
+import { parseReleaseId } from "../utils.js";
+import { ReleaseMetadataType, ReleaseMetadataUpdateType } from "./schemas.js";
 
 interface ReleaseMetadataUpdateRequest extends ActionTypes {
   releaseId: string;
@@ -64,7 +59,6 @@ export async function updateReleaseInformation(
       ],
     };
   } catch (error: unknown) {
-    console.log(error);
     return {
       isError: true,
       content: [

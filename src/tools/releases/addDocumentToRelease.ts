@@ -3,7 +3,7 @@ import {
   createDocumentVersion,
 } from "./versions/createDocumentVersion.js";
 import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
-import { ReleaseDocumentParamsType } from "./schema.js";
+import { ReleaseDocumentParamsType } from "./schemas.js";
 import { sanityClient } from "../../config/sanity.js";
 import { addDocVersionId, DocumentCategory, parseDocId } from "../utils.js";
 

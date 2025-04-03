@@ -33,8 +33,8 @@ export function parseDocId(docId: string): [DocumentCategory, string] {
   return [category as DocumentCategory, publishedId];
 }
 
-// find the publishedId so any drafts or versions prefixes is removed and the last string is assumed to be the published id
-export function parsePublishedId(publishedId: string): string {
+// find the id so any drafts or versions prefixes are removed and the last string is assumed to be the published id
+export function parseId(publishedId: string): string {
   const idParts = publishedId.split(".");
   if (idParts.length === 1) {
     // no versions in id

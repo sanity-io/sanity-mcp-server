@@ -1,6 +1,6 @@
 import { addDocumentRequest } from "./versions/createDocumentVersion.js";
 import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
-import { PublishMultiplesDocumentType } from "./schema.js";
+import { PublishMultiplesDocumentType } from "./schemas.js";
 import { sanityClient } from "../../config/sanity.js";
 import { processDocumentForRelease } from "./addDocumentToRelease.js";
 import { actionRequest } from "../documents/actions/actionRequest.js";

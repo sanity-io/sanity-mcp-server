@@ -1,7 +1,7 @@
 import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
-import { DiscardDocParamsType } from "./schema.js";
+import { DiscardDocParamsType } from "./schemas.js";
 import { sanityClient } from "../../config/sanity.js";
-import { addDocVersionId, parsePublishedId } from "../utils.js";
+import { addDocVersionId, parseId } from "../utils.js";
 import {
   actionRequest,
   ActionTypes,
@@ -17,9 +17,11 @@ export async function removeDocumentFromRelease(
 ): Promise<CallToolResult> {
   const { releaseId, publishedId } = args;
 
-  const parsedDocId = parsePublishedId(publishedId);
+  const parsedReleasedId = parseId(releaseId);
 
-  const versionId = addDocVersionId(publishedId, parsedDocId);
+  const parsedDocId = parseId(publishedId);
+
+  const versionId = addDocVersionId(parsedDocId, parsedReleasedId);
 
   const doc = await sanityClient.getDocument(versionId);
   if (!doc) {

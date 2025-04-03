@@ -1,9 +1,9 @@
 import { SanityClient } from "@sanity/client";
 import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { sanityClient } from "../../config/sanity.js";
-import { ListReleaseDocumentsParamsType } from "./schema.js";
+import { ListReleaseDocumentsParamsType } from "./schemas.js";
 export async function listAllReleases(
-  args: ListReleaseDocumentsParamsType
+  args: ListReleaseDocumentsParamsType,
 ): Promise<CallToolResult> {
   try {
     let res = await listReleases(sanityClient, args.includeAll);
@@ -42,7 +42,7 @@ export async function listAllReleases(
 }
 export async function listReleases(
   client: SanityClient,
-  includeAll: boolean = false
+  includeAll: boolean = false,
 ): Promise<Record<string, string>[]> {
   const query = includeAll
     ? "releases::all()"
