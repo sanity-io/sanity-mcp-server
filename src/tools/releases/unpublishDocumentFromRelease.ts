@@ -3,7 +3,7 @@ import {
   ActionTypes,
 } from "../documents/actions/actionRequest.js";
 import { DocumentCategory, parseDocId } from "../utils.js";
-import { UnpublishActionBodyType } from "./schema.js";
+import { UnpublishActionBodyType } from "./schemas.js";
 import { sanityClient } from "../../config/sanity.js";
 import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 

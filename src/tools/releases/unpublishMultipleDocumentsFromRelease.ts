@@ -2,7 +2,7 @@ import {
   actionRequest,
   ActionTypes,
 } from "../documents/actions/actionRequest.js";
-import { UnpublishMultiplesDocumentType } from "./schema.js";
+import { UnpublishMultiplesDocumentType } from "./schemas.js";
 import { sanityClient } from "../../config/sanity.js";
 import { processUnpublishRequest } from "./unpublishDocumentFromRelease.js";
 import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";

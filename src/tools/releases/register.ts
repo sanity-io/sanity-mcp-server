@@ -10,7 +10,7 @@ import {
   ListReleaseDocumentsParams,
   RemoveDocumentFromRelease,
   ReleaseMetadataUpdate,
-} from "./schema.js";
+} from "./schemas.js";
 import { unpublishDocumentFromRelease } from "./unpublishDocumentFromRelease.js";
 import { addMultipleDocumentsToRelease } from "./addMultipleDocumentsToRelease.js";
 import { unpublishMultipleDocumentsFromRelease } from "./unpublishMultipleDocumentsFromRelease.js";

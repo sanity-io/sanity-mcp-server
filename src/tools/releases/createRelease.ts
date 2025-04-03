@@ -1,11 +1,9 @@
 import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
-import {
-  SanityClient
-} from "@sanity/client";
+import { SanityClient } from "@sanity/client";
 import { sanityClient } from "../../config/sanity.js";
 import { actionRequest } from "../documents/actions/actionRequest.js";
 import { generateReleaseId } from "../utils.js";
-import { ReleaseActionBodyType, ReleaseParamsType } from "./schema.js";
+import { ReleaseActionBodyType, ReleaseParamsType } from "./schemas.js";
 
 export async function createRelease(
   args: ReleaseParamsType,
@@ -22,7 +20,6 @@ export async function createRelease(
       ],
     };
   } catch (error: unknown) {
-    console.log(error);
     return {
       isError: true,
       content: [
