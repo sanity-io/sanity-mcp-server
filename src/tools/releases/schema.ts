@@ -9,17 +9,22 @@ export const ListReleaseDocumentsParams = {
     .optional()
     .default(false)
     .describe(
-      "If true, list all releases, otherwise list only active releases"
+      "If true, list all releases, otherwise list only active releases",
     ),
 };
 
 export const ListReleaseDocumentsParamsSchema = z.object(
-  ListReleaseDocumentsParams
+  ListReleaseDocumentsParams,
 );
 
 export type ListReleaseDocumentsParamsType = z.infer<
   typeof ListReleaseDocumentsParamsSchema
 >;
+
+const ReleaseMetadataInformation = z.object({
+  title: z.string().describe("title of the release").optional(),
+  description: z.string().describe("release description").optional(),
+});
 
 // Define the metadata schema
 const ReleaseMetadata = z
@@ -27,7 +32,7 @@ const ReleaseMetadata = z
     title: z.string().describe("title of the release").optional(),
     description: z.string().describe("release description").optional(),
     releaseType: ReleaseType.describe(
-      "type of the release, wheter it should be schedulaed as soon as posible, undecided or scheduled",
+      "type of the release, wheter it should be schedulaed asap, undecided or scheduled. You should use undecided if no other is specified",
     ).optional(),
     intendedPublishAt: z
       .string()
@@ -42,6 +47,7 @@ const ReleaseMetadata = z
       path: ["intendedPublishAt"],
     },
   );
+export type ReleaseMetadataType = z.infer<typeof ReleaseMetadata>;
 
 // Define the ReleaseActionBody schema
 export const ReleaseActionBody = z.object({
@@ -54,9 +60,31 @@ export const Release = {
   metadata: ReleaseMetadata.optional().describe("metadata about the release"),
 };
 
+export const ReleaseMetadataUpdate = {
+  releaseId: z.string(),
+  metadata: ReleaseMetadataInformation.describe(
+    "metadata to be updated on the release",
+  ).refine((data) => Object.keys(data).length > 0, {
+    message: "At least one metadata field must be provided.",
+  }),
+};
+
+export const RemoveDocumentFromRelease = {
+  releaseId: z.string().describe("id of the release"),
+  publishedId: z.string().describe("id of the document we want to discard"),
+};
+
+export const DiscardDocParamsSchema = z.object(RemoveDocumentFromRelease);
+export const ReleaseMetadataParamsSchema = z.object(ReleaseMetadataUpdate);
+
+export type DiscardDocParamsType = z.infer<typeof DiscardDocParamsSchema>;
+
 export const ReleaseParamsSchema = z.object(Release);
 
 export type ReleaseParamsType = z.infer<typeof ReleaseParamsSchema>;
+export type ReleaseMetadataUpdateType = z.infer<
+  typeof ReleaseMetadataParamsSchema
+>;
 
 export const ReleaseDocument = {
   releaseId: z.string().describe("Document id for the sanity release document"),
