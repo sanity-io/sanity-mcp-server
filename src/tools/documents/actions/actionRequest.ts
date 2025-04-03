@@ -10,6 +10,7 @@ export type ActionDocumentVersionCreate =
   "sanity.action.document.version.create";
 export type ActionDocumentVersionUnpublish =
   "sanity.action.document.version.unpublish";
+export type ActionReleaseEdit = "sanity.action.release.edit";
 
 export type ActionTypes = {
   actionType:
@@ -19,7 +20,8 @@ export type ActionTypes = {
     | ActionVersionDiscard
     | ActionReleaseCreate
     | ActionDocumentVersionCreate
-    | ActionDocumentVersionUnpublish;
+    | ActionDocumentVersionUnpublish
+    | ActionReleaseEdit;
 };
 
 // want type T extends ActionTypes but needs some iteration to work with both T[] extends ActionTypes
