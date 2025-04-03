@@ -8,14 +8,24 @@ import {
   UnpublishMultipleDocuments,
   Release,
   ListReleaseDocumentsParams,
+  RemoveDocumentFromRelease,
+  ReleaseMetadataUpdate,
 } from "./schema.js";
 import { unpublishDocumentFromRelease } from "./unpublishDocumentFromRelease.js";
 import { addMultipleDocumentsToRelease } from "./addMultipleDocumentsToRelease.js";
 import { unpublishMultipleDocumentsFromRelease } from "./unpublishMultipleDocumentsFromRelease.js";
 import { createRelease } from "./createRelease.js";
+import { removeDocumentFromRelease } from "./discardDocumentFromRelease.js";
+import { updateReleaseInformation } from "./updateReleaseInformation.js";
 
 export function registerReleasesTools(server: McpServer) {
   server.tool("create_release", "Create a new release", Release, createRelease);
+  server.tool(
+    "update_release_information",
+    "update the metadata for a given release",
+    ReleaseMetadataUpdate,
+    updateReleaseInformation,
+  );
 
   server.tool(
     "add_document_to_release",
@@ -29,6 +39,13 @@ export function registerReleasesTools(server: McpServer) {
     "Add multiple docuements to a release",
     PublishMultipleDocuments,
     addMultipleDocumentsToRelease,
+  );
+
+  server.tool(
+    "remove_document_from_release",
+    "removes a document from a given release",
+    RemoveDocumentFromRelease,
+    removeDocumentFromRelease,
   );
 
   server.tool(
@@ -49,6 +66,6 @@ export function registerReleasesTools(server: McpServer) {
     "list_release_documents",
     "List all releases documents",
     ListReleaseDocumentsParams,
-    listAllReleases
+    listAllReleases,
   );
 }
