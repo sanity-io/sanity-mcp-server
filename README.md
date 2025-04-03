@@ -131,3 +131,58 @@ Fill in the env configs and run this command. You will get a local web app that 
 ```
 npx @modelcontextprotocol/inspector -e SANITY_API_TOKEN=<token> -e SANITY_PROJECT_ID=<project_id> -e SANITY_DATASET=<ds> -e SANITY_API_VERSION=<v> -e SANITY_API_HOST=<host> -e SANITY_PERSPECTIVE=<perspective> node <ABSOLUTE_PATH_TO>/build/index.js
 ```
+
+## Deployment
+
+### Fly.io
+
+#### Initial Deployment
+
+To deploy to Fly.io for the first time:
+
+1. Install the Fly CLI: https://fly.io/docs/hands-on/install-flyctl/
+
+2. Authenticate with Fly.io:
+   ```bash
+   fly auth login
+   ```
+
+3. Launch the application (if not already created):
+   ```bash
+   fly launch
+   ```
+   Follow the prompts to configure your application.
+
+4. Set environment variables as secrets:
+   ```bash
+   # Required Sanity settings
+   fly secrets set SANITY_PROJECT_ID="your-project-id"
+   fly secrets set SANITY_DATASET="your-dataset"
+   fly secrets set SANITY_API_TOKEN="your-api-token"
+   fly secrets set SANITY_API_VERSION="vX"
+   fly secrets set SANITY_API_HOST="https://api.sanity.io"
+
+   # REQUIRED Security setting - URL secret path (server will fail to start without this)
+   fly secrets set SECRET_PATH_SEGMENT="your-secret-path-token"
+   ```
+
+5. Deploy your application:
+   ```bash
+   fly deploy
+   ```
+
+#### Subsequent Deployments
+
+For subsequent deployments after changes to your code:
+
+```bash
+fly deploy
+```
+
+#### Accessing Your Application
+
+The `SECRET_PATH_SEGMENT` adds a security layer by requiring this token in the URL paths:
+- SSE endpoint: `https://sanity-mcp-server.fly.dev/your-secret-path-token/sse`
+- Message endpoint: `https://sanity-mcp-server.fly.dev/your-secret-path-token/message`
+
+The server will refuse to start if `SECRET_PATH_SEGMENT` is not set.
