@@ -2,13 +2,13 @@
 
 ## Development
 
-Install the dependencies with `npm install`
+Install the dependencies with `pnpm install`
 
-Rebuild and restart the server on every change with `npm run dev`
+Rebuild and restart the server on every change with `pnpm run dev`
 
-Build the server with `npm run build`
+Build the server with `pnpm run build`
 
-Run the server with `npm start`
+Run the server with `pnpm start`
 
 ## Claude Desktop Configuration
 
@@ -19,7 +19,7 @@ To connect Claude Desktop to this MCP server, your configuration should look lik
   "mcpServers": {
     "sanity": {
       "command": "node",
-      "args": ["/Users/rostimelk/Projects/prj-agent/mcp/build/index.js"],
+      "args": ["/Users/<username>/<path-to-project>/sanity-mcp-server/build/index.js"],
       "env": {
         "SANITY_PROJECT_ID": "",
         "SANITY_DATASET": "",
