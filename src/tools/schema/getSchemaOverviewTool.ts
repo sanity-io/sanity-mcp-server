@@ -6,7 +6,7 @@ import { toJsonString } from "./toJson.js";
 
 export async function getSchemaOverviewTool(
   args: {},
-  extra: RequestHandlerExtra
+  extra: RequestHandlerExtra,
 ) {
   try {
     const schemaTypes = await getSchemaOverview({});
@@ -16,9 +16,9 @@ export async function getSchemaOverviewTool(
         {
           type: "text" as const,
           text:
-            schemaTypes.sanitySchema.schemaOverview.totalTypes > 0
+            schemaTypes.schemaOverview.totalTypes > 0
               ? `Schema type overview: \n${toJsonString(
-                  schemaTypes.sanitySchema.schemaOverview
+                  schemaTypes.schemaOverview,
                 )}`
               : "No types found in the current schema.",
         },
@@ -60,15 +60,15 @@ export async function getSchemaOverview({
     "*[_id == $schemaId][0].schema",
     {
       schemaId: schemaId ?? "sanity.workspace.schema.default",
-    }
+    },
   );
 
   let schema = JSON.parse(schemaString) as ManifestSchemaType[];
 
   schema = schema.filter((documentOrObject) =>
     ["sanity.", "assist."].every(
-      (prefix) => !documentOrObject.type.startsWith(prefix)
-    )
+      (prefix) => !documentOrObject.type.startsWith(prefix),
+    ),
   );
 
   // If a specific type name is provided, filter the schema to only include that type
