@@ -3,21 +3,34 @@ import { sanityClient } from "../../config/sanity.js";
 import { getSchemaOverview } from "./getSchemaOverviewTool.js";
 import { GetSchemaParamsType } from "./schema.js";
 import { toJsonString } from "./toJson.js";
+import { Schema } from "./generateSchemaOverview.js";
 
 export async function getTypeSchemaTool(
   args: GetSchemaParamsType,
-  extra: RequestHandlerExtra
+  // extra: RequestHandlerExtra,
 ) {
   try {
     const allSchemas = await getSchemaOverview({
       typeName: args.type,
       schemaId: args.schemaId,
+      lite: false,
     });
 
-    const schema =
-      allSchemas.sanitySchema.schemaOverview.typesSummary.type.find(
-        (type) => type.type === args.type
-      );
+    const schema = allSchemas.schemaOverview.typesSummary.type.filter(
+      (type) => {
+        return type.name === args.type;
+      },
+    );
+
+    const schemaDetails: Schema = {
+      schemaOverview: {
+        totalTypes: allSchemas.schemaOverview.totalTypes,
+        typesSummary: {
+          type: schema,
+        },
+      },
+      schemaDetails: allSchemas.schemaDetails,
+    };
 
     if (!schema) {
       return {
@@ -34,7 +47,7 @@ export async function getTypeSchemaTool(
       content: [
         {
           type: "text" as const,
-          text: `Schema for type ${args.type}:\n${toJsonString(schema)}`,
+          text: `Schema for type ${args.type}:\n${toJsonString(schemaDetails)}`,
         },
       ],
     };

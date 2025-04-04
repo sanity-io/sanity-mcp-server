@@ -14,6 +14,28 @@ interface FormatOptions {
   lite?: boolean;
 }
 
+interface SchemaOverview {
+  totalTypes: number;
+  typesSummary: {
+    type: {
+      name: string;
+      type: string;
+      title: string | undefined;
+      fieldsCount: number;
+      description: string;
+    }[];
+  };
+}
+
+interface SchemaDetails {
+  types: SchemaXmlNode[];
+}
+
+export interface Schema {
+  schemaOverview: SchemaOverview;
+  schemaDetails?: SchemaDetails;
+}
+
 /**
  * Generate a concise overview of the schema types
  *
@@ -23,41 +45,36 @@ interface FormatOptions {
  */
 export function generateSchemaOverview(
   schema: ManifestSchemaType[],
-  options?: FormatOptions
-) {
+  options?: FormatOptions,
+): Schema {
   // Filter out types that start with "sanity."
   const filteredSchema = schema.filter((documentOrObject) =>
     ["sanity.", "assist."].every(
-      (prefix) => !documentOrObject.type.startsWith(prefix)
-    )
+      (prefix) => !documentOrObject.type.startsWith(prefix),
+    ),
   );
 
   // Create a schema overview section
-  const schemaOverview = {
-    schemaOverview: {
-      totalTypes: filteredSchema.length,
-      typesSummary: {
-        type: filteredSchema.map((type) => ({
-          name: type.name,
-          type: type.type,
-          title: type.title,
-          fieldsCount: type.fields?.length || 0,
-          description: getTypeDescription(type),
-        })),
-      },
+  const schemaOverview: SchemaOverview = {
+    totalTypes: filteredSchema.length,
+    typesSummary: {
+      type: filteredSchema.map((type) => ({
+        name: type.name,
+        type: type.type,
+        title: type.title,
+        fieldsCount: type.fields?.length || 0,
+        description: getTypeDescription(type),
+      })),
     },
   };
 
-  // If lite mode is enabled, only include the overview
-  const schemaObject = {
-    sanitySchema: options?.lite
-      ? schemaOverview
-      : {
-          ...schemaOverview,
-          schemaDetails: {
-            types: filteredSchema.map(formatTypeAsObject),
-          },
-        },
+  const schemaObject: Schema = {
+    schemaOverview: schemaOverview,
+    ...(options?.lite === false && {
+      schemaDetails: {
+        types: filteredSchema.map(formatTypeAsObject),
+      },
+    }),
   };
 
   return schemaObject;
@@ -82,7 +99,7 @@ function getTypeDescription(type: ManifestSchemaType): string {
 
   if (type.fields?.length) {
     parts.push(
-      `with ${type.fields.length} field${type.fields.length === 1 ? "" : "s"}`
+      `with ${type.fields.length} field${type.fields.length === 1 ? "" : "s"}`,
     );
   }
 
@@ -236,7 +253,7 @@ function formatTypeAsObject(type: ManifestSchemaType): SchemaXmlNode {
  * Format a field as an object
  */
 function formatFieldAsObject(
-  field: ManifestSchemaType & { fieldset?: string }
+  field: ManifestSchemaType & { fieldset?: string },
 ): SchemaXmlNode {
   const result = formatTypeAsObject(field);
 
@@ -251,7 +268,7 @@ function formatFieldAsObject(
  * Format an array member as an object
  */
 function formatArrayMemberAsObject(
-  member: Omit<ManifestSchemaType, "name"> & { name?: string }
+  member: Omit<ManifestSchemaType, "name"> & { name?: string },
 ): SchemaXmlNode {
   return formatTypeAsObject(member as ManifestSchemaType);
 }
