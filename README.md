@@ -5,10 +5,10 @@ Sanity MCP Server implements the Model Context Protocol to standardise how AI mo
 ## MCP Functionality
 ### General Tools
 
+- **get_initial_context** – Should always be called before using any other tools to fetch initial context and usage instructions for this MCP server.
 - **get_sanity_config** – Retrieves current Sanity configuration from environment variables (projectId, dataset, apiVersion, useCdn, perspective).
 - **get_projects** – Fetches information about projects you have access to.
 - **get_studios** – Lists all studio hosts for a given project.
-- **get_initial_context** – Should always be called before using any other tools to fetch initial context and usage instructions for this MCP server.
 
 ### Document Management
 
@@ -102,9 +102,9 @@ The project is structured by separating the tools into different categories wher
   <tool files> - one file per tool
   ... 
   schemas.ts -> contains all zod schemas used used within the category
-  register.ts -> exports a function registering all release tools 
+  register.ts -> exports a function registering the category tools 
   
-register.ts - registers all categroy tools to the server
+register.ts - registers all categroies tools to the server
 
 ----- example -----
 tools
@@ -126,7 +126,7 @@ register.ts - registers all categroy tools to the server
 
 A nice way to debug is to use the [modelcontextprotocol inspector](https://github.com/modelcontextprotocol/inspector):
 
-Fill in the env configs and run this command. You will get local web app that can be used for
+Fill in the env configs and run this command. You will get a local web app that can be used for listing and running tools.
 
 ```
 npx @modelcontextprotocol/inspector -e SANITY_API_TOKEN=<token> -e SANITY_PROJECT_ID=<project_id> -e SANITY_DATASET=<ds> -e SANITY_API_VERSION=<v> -e SANITY_API_HOST=<host> -e SANITY_PERSPECTIVE=<perspective> node <ABSOLUTE_PATH_TO>/build/index.js
