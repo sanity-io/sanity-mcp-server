@@ -41,8 +41,8 @@ export async function patchDocumentTool(
       patchBuilder = patchBuilder.ifRevisionId(patch.ifRevisionId);
     }
     
-    // Commit the patch
-    const result = await patchBuilder.commit();
+    // Commit the patch with autoGenerateArrayKeys option
+    const result = await patchBuilder.commit({ autoGenerateArrayKeys: true });
     const text = JSON.stringify({
       operation: "update",
       documentId: id,
