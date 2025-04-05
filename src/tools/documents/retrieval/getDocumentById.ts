@@ -12,7 +12,7 @@ export async function getDocumentById(
 
     if (res === undefined) {
       return {
-        content: [{ type: "text", text: "document not found" }],
+        content: [{ type: "text", text: `Document with id ${documentId} not found. This might happen if its a draft, which requires the "drafts." prefix. E.g. "drafts.${documentId}"` }],
       };
     }
 
