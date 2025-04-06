@@ -51,27 +51,51 @@ type GetSchemaOverviewParams = {
    */
   lite?: boolean;
 };
+
 export async function getSchemaOverview({
   schemaId,
   typeName,
   lite,
 }: GetSchemaOverviewParams) {
-  const schemaString: string = await sanityClient.fetch(
-    "*[_id == $schemaId][0].schema",
-    {
-      schemaId: schemaId ?? "sanity.workspace.schema.default",
-    },
+  // First get all unique types from the content
+  const query = `array::unique(*[]._type)`;
+  const types = await sanityClient.fetch(query);
+
+  if (!Array.isArray(types)) {
+    throw new Error("Unexpected response format when getting schema overview: expected an array of types but got " + JSON.stringify(types));
+  }
+
+  // Filter out system types
+  const userTypes = types.filter(
+    (type) =>
+      typeof type === "string" &&
+      !type.startsWith("system.") &&
+      !type.startsWith("sanity.") &&
+      !type.startsWith("assist.")
   );
 
-  let schema = JSON.parse(schemaString) as ManifestSchemaType[];
+  // For each type, get a sample document to infer its schema
+  const schemaPromises = userTypes.map(async (type) => {
+    const query = `*[_type == $type][0] { ..., _id }`;
+    const sample = await sanityClient.fetch(query, { type });
+    
+    if (!sample) {
+      return null;
+    }
 
-  schema = schema.filter((documentOrObject) =>
-    ["sanity.", "assist."].every(
-      (prefix) => !documentOrObject.type.startsWith(prefix),
-    ),
-  );
+    return {
+      name: type,
+      type: type,
+      fields: Object.entries(sample).map(([fieldName, value]) => ({
+        name: fieldName,
+        type: Array.isArray(value) ? "array" : typeof value,
+      })),
+    };
+  });
 
-  // If a specific type name is provided, filter the schema to only include that type
+  let schema = (await Promise.all(schemaPromises)).filter(Boolean) as ManifestSchemaType[];
+
+  // if a specific type name is provided, filter the schema to only include that type
   if (typeName) {
     const typeSchema = schema.filter((type) => type.name === typeName);
     if (typeSchema.length === 0) {
