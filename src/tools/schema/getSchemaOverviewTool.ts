@@ -63,9 +63,9 @@ export async function getSchemaOverview({
     },
   );
 
-  let schema = JSON.parse(schemaString) as ManifestSchemaType[];
+  let schema = JSON.parse(schemaString) as ManifestSchemaType[] | null;
 
-  schema = schema.filter((documentOrObject) =>
+  schema = (schema ?? []).filter((documentOrObject) =>
     ["sanity.", "assist."].every(
       (prefix) => !documentOrObject.type.startsWith(prefix),
     ),
