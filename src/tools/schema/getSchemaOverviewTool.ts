@@ -74,28 +74,14 @@ export async function getSchemaOverview({
       !type.startsWith("assist.")
   );
 
-  // For each type, get a sample document to infer its schema
-  const schemaPromises = userTypes.map(async (type) => {
-    const query = `*[_type == $type][0] { ..., _id }`;
-    const sample = await sanityClient.fetch(query, { type });
-    
-    if (!sample) {
-      return null;
-    }
+  // Convert types to schema format
+  let schema = userTypes.map((type) => ({
+    name: type,
+    type: type,
+    fields: [], // We don't need fields for overview
+  })) as ManifestSchemaType[];
 
-    return {
-      name: type,
-      type: type,
-      fields: Object.entries(sample).map(([fieldName, value]) => ({
-        name: fieldName,
-        type: Array.isArray(value) ? "array" : typeof value,
-      })),
-    };
-  });
-
-  let schema = (await Promise.all(schemaPromises)).filter(Boolean) as ManifestSchemaType[];
-
-  // if a specific type name is provided, filter the schema to only include that type
+  // If a specific type name is provided, filter the schema to only include that type
   if (typeName) {
     const typeSchema = schema.filter((type) => type.name === typeName);
     if (typeSchema.length === 0) {
@@ -104,5 +90,5 @@ export async function getSchemaOverview({
     schema = typeSchema;
   }
 
-  return generateSchemaOverview(schema, { lite });
+  return generateSchemaOverview(schema, { lite: true }); // Always use lite since we're not fetching fields
 }

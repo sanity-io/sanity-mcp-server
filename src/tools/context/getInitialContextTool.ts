@@ -26,7 +26,7 @@ export async function getInitialContextTool(
         listReleases(sanityClient),
       ]);
     let schemaTypesText = [
-      "Overview of the of available schema types and its fields:",
+      "Overview of the of available schema types:",
       JSON.stringify(schemaTypes, null, 1),
       "If you need more information about a specific schema type, you can use the `get_schema_overview` tool.",
     ].join("\n\n");
