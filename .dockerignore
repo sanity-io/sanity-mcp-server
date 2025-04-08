@@ -20,6 +20,3 @@ out/
 *.swp
 *.swo
 .DS_Store
-
-# Fly.io
-fly.toml

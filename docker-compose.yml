@@ -1,0 +1,24 @@
+version: '3'
+
+services:
+  mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "43010:43010"
+    environment:
+      # Application settings
+      - PORT=43010
+      - SSE_PATH=/sse
+      - MESSAGE_PATH=/message
+      # REQUIRED: Secret path segment for URLs (server will fail to start without this)
+      - SECRET_PATH_SEGMENT=local-dev-token
+      
+      # Required Sanity settings (replace with actual values)
+      - SANITY_API_TOKEN=foo
+      - SANITY_PROJECT_ID=foo
+      - SANITY_DATASET=foo
+      - SANITY_API_VERSION=v2023-03-01
+      - SANITY_API_HOST=https://api.sanity.io
+    restart: unless-stopped 
