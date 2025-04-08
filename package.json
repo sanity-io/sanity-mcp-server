@@ -20,8 +20,9 @@
   "prettier": "@sanity/prettier-config",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.7.0",
-    "@sanity/client": "6.28.3-instruct.5",
+    "@sanity/client": "6.28.3-instruct.6",
     "dotenv": "^16.4.7",
+    "fast-xml-parser": "^5.2.0",
     "nanoid": "^5.1.5",
     "outdent": "^0.8.0",
     "zod": "^3.24.2"

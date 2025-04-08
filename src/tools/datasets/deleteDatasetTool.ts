@@ -1,24 +1,28 @@
+import {z} from 'zod'
 import {sanityClient} from '../../config/sanity.js'
-import {DeleteDatasetParams} from './schemas.js'
+import {formatResponse} from '../../utils/formatters.js'
 
-export async function deleteDatasetTool(args: DeleteDatasetParams) {
+export const DeleteDatasetToolParams = z.object({
+  name: z.string().describe('The name of the dataset to delete'),
+})
+
+type Params = z.infer<typeof DeleteDatasetToolParams>
+
+export async function deleteDatasetTool(args: Params) {
   try {
-    const deletedDataset = await sanityClient.datasets.delete(args.dataset)
+    // Only lowercase letters and numbers are allowed
+    const datasetToDelete = args.name.toLowerCase().replace(/[^a-z0-9]/g, '')
+    await sanityClient.datasets.delete(datasetToDelete)
 
-    const text = JSON.stringify(
-      {
-        operation: 'deletedDataset',
-        success: deletedDataset,
-      },
-      null,
-      2,
-    )
+    const message = formatResponse('Dataset deleted successfully', {
+      deletedDataset: datasetToDelete,
+    })
 
     return {
       content: [
         {
           type: 'text' as const,
-          text: `Dataset deleted: ${text}`,
+          text: message,
         },
       ],
     }

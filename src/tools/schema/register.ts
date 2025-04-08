@@ -1,19 +1,19 @@
-import {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js'
-import {getSchemaOverviewTool} from './getSchemaOverviewTool.js'
-import {getTypeSchemaTool} from './getTypeSchemaTool.js'
-import {GetSchemaParams} from './schema.js'
+import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js'
+import {getSchemaTool, GetSchemaToolParams} from './getSchemaTool.js'
+import {listSchemaIdsTool, ListSchemaIdsToolParams} from './listSchemaIdsTool.js'
 
 export function registerSchemaTools(server: McpServer) {
   server.tool(
-    'get_schema_overview',
-    'Get a concise overview of the schema types',
-    {},
-    getSchemaOverviewTool,
-  )
-  server.tool(
     'get_type_schema_details',
-    'Get detailed schema details for a specific type, including all fields and their descriptions',
-    GetSchemaParams,
-    getTypeSchemaTool,
+    'Get the full schema of the current Sanity environment',
+    GetSchemaToolParams.shape,
+    getSchemaTool,
+  )
+
+  server.tool(
+    'get_available_schema_ids',
+    'Get a list of all available schema IDs',
+    ListSchemaIdsToolParams.shape,
+    listSchemaIdsTool,
   )
 }

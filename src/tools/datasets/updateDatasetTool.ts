@@ -1,26 +1,29 @@
+import {z} from 'zod'
 import {sanityClient} from '../../config/sanity.js'
-import {UpdateDatasetParams} from './schemas.js'
+import {formatResponse} from '../../utils/formatters.js'
 
-export async function updateDatasetTool(args: UpdateDatasetParams) {
+export const UpdateDatasetToolParams = z.object({
+  name: z
+    .string()
+    .describe('The name of the dataset (will be automatically formatted to match requirements)'),
+  aclMode: z.enum(['private', 'public']).optional().describe('The ACL mode for the dataset'),
+})
+
+type Params = z.infer<typeof UpdateDatasetToolParams>
+
+export async function updateDatasetTool(args: Params) {
   try {
-    const updatedDataset = await sanityClient.datasets.edit(args.name, {
+    const datasetName = args.name.toLowerCase().replace(/[^a-z0-9]/g, '')
+    const newDataset = await sanityClient.datasets.edit(datasetName, {
       aclMode: args.aclMode,
     })
-
-    const text = JSON.stringify(
-      {
-        operation: 'update',
-        dataset: updatedDataset,
-      },
-      null,
-      2,
-    )
+    const message = formatResponse('Dataset updated successfully', {newDataset})
 
     return {
       content: [
         {
           type: 'text' as const,
-          text: `Dataset updated: ${text}`,
+          text: message,
         },
       ],
     }

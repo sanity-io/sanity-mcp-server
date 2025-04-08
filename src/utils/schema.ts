@@ -1,4 +1,5 @@
-import {ManifestSchemaType, ManifestSerializable} from './schema.js'
+import {XMLBuilder} from 'fast-xml-parser'
+import type {ManifestSchemaType, ManifestSerializable} from '../types/manifest'
 
 interface SchemaXmlNode {
   [key: string]:
@@ -12,70 +13,60 @@ interface SchemaXmlNode {
 
 interface FormatOptions {
   lite?: boolean
+  format?: 'xml' | 'json'
 }
 
-interface SchemaOverview {
-  totalTypes: number
-  typesSummary: {
-    type: {
-      name: string
-      type: string
-      title: string | undefined
-      fieldsCount: number
-      description: string
-    }[]
-  }
-}
-
-interface SchemaDetails {
-  types: SchemaXmlNode[]
-}
-
-export interface Schema {
-  schemaOverview: SchemaOverview
-  schemaDetails?: SchemaDetails
-}
+type SchemaObject = Record<string, any>
 
 /**
- * Generate a concise overview of the schema types
- *
- * @param schema The schema to format
- * @param options Configuration options
- * @param options.lite If true, only include the schema overview without details about the fields
+ * Format the schema as XML for better parsing by LLMs
  */
-export function generateSchemaOverview(
+export function formatSchema(
   schema: ManifestSchemaType[],
   options?: FormatOptions,
-): Schema {
+): string | SchemaObject {
   // Filter out types that start with "sanity."
-  const filteredSchema = schema.filter((documentOrObject) =>
-    ['sanity.', 'assist.'].every((prefix) => !documentOrObject.type.startsWith(prefix)),
-  )
+  const filteredSchema = schema.filter((type) => !type.name?.startsWith('sanity.'))
 
   // Create a schema overview section
-  const schemaOverview: SchemaOverview = {
-    totalTypes: filteredSchema.length,
-    typesSummary: {
-      type: filteredSchema.map((type) => ({
-        name: type.name,
-        type: type.type,
-        title: type.title,
-        fieldsCount: type.fields?.length || 0,
-        description: getTypeDescription(type),
-      })),
+  const schemaOverview = {
+    schemaOverview: {
+      totalTypes: filteredSchema.length,
+      typesSummary: {
+        type: filteredSchema.map((type) => ({
+          name: type.name,
+          type: type.type,
+          title: type.title,
+          fieldsCount: type.fields?.length || 0,
+          description: getTypeDescription(type),
+        })),
+      },
     },
   }
 
-  const schemaObject: Schema = {
-    schemaOverview: schemaOverview,
-    ...(options?.lite === false && {
-      schemaDetails: {
-        types: filteredSchema.map(formatTypeAsObject),
-      },
-    }),
+  // If lite mode is enabled, only include the overview
+  const schemaObject: SchemaObject = {
+    sanitySchema: options?.lite
+      ? {...schemaOverview}
+      : {
+          ...schemaOverview,
+          schemaDetails: {
+            types: filteredSchema.map(formatTypeAsObject),
+          },
+        },
   }
 
-  return schemaObject
+  if (options?.format === 'json') {
+    return schemaObject
+  }
+
+  const builder = new XMLBuilder({
+    format: true,
+    indentBy: '  ',
+    suppressEmptyNode: true,
+  })
+
+  return builder.build(schemaObject)
 }
 
 /**
@@ -96,11 +87,11 @@ function getTypeDescription(type: ManifestSchemaType): string {
   }
 
   if (type.fields?.length) {
-    parts.push(`with ${type.fields.length} field${type.fields.length === 1 ? '' : 's'}`)
+    parts.push(`with ${type.fields.length} fields`)
   }
 
   if (type.deprecated) {
-    parts.push(`(DEPRECATED) – ${type.deprecated.reason}`)
+    parts.push('(DEPRECATED)')
   }
 
   return parts.join(' ')
@@ -244,7 +235,7 @@ function formatTypeAsObject(type: ManifestSchemaType): SchemaXmlNode {
 }
 
 /**
- * Format a field as an object
+ * Format a field as an object for XML serialization
  */
 function formatFieldAsObject(field: ManifestSchemaType & {fieldset?: string}): SchemaXmlNode {
   const result = formatTypeAsObject(field)
@@ -257,7 +248,7 @@ function formatFieldAsObject(field: ManifestSchemaType & {fieldset?: string}): S
 }
 
 /**
- * Format an array member as an object
+ * Format an array member as an object for XML serialization
  */
 function formatArrayMemberAsObject(
   member: Omit<ManifestSchemaType, 'name'> & {name?: string},
