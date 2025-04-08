@@ -1,31 +1,25 @@
-import { SanityClient } from "@sanity/client";
-import {
-  actionRequest,
-  ActionTypes,
-} from "../../documents/actions/actionRequest.js";
+import {SanityClient} from '@sanity/client'
+import {actionRequest, ActionTypes} from '../../documents/actions/actionRequest.js'
 
 export interface addDocumentRequest extends ActionTypes {
-  publishedId: string;
-  document: Document;
+  publishedId: string
+  document: Document
 }
 
 export interface DocumentIdentifiers {
-  _id: string;
-  _type: string;
+  _id: string
+  _type: string
 }
 
 export interface Document extends DocumentIdentifiers {
-  [key: string]: any;
+  [key: string]: any
 }
 
-export async function createDocumentVersion(
-  client: SanityClient,
-  req: addDocumentRequest,
-) {
+export async function createDocumentVersion(client: SanityClient, req: addDocumentRequest) {
   try {
-    const res = await actionRequest<addDocumentRequest[], any>(client, [req]);
-    return res;
+    const res = await actionRequest<addDocumentRequest[], any>(client, [req])
+    return res
   } catch (error: unknown) {
-    throw error;
+    throw error
   }
 }

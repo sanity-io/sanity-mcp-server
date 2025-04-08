@@ -13,7 +13,7 @@ jobs:
 
       - name: "setup pnpm"
         uses: pnpm/action-setup@v4
-        with: 
+        with:
           version: 10
 
       - name: Setup Node.js
@@ -21,7 +21,6 @@ jobs:
         with:
           node-version: "22"
           cache: "pnpm"
-
 
       - name: Install dependencies
         run: pnpm install

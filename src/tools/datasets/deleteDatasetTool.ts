@@ -1,40 +1,37 @@
-import { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
-import { sanityClient } from "../../config/sanity.js";
-import { DeleteDatasetParams } from "./schemas.js";
+import {RequestHandlerExtra} from '@modelcontextprotocol/sdk/shared/protocol.js'
+import {sanityClient} from '../../config/sanity.js'
+import {DeleteDatasetParams} from './schemas.js'
 
-export async function deleteDatasetTool(
-  args: DeleteDatasetParams,
-  extra: RequestHandlerExtra
-) {
+export async function deleteDatasetTool(args: DeleteDatasetParams, extra: RequestHandlerExtra) {
   try {
-    const deletedDataset = await sanityClient.datasets.delete(args.dataset);
+    const deletedDataset = await sanityClient.datasets.delete(args.dataset)
 
     const text = JSON.stringify(
       {
-        operation: "deletedDataset",
+        operation: 'deletedDataset',
         success: deletedDataset,
       },
       null,
-      2
-    );
+      2,
+    )
 
     return {
       content: [
         {
-          type: "text" as const,
+          type: 'text' as const,
           text: `Dataset deleted: ${text}`,
         },
       ],
-    };
+    }
   } catch (error) {
     return {
       isError: true,
       content: [
         {
-          type: "text" as const,
+          type: 'text' as const,
           text: `Error deleting dataset: ${error}`,
         },
       ],
-    };
+    }
   }
 }

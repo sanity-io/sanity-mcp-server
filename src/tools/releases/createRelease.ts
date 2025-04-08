@@ -1,34 +1,32 @@
-import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
-import { SanityClient } from "@sanity/client";
-import { sanityClient } from "../../config/sanity.js";
-import { actionRequest } from "../documents/actions/actionRequest.js";
-import { generateReleaseId } from "../utils.js";
-import { ReleaseActionBodyType, ReleaseParamsType } from "./schemas.js";
+import {CallToolResult} from '@modelcontextprotocol/sdk/types.js'
+import {SanityClient} from '@sanity/client'
+import {sanityClient} from '../../config/sanity.js'
+import {actionRequest} from '../documents/actions/actionRequest.js'
+import {generateReleaseId} from '../utils.js'
+import {ReleaseActionBodyType, ReleaseParamsType} from './schemas.js'
 
-export async function createRelease(
-  args: ReleaseParamsType,
-): Promise<CallToolResult> {
+export async function createRelease(args: ReleaseParamsType): Promise<CallToolResult> {
   try {
-    const releaseId = await createReleaseAction(sanityClient, args);
+    const releaseId = await createReleaseAction(sanityClient, args)
 
     return {
       content: [
         {
-          type: "text",
+          type: 'text',
           text: `Successfully created a release with releaseId ${releaseId}`,
         },
       ],
-    };
+    }
   } catch (error: unknown) {
     return {
       isError: true,
       content: [
         {
-          type: "text",
+          type: 'text',
           text: `error creating release: ${error}`,
         },
       ],
-    };
+    }
   }
 }
 
@@ -38,16 +36,16 @@ export async function createReleaseAction(
 ): Promise<String> {
   try {
     // TODO: handle id conflict
-    const releaseId = generateReleaseId();
+    const releaseId = generateReleaseId()
     await actionRequest<ReleaseActionBodyType[], any>(client, [
       {
-        actionType: "sanity.action.release.create",
+        actionType: 'sanity.action.release.create',
         releaseId: releaseId,
         ...releaseReq,
       },
-    ]);
-    return releaseId;
+    ])
+    return releaseId
   } catch (e: unknown) {
-    throw e;
+    throw e
   }
 }

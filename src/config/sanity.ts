@@ -1,8 +1,8 @@
-import { createClient } from "@sanity/client";
-import { env } from "./env.js";
+import {createClient} from '@sanity/client'
+import {env} from './env.js'
 
 if (!env.success) {
-  throw new Error("Environment variables are not properly configured");
+  throw new Error('Environment variables are not properly configured')
 }
 
 // Create a singleton instance of the Sanity client
@@ -13,5 +13,5 @@ export const sanityClient = createClient({
   apiVersion: env.data.SANITY_API_VERSION,
   token: env.data.SANITY_API_TOKEN,
   useCdn: false,
-  perspective: env.data.SANITY_PERSPECTIVE // This defaults to 'drafts' if not set in env
-});
+  perspective: env.data.SANITY_PERSPECTIVE, // This defaults to 'drafts' if not set in env
+})

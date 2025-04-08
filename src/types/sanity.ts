@@ -11,33 +11,33 @@ export type ContentValue =
   | null
   | undefined
   | ContentObject
-  | ContentArray;
+  | ContentArray
 
 export interface ContentObject {
-  [key: string]: ContentValue;
+  [key: string]: ContentValue
 }
 
 export interface ContentArray extends Array<ContentValue> {}
 
 export interface SanityReference {
-  _ref: string;
-  _weak?: boolean;
+  _ref: string
+  _weak?: boolean
 }
 
 export interface SanityDocument {
-  _id: string;
-  _type: string;
-  _rev?: string;
-  _createdAt?: string;
-  _updatedAt?: string;
-  [key: string]: ContentValue;
+  _id: string
+  _type: string
+  _rev?: string
+  _createdAt?: string
+  _updatedAt?: string
+  [key: string]: ContentValue
 }
 
 export interface SanityMutationResult {
-  documentId?: string;
-  transactionId?: string;
+  documentId?: string
+  transactionId?: string
   results?: Array<{
-    id: string;
-    operation: string;
-  }>;
+    id: string
+    operation: string
+  }>
 }

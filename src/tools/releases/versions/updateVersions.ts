@@ -1,18 +1,18 @@
-import { RawRequestOptions, SanityClient } from "@sanity/client";
+import {RawRequestOptions, SanityClient} from '@sanity/client'
 
-type ActionVersionReplace = "sanity.action.document.version.replace";
+type ActionVersionReplace = 'sanity.action.document.version.replace'
 
 interface VersionCreateAction extends ReplaceVersionDocument {
-  actionType: ActionVersionReplace;
+  actionType: ActionVersionReplace
 }
 
 interface ReplaceVersionDocument {
-  document: Document;
+  document: Document
 }
 
 interface Document {
-  _id: string;
-  _type: string;
+  _id: string
+  _type: string
 }
 
 // not a tool exposed to the model yet, but the request logic works so
@@ -22,20 +22,20 @@ export async function replaceDocumentVersion(
   createReq: ReplaceVersionDocument,
 ) {
   let action: VersionCreateAction = {
-    actionType: "sanity.action.document.version.replace",
+    actionType: 'sanity.action.document.version.replace',
     ...createReq,
-  };
+  }
 
-  const dataset = client.config().dataset;
+  const dataset = client.config().dataset
 
   const options: RawRequestOptions = {
     uri: `/data/actions/${dataset}`,
-    body: { actions: [action] },
-  };
+    body: {actions: [action]},
+  }
 
   try {
-    await client.request(options);
+    await client.request(options)
   } catch (e: unknown) {
-    throw e;
+    throw e
   }
 }

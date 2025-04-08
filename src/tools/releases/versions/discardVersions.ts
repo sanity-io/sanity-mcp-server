@@ -1,15 +1,15 @@
-import { RawRequestOptions, SanityClient } from "@sanity/client";
-import { sanityClient } from "../../../config/sanity.js";
+import {RawRequestOptions, SanityClient} from '@sanity/client'
+import {sanityClient} from '../../../config/sanity.js'
 
-type ActionVersionDiscard = "sanity.action.document.version.discard";
+type ActionVersionDiscard = 'sanity.action.document.version.discard'
 
 interface VersionDiscardAction extends DiscardVersionDocument {
-  actionType: ActionVersionDiscard;
+  actionType: ActionVersionDiscard
 }
 
 interface DiscardVersionDocument {
-  versionId: string;
-  purge?: boolean;
+  versionId: string
+  purge?: boolean
 }
 
 // not a tool exposed to the model yet, but the request logic works so
@@ -19,20 +19,20 @@ export async function discardDocumentVersion(
   createReq: DiscardVersionDocument,
 ) {
   let action: VersionDiscardAction = {
-    actionType: "sanity.action.document.version.discard",
+    actionType: 'sanity.action.document.version.discard',
     ...createReq,
-  };
+  }
 
-  const dataset = sanityClient.config().dataset;
+  const dataset = sanityClient.config().dataset
 
   const options: RawRequestOptions = {
     uri: `/data/actions/${dataset}`,
-    body: { actions: [action] },
-  };
+    body: {actions: [action]},
+  }
 
   try {
-    await client.request(options);
+    await client.request(options)
   } catch (e: unknown) {
-    throw e;
+    throw e
   }
 }

@@ -1,11 +1,11 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { getInitialContextTool } from "./getInitialContextTool.js";
+import {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js'
+import {getInitialContextTool} from './getInitialContextTool.js'
 
 export function registerContextTools(server: McpServer) {
   server.tool(
-    "get_initial_context",
-    "IMPORTANT: This tool must be called before using any other tools. It will get initial context and usage instructions for this MCP server. ",
+    'get_initial_context',
+    'IMPORTANT: This tool must be called before using any other tools. It will get initial context and usage instructions for this MCP server. ',
     {},
-    getInitialContextTool
-  );
+    getInitialContextTool,
+  )
 }

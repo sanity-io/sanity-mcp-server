@@ -1,39 +1,39 @@
-import { addDocumentRequest } from "./versions/createDocumentVersion.js";
-import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
-import { PublishMultiplesDocumentType } from "./schemas.js";
-import { sanityClient } from "../../config/sanity.js";
-import { processDocumentForRelease } from "./addDocumentToRelease.js";
-import { actionRequest } from "../documents/actions/actionRequest.js";
+import {addDocumentRequest} from './versions/createDocumentVersion.js'
+import {CallToolResult} from '@modelcontextprotocol/sdk/types.js'
+import {PublishMultiplesDocumentType} from './schemas.js'
+import {sanityClient} from '../../config/sanity.js'
+import {processDocumentForRelease} from './addDocumentToRelease.js'
+import {actionRequest} from '../documents/actions/actionRequest.js'
 
 export async function addMultipleDocumentsToRelease(
   args: PublishMultiplesDocumentType,
 ): Promise<CallToolResult> {
   try {
-    let { publishDocuments } = args;
+    let {publishDocuments} = args
     let actions = await Promise.all(
       publishDocuments.map((doc) => {
-        return processDocumentForRelease(doc);
+        return processDocumentForRelease(doc)
       }),
-    );
+    )
 
-    await actionRequest<addDocumentRequest[], any>(sanityClient, actions);
+    await actionRequest<addDocumentRequest[], any>(sanityClient, actions)
     return {
       content: [
         {
-          type: "text",
-          text: "Successfully added documents to release",
+          type: 'text',
+          text: 'Successfully added documents to release',
         },
       ],
-    };
+    }
   } catch (error: unknown) {
     return {
       isError: true,
       content: [
         {
-          type: "text",
+          type: 'text',
           text: `error adding documents to release: ${error}`,
         },
       ],
-    };
+    }
   }
 }

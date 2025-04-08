@@ -1,27 +1,34 @@
 {
+  "name": "@sanity/mcp",
+  "version": "0.6.0",
   "type": "module",
   "bin": {
     "sanity-mcp": "./build/index.js"
   },
-  "scripts": {
-    "build": "tsc && chmod 755 build/index.js",
-    "start": "node build/index.js",
-    "dev": "nodemon --ext ts --ignore build/ --watch src/ --exec 'npm run build && npm start'"
-  },
   "files": [
     "build"
   ],
+  "scripts": {
+    "prebuild": "node scripts/generate-version.js",
+    "build": "tsc && chmod 755 build/index.js",
+    "dev": "nodemon --ext ts --ignore build/ --watch src/ --exec 'npm run build && npm start'",
+    "format": "prettier --write .",
+    "start": "node build/index.js"
+  },
+  "prettier": "@sanity/prettier-config",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.7.0",
     "@sanity/client": "6.28.3-instruct.5",
     "dotenv": "^16.4.7",
     "nanoid": "^5.1.5",
+    "outdent": "^0.8.0",
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@sanity/prettier-config": "^1.0.3",
     "@types/node": "^22.13.11",
     "nodemon": "^3.1.0",
+    "prettier": "^3.5.3",
     "typescript": "^5.8.2"
-  },
-  "prettier": {}
+  }
 }

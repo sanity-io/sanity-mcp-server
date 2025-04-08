@@ -3,6 +3,7 @@
 Sanity MCP Server implements the Model Context Protocol to standardise how AI models interact with Sanity’s content management system. It provides tools for retrieving and managing documents, executing GROQ queries, handling releases, and managing datasets. Additionally, it supports schema inspection and semantic search using embeddings, ensuring efficient and structured content operations.
 
 ## MCP Functionality
+
 ### General Tools
 
 - **get_initial_context** – Should always be called before using any other tools to fetch initial context and usage instructions for this MCP server.
@@ -96,14 +97,15 @@ To connect Claude Desktop to this MCP server, your configuration should look lik
 ### Adding New Tools
 
 The project is structured by separating the tools into different categories where each category has its own register function and schemas.
+
 ```
 ----- template strucure -----
 <category> - tool category folder
   <tool files> - one file per tool
-  ... 
+  ...
   schemas.ts -> contains all zod schemas used used within the category
-  register.ts -> exports a function registering the category tools 
-  
+  register.ts -> exports a function registering the category tools
+
 register.ts - registers all categroies tools to the server
 
 ----- example -----
@@ -117,8 +119,8 @@ tools
   someTool
   ...
   schemas.ts -> contains all zod schemas used by the LLM
-  register.ts -> exports a function registering all release tools 
-... 	
+  register.ts -> exports a function registering all release tools
+...
 register.ts - registers all categroy tools to the server
 ```
 
