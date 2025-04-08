@@ -1,19 +1,15 @@
 import {z} from 'zod'
 import {sanityClient} from '../../config/sanity.js'
+import {formatResponse} from '../../utils/formatters.js'
 
 export const ListSchemaIdsToolParams = z.object({})
 
 type Params = z.infer<typeof ListSchemaIdsToolParams>
 
-interface SchemaDocument {
-  _id: string
-  _type: string
-}
-
 export async function listSchemaIdsTool(_params: Params) {
   try {
-    const schemas = await sanityClient.fetch<SchemaDocument[]>(
-      '*[_type == "sanity.workspace.schema"]{ _id, _type }',
+    const schemas = await sanityClient.fetch<{_id: string}[]>(
+      '*[_type == "sanity.workspace.schema"]{ _id }',
     )
 
     if (!schemas || schemas.length === 0) {
@@ -27,11 +23,15 @@ export async function listSchemaIdsTool(_params: Params) {
       }
     }
 
+    const message = formatResponse(`Found ${schemas.length} schema IDs.`, {
+      schemaIds: schemas.map((schema) => schema._id),
+    })
+
     return {
       content: [
         {
           type: 'text' as const,
-          text: `Available schema IDs:\n${schemas.map((schema) => `- ${schema._id}`).join('\n')}`,
+          text: message,
         },
       ],
     }
