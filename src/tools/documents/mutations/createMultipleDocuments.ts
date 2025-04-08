@@ -1,15 +1,11 @@
-import type {RequestHandlerExtra} from '@modelcontextprotocol/sdk/shared/protocol.js'
-import {randomUUID} from 'crypto'
+import {randomUUID} from 'node:crypto'
 import {sanityClient} from '../../../config/sanity.js'
 import type {CreateMultipleDocumentsParams} from './schemas.js'
 
 /**
  * Tool for creating multiple documents in the Sanity dataset
  */
-export async function createMultipleDocumentsTool(
-  args: CreateMultipleDocumentsParams,
-  extra: RequestHandlerExtra,
-) {
+export async function createMultipleDocumentsTool(args: CreateMultipleDocumentsParams) {
   try {
     const {documents, options, publish} = args
 
@@ -17,14 +13,14 @@ export async function createMultipleDocumentsTool(
     const transaction = sanityClient.transaction()
 
     // Add each document creation to the transaction with appropriate IDs
-    documents.forEach((doc) => {
+    for (const doc of documents) {
       const documentId = randomUUID()
       const documentWithId = {
         ...doc,
         _id: publish ? documentId : `drafts.${documentId}`,
       }
       transaction.create(documentWithId)
-    })
+    }
 
     // Commit the transaction with autoGenerateArrayKeys enabled and any additional options
     const result = await transaction.commit({
@@ -51,14 +47,14 @@ export async function createMultipleDocumentsTool(
         },
       ],
     }
-  } catch (error: any) {
-    // Handle errors gracefully
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
     return {
       isError: true,
       content: [
         {
           type: 'text' as const,
-          text: `Error creating documents: ${error.message}`,
+          text: `Error creating multiple documents: ${errorMessage}`,
         },
       ],
     }

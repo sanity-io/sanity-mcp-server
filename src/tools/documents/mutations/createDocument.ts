@@ -1,4 +1,3 @@
-import type {RequestHandlerExtra} from '@modelcontextprotocol/sdk/shared/protocol.js'
 import {randomUUID} from 'crypto'
 import {sanityClient} from '../../../config/sanity.js'
 import {CreateDocumentParams} from './schemas.js'
@@ -6,7 +5,7 @@ import {CreateDocumentParams} from './schemas.js'
 /**
  * Tool for creating a new document in the Sanity dataset
  */
-export async function createDocumentTool(args: CreateDocumentParams, extra: RequestHandlerExtra) {
+export async function createDocumentTool(args: CreateDocumentParams) {
   try {
     const {document, publish} = args
 
@@ -38,14 +37,14 @@ export async function createDocumentTool(args: CreateDocumentParams, extra: Requ
         },
       ],
     }
-  } catch (error: any) {
-    // Handle errors gracefully
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
     return {
       isError: true,
       content: [
         {
           type: 'text' as const,
-          text: `Error creating document: ${error.message}`,
+          text: `Error creating document: ${errorMessage}`,
         },
       ],
     }

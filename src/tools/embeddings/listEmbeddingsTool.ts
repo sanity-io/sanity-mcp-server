@@ -1,25 +1,30 @@
-import {RequestHandlerExtra} from '@modelcontextprotocol/sdk/shared/protocol.js'
 import {sanityClient} from '../../config/sanity.js'
+import {outdent} from 'outdent'
 
-export async function listEmbeddingsIndicesTool(args: {}, extra: RequestHandlerExtra) {
+export async function listEmbeddingsIndicesTool() {
   try {
     const config = sanityClient.config()
-    const apiHost = config.apiHost.replace('https://', '')
-    const embeddingsEndpoint = `https://${config.projectId}.${apiHost}/vX/embeddings-index/${config.dataset}`
-    const response = await fetch(embeddingsEndpoint, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${config.token}`,
-        'Accept': 'application/json',
-      },
+    // const apiHost = config.apiHost.replace('https://', '')
+    // const embeddingsEndpoint = `https://${config.projectId}.${apiHost}/vX/embeddings-index/${config.dataset}`
+    // const response = await fetch(embeddingsEndpoint, {
+    //   method: 'GET',
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'Authorization': `Bearer ${config.token}`,
+    //     'Accept': 'application/json',
+    //   },
+    // })
+
+    // if (!response.ok) {
+    //   throw new Error(`API request failed with status ${response.status}`)
+    // }
+
+    // const indices = await response.json()
+
+    const indices = await sanityClient.request({
+      uri: `https://api.sanity.io/vX/embeddings-index/${config.dataset}`,
+      withCredentials: true,
     })
-
-    if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`)
-    }
-
-    const indices = await response.json()
 
     if (!indices.length) {
       return {
@@ -34,18 +39,19 @@ export async function listEmbeddingsIndicesTool(args: {}, extra: RequestHandlerE
 
     const formattedIndices = indices
       .map((index: any) => {
-        return `  • Index: ${index.indexName}
-    Status: ${index.status}
-    Project ID: ${index.projectId}
-    Dataset: ${index.dataset}
-    Projection: ${index.projection}
-    Filter: ${index.filter}
-    Created At: ${index.createdAt}
-    Updated At: ${index.updatedAt}
-    Failed Document Count: ${index.failedDocumentCount}
-    Start Document Count: ${index.startDocumentCount}
-    Remaining Document Count: ${index.remainingDocumentCount}
-    Webhook ID: ${index.webhookId}`
+        return outdent`
+          • Index: ${index.indexName}
+            Status: ${index.status}
+            Project ID: ${index.projectId}
+            Dataset: ${index.dataset}
+            Projection: ${index.projection}
+            Filter: ${index.filter}
+            Created At: ${index.createdAt}
+            Updated At: ${index.updatedAt}
+            Failed Document Count: ${index.failedDocumentCount}
+            Start Document Count: ${index.startDocumentCount}
+            Remaining Document Count: ${index.remainingDocumentCount}
+            Webhook ID: ${index.webhookId}`
       })
       .join('\n\n')
 

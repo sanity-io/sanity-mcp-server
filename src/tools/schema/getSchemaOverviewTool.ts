@@ -1,10 +1,9 @@
-import {RequestHandlerExtra} from '@modelcontextprotocol/sdk/shared/protocol.js'
 import {sanityClient} from '../../config/sanity.js'
 import {generateSchemaOverview} from './generateSchemaOverview.js'
 import {ManifestSchemaType} from './schema.js'
 import {toJsonString} from './toJson.js'
 
-export async function getSchemaOverviewTool(args: {}, extra: RequestHandlerExtra) {
+export async function getSchemaOverviewTool() {
   try {
     const schemaTypes = await getSchemaOverview({})
 

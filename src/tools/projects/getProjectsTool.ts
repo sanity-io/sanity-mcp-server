@@ -1,8 +1,6 @@
-import {SanityProject} from '@sanity/client'
 import {sanityClient} from '../../config/sanity.js'
-import {RequestHandlerExtra} from '@modelcontextprotocol/sdk/shared/protocol.js'
 
-export async function getProjectsTool(args: {}, extra: RequestHandlerExtra) {
+export async function getProjectsTool() {
   try {
     const projects = await sanityClient.projects.list()
     if (projects.length === 0) {
@@ -54,13 +52,14 @@ export async function getProjectsTool(args: {}, extra: RequestHandlerExtra) {
         },
       ],
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
     return {
       isError: true,
       content: [
         {
           type: 'text' as const,
-          text: `Error fetching Sanity projects: ${error.message}`,
+          text: `Error fetching Sanity projects: ${errorMessage}`,
         },
       ],
     }

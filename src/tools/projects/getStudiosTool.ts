@@ -1,7 +1,6 @@
-import {RequestHandlerExtra} from '@modelcontextprotocol/sdk/shared/protocol.js'
 import {GetProjectParamsType, Studio} from './schema.js'
 
-export async function getStudiosTool(args: GetProjectParamsType, extra: RequestHandlerExtra) {
+export async function getStudiosTool(args: GetProjectParamsType) {
   try {
     const projectId = args.projectId
     const response = await fetch(`https://api.sanity.io/v2021-06-07/projects/${projectId}`, {

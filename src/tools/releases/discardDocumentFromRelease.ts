@@ -34,7 +34,7 @@ export async function removeDocumentFromRelease(
   }
 
   try {
-    await actionRequest<DiscardRequest[], any>(sanityClient, [
+    await actionRequest<DiscardRequest[], unknown>(sanityClient, [
       {
         actionType: 'sanity.action.document.version.discard',
         versionId: versionId,

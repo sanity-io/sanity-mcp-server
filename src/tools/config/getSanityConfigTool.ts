@@ -1,8 +1,7 @@
 import {outdent} from 'outdent'
-import type {RequestHandlerExtra} from '@modelcontextprotocol/sdk/shared/protocol.js'
 import {sanityClient} from '../../config/sanity.js'
 
-export async function getSanityConfigTool(args: {}, extra: RequestHandlerExtra) {
+export async function getSanityConfigTool() {
   const config = sanityClient.config()
 
   return {

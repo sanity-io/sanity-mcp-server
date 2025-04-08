@@ -33,11 +33,11 @@ export async function createRelease(args: ReleaseParamsType): Promise<CallToolRe
 export async function createReleaseAction(
   client: SanityClient,
   releaseReq: ReleaseParamsType,
-): Promise<String> {
+): Promise<string> {
   try {
     // TODO: handle id conflict
     const releaseId = generateReleaseId()
-    await actionRequest<ReleaseActionBodyType[], any>(client, [
+    await actionRequest<ReleaseActionBodyType[], unknown>(client, [
       {
         actionType: 'sanity.action.release.create',
         releaseId: releaseId,

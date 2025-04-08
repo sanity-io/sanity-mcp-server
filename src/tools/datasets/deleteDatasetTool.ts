@@ -1,8 +1,7 @@
-import {RequestHandlerExtra} from '@modelcontextprotocol/sdk/shared/protocol.js'
 import {sanityClient} from '../../config/sanity.js'
 import {DeleteDatasetParams} from './schemas.js'
 
-export async function deleteDatasetTool(args: DeleteDatasetParams, extra: RequestHandlerExtra) {
+export async function deleteDatasetTool(args: DeleteDatasetParams) {
   try {
     const deletedDataset = await sanityClient.datasets.delete(args.dataset)
 

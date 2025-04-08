@@ -41,7 +41,7 @@ export function parseId(publishedId: string): string {
     return publishedId
   }
 
-  return idParts.at(-1)!!
+  return idParts.at(-1)!
 }
 
 export function addDocVersionId(docId: string, versionId: string): string {

@@ -44,7 +44,7 @@ export async function updateReleaseInformation(
       },
     }
 
-    await actionRequest<ReleaseMetadataUpdateRequest[], any>(sanityClient, [req])
+    await actionRequest<ReleaseMetadataUpdateRequest[], unknown>(sanityClient, [req])
     return {
       content: [
         {

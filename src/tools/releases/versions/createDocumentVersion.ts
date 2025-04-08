@@ -12,12 +12,12 @@ export interface DocumentIdentifiers {
 }
 
 export interface Document extends DocumentIdentifiers {
-  [key: string]: any
+  [key: string]: unknown
 }
 
 export async function createDocumentVersion(client: SanityClient, req: addDocumentRequest) {
   try {
-    const res = await actionRequest<addDocumentRequest[], any>(client, [req])
+    const res = await actionRequest<addDocumentRequest[], unknown>(client, [req])
     return res
   } catch (error: unknown) {
     throw error

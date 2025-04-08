@@ -1,7 +1,6 @@
 /**
  * Type definitions for Sanity-related content and documents
  */
-
 export type ContentValue =
   | string
   | number
@@ -17,7 +16,7 @@ export interface ContentObject {
   [key: string]: ContentValue
 }
 
-export interface ContentArray extends Array<ContentValue> {}
+export type ContentArray = Array<ContentValue>
 
 export interface SanityReference {
   _ref: string

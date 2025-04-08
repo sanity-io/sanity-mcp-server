@@ -16,7 +16,7 @@ export async function addMultipleDocumentsToRelease(
       }),
     )
 
-    await actionRequest<addDocumentRequest[], any>(sanityClient, actions)
+    await actionRequest<addDocumentRequest[], unknown>(sanityClient, actions)
     return {
       content: [
         {

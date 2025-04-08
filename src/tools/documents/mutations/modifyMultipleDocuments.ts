@@ -1,14 +1,10 @@
-import type {RequestHandlerExtra} from '@modelcontextprotocol/sdk/shared/protocol.js'
 import {sanityClient} from '../../../config/sanity.js'
-import {ModifyMultipleDocumentsParams} from './schemas.js'
+import type {ModifyMultipleDocumentsParams} from './schemas.js'
 
 /**
  * Tool for applying multiple mutations to documents in a single transaction
  */
-export async function modifyMultipleDocumentsTool(
-  args: ModifyMultipleDocumentsParams,
-  extra: RequestHandlerExtra,
-) {
+export async function modifyMultipleDocumentsTool(args: ModifyMultipleDocumentsParams) {
   try {
     // Start a new transaction
     let transaction = sanityClient.transaction()
@@ -25,7 +21,7 @@ export async function modifyMultipleDocumentsTool(
         case 'createIfNotExists':
           transaction = transaction.createIfNotExists(mutation.document)
           break
-        case 'patch':
+        case 'patch': {
           if (!mutation.patch) {
             throw new Error('Patch operation requires patch data')
           }
@@ -52,6 +48,7 @@ export async function modifyMultipleDocumentsTool(
 
           transaction = transaction.patch(patch)
           break
+        }
         case 'delete':
           transaction = transaction.delete(mutation.document._id)
           break
@@ -78,13 +75,14 @@ export async function modifyMultipleDocumentsTool(
         },
       ],
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
     return {
       isError: true,
       content: [
         {
           type: 'text' as const,
-          text: `Error executing transaction: ${error.message}`,
+          text: `Error modifying multiple documents: ${errorMessage}`,
         },
       ],
     }

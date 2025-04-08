@@ -1,7 +1,6 @@
-import {RequestHandlerExtra} from '@modelcontextprotocol/sdk/shared/protocol.js'
 import {sanityClient} from '../../config/sanity.js'
 
-export async function getDatasetsTool(args: {}, extra: RequestHandlerExtra) {
+export async function getDatasetsTool() {
   try {
     const datasets = await sanityClient.datasets.list()
     if (datasets.length === 0) {
@@ -17,21 +16,19 @@ export async function getDatasetsTool(args: {}, extra: RequestHandlerExtra) {
     const outputText = datasets
       .map((dataset) => {
         const fields = [
-          [`Dataset Name`, dataset.name],
-          [`Created At`, dataset.createdAt],
-          [`Created By User ID`, dataset.createdByUserId],
-          [`Dataset Profile`, dataset.datasetProfile],
-          [`Tags`, dataset.tags?.length ? dataset.tags : null],
-          [`Features`, dataset.features?.length ? dataset.features : null],
-          [`ACL Mode`, dataset.aclMode],
-          [`Addon For`, dataset.addonFor],
+          ['Dataset Name', dataset.name],
+          ['Created At', dataset.createdAt],
+          ['Created By User ID', dataset.createdByUserId],
+          ['Dataset Profile', dataset.datasetProfile],
+          ['Tags', dataset.tags?.length ? dataset.tags : null],
+          ['Features', dataset.features?.length ? dataset.features : null],
+          ['ACL Mode', dataset.aclMode],
+          ['Addon For', dataset.addonFor],
         ]
-        return (
-          fields
-            .filter(([_, value]) => value)
-            .map(([label, value]) => `  ${label}: ${value}`)
-            .join('\n') + '\n\n'
-        )
+        return `${fields
+          .filter(([_, value]) => value)
+          .map(([label, value]) => `  ${label}: ${value}`)
+          .join('\n')}\n\n`
       })
       .join('')
     return {

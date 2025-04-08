@@ -1,11 +1,10 @@
-import type {RequestHandlerExtra} from '@modelcontextprotocol/sdk/shared/protocol.js'
 import {sanityClient} from '../../../config/sanity.js'
 import {DeleteDocumentParams} from './schemas.js'
 
 /**
  * Tool for deleting a document from the Sanity dataset using its ID
  */
-export async function deleteDocumentTool(args: DeleteDocumentParams, extra: RequestHandlerExtra) {
+export async function deleteDocumentTool(args: DeleteDocumentParams) {
   try {
     const {id} = args
 
@@ -29,16 +28,8 @@ export async function deleteDocumentTool(args: DeleteDocumentParams, extra: Requ
         },
       ],
     }
-  } catch (error: any) {
-    // Handle errors gracefully
-    return {
-      isError: true,
-      content: [
-        {
-          type: 'text' as const,
-          text: `Error deleting document: ${error.message}`,
-        },
-      ],
-    }
+  } catch (error) {
+    console.error('Error deleting document:', error)
+    throw error
   }
 }

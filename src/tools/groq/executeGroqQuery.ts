@@ -1,14 +1,10 @@
-import type {RequestHandlerExtra} from '@modelcontextprotocol/sdk/shared/protocol.js'
 import {sanityClient} from '../../config/sanity.js'
-import {ExecuteGroqQueryParams} from './schemas.js'
+import {type ExecuteGroqQueryParams} from './schemas.js'
 
 /**
  * Tool for executing arbitrary GROQ queries against the Sanity dataset
  */
-export async function executeGroqQueryTool(
-  args: ExecuteGroqQueryParams,
-  extra: RequestHandlerExtra,
-) {
+export async function executeGroqQueryTool(args: ExecuteGroqQueryParams) {
   try {
     const {query, params} = args
 
@@ -33,14 +29,13 @@ export async function executeGroqQueryTool(
         },
       ],
     }
-  } catch (error: any) {
-    // Handle errors gracefully
+  } catch (error) {
     return {
       isError: true,
       content: [
         {
           type: 'text' as const,
-          text: `Error executing GROQ query: ${error.message}\n\nQuery: ${args.query}`,
+          text: `Error fetching studios: ${error}\n\nQuery: ${args.query}`,
         },
       ],
     }

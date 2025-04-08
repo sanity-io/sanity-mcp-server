@@ -1,14 +1,10 @@
-import {RequestHandlerExtra} from '@modelcontextprotocol/sdk/shared/protocol.js'
 import {sanityClient} from '../../config/sanity.js'
 import {getSchemaOverview} from './getSchemaOverviewTool.js'
 import {GetSchemaParamsType} from './schema.js'
 import {toJsonString} from './toJson.js'
 import {Schema} from './generateSchemaOverview.js'
 
-export async function getTypeSchemaTool(
-  args: GetSchemaParamsType,
-  // extra: RequestHandlerExtra,
-) {
+export async function getTypeSchemaTool(args: GetSchemaParamsType) {
   try {
     const allSchemas = await getSchemaOverview({
       typeName: args.type,
@@ -64,7 +60,7 @@ export async function getTypeSchemaTool(
 
 export async function getSchema(type: string) {
   try {
-    const query = `*[_type == $type][0] { ..., _id }`
+    const query = '*[_type == $type][0] { ..., _id }'
     const schemaFields = await sanityClient.fetch(query, {type: type})
 
     if (!schemaFields) {
@@ -78,7 +74,7 @@ export async function getSchema(type: string) {
       }
     }
 
-    const getType = (value: any): string => {
+    const getType = (value: unknown): string => {
       if (Array.isArray(value)) return 'array'
       if (value === null) return 'null'
       return typeof value

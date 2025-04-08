@@ -1,8 +1,7 @@
-import {RequestHandlerExtra} from '@modelcontextprotocol/sdk/shared/protocol.js'
 import {sanityClient} from '../../config/sanity.js'
 import {UpdateDatasetParams} from './schemas.js'
 
-export async function updateDatasetTool(args: UpdateDatasetParams, extra: RequestHandlerExtra) {
+export async function updateDatasetTool(args: UpdateDatasetParams) {
   try {
     const updatedDataset = await sanityClient.datasets.edit(args.name, {
       aclMode: args.aclMode,
@@ -25,13 +24,14 @@ export async function updateDatasetTool(args: UpdateDatasetParams, extra: Reques
         },
       ],
     }
-  } catch (error) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
     return {
       isError: true,
       content: [
         {
           type: 'text' as const,
-          text: `Error updating dataset: ${error}`,
+          text: `Error updating dataset: ${errorMessage}`,
         },
       ],
     }

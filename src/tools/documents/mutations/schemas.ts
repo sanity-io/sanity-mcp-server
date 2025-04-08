@@ -10,7 +10,6 @@ const DocumentOperationEnum = z.enum([
   'patch',
   'delete',
 ])
-type DocumentOperation = z.infer<typeof DocumentOperationEnum>
 
 /**
  * Base mutation options schema matching Sanity's BaseMutationOptions
@@ -259,10 +258,10 @@ export const modifyDocumentParams = {
 }
 
 // Create the full schemas from the params for type inference
-const CreateDocumentSchema = z.object(createDocumentParams)
-const CreateMultipleDocumentsSchema = z.object(createMultipleDocumentsParams)
-const PatchDocumentSchema = z.object(patchDocumentParams)
-const PatchMultipleDocumentsSchema = z
+export const CreateDocumentSchema = z.object(createDocumentParams)
+export const CreateMultipleDocumentsSchema = z.object(createMultipleDocumentsParams)
+export const PatchDocumentSchema = z.object(patchDocumentParams)
+export const PatchMultipleDocumentsSchema = z
   .object(patchMultipleDocumentsParams)
   .refine((data) => !!(data.ids || data.query), 'Either ids or query must be provided')
   .refine((data) => !(data.ids && data.query), 'Cannot provide both ids and query')
@@ -270,8 +269,8 @@ const PatchMultipleDocumentsSchema = z
     (data) => !(data.query && !data.params && data.query.includes('$')),
     'Query contains parameters but no params object was provided',
   )
-const DeleteDocumentSchema = z.object(deleteDocumentParams)
-const DeleteMultipleDocumentsSchema = z
+export const DeleteDocumentSchema = z.object(deleteDocumentParams)
+export const DeleteMultipleDocumentsSchema = z
   .object(deleteMultipleDocumentsParams)
   .refine((data) => !!(data.ids || data.query), 'Either ids or query must be provided')
   .refine((data) => !(data.ids && data.query), 'Cannot provide both ids and query')
@@ -281,8 +280,8 @@ const DeleteMultipleDocumentsSchema = z
   )
 
 // Create schema for type inference
-const ModifyMultipleDocumentsSchema = z.object(modifyMultipleDocumentsParams)
-const ModifyDocumentSchema = z.object(modifyDocumentParams)
+export const ModifyMultipleDocumentsSchema = z.object(modifyMultipleDocumentsParams)
+export const ModifyDocumentSchema = z.object(modifyDocumentParams)
 
 /**
  * Type for create document parameters
@@ -372,6 +371,6 @@ export const batchMutationsParams = {
 }
 
 // Create schema for type inference
-const BatchMutationsSchema = z.object(batchMutationsParams)
+export const BatchMutationsSchema = z.object(batchMutationsParams)
 
 export type BatchMutationsParams = z.infer<typeof BatchMutationsSchema>

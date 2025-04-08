@@ -23,7 +23,7 @@ export async function unpublishMultipleDocumentsFromRelease(
       }),
     )
 
-    await actionRequest<UnpublishRequest[], any>(sanityClient, actions)
+    await actionRequest<UnpublishRequest[], unknown>(sanityClient, actions)
 
     return {
       content: [

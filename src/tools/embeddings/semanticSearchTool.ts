@@ -1,34 +1,15 @@
-import {RequestHandlerExtra} from '@modelcontextprotocol/sdk/shared/protocol.js'
 import {sanityClient} from '../../config/sanity.js'
-import {SemanticSearchParamsType} from './schema.js'
+import type {SemanticSearchParamsType} from './schema.js'
 
-export async function semanticSearchTool(
-  args: SemanticSearchParamsType,
-  extra: RequestHandlerExtra,
-) {
+export async function semanticSearchTool(args: SemanticSearchParamsType) {
   try {
     const config = sanityClient.config()
-    const apiHost = config.apiHost.replace('https://', '')
-    const embeddingsEndpoint = `https://${config.projectId}.${apiHost}/vX/embeddings-index/query/${config.dataset}/${args.indexName}`
-    const response = await fetch(embeddingsEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${config.token}`,
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({
-        query: args.query,
-        maxResults: args.maxResults || 10,
-        filter: args.filter || {},
-      }),
+
+    const result = await sanityClient.request({
+      uri: `/vX/embeddings-index/query/${config.dataset}/${args.indexName}`,
+      method: 'post',
+      withCredentials: true,
     })
-
-    if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`)
-    }
-
-    const result = await response.json()
 
     function formatSearchResults(results: any[]) {
       if (results.length === 0) {

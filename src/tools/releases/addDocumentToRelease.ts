@@ -9,7 +9,7 @@ function parseReleaseId(releaseId: string): string {
   if (res.length == 1) {
     return releaseId
   }
-  return res.at(-1)!!
+  return res.at(-1)!
 }
 
 export async function processDocumentForRelease(

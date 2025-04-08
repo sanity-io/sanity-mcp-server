@@ -1,11 +1,10 @@
-import type {RequestHandlerExtra} from '@modelcontextprotocol/sdk/shared/protocol.js'
 import {sanityClient} from '../../../config/sanity.js'
-import {PatchDocumentParams} from './schemas.js'
+import type {PatchDocumentParams} from './schemas.js'
 
 /**
  * Tool for updating an existing document in the Sanity dataset
  */
-export async function patchDocumentTool(args: PatchDocumentParams, extra: RequestHandlerExtra) {
+export async function patchDocumentTool(args: PatchDocumentParams) {
   try {
     const {id, patch} = args
 
@@ -59,14 +58,14 @@ export async function patchDocumentTool(args: PatchDocumentParams, extra: Reques
         },
       ],
     }
-  } catch (error: any) {
-    // Handle errors gracefully
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
     return {
       isError: true,
       content: [
         {
           type: 'text' as const,
-          text: `Error updating document: ${error.message}`,
+          text: `Error patching document: ${errorMessage}`,
         },
       ],
     }

@@ -1,11 +1,10 @@
-import type {RequestHandlerExtra} from '@modelcontextprotocol/sdk/shared/protocol.js'
 import {sanityClient} from '../../../config/sanity.js'
 import {BatchMutationsParams} from './schemas.js'
 
 /**
  * Tool for performing multiple mutations in a single transaction
  */
-export async function batchMutationsTool(args: BatchMutationsParams, extra: RequestHandlerExtra) {
+export async function batchMutationsTool(args: BatchMutationsParams) {
   try {
     let transaction = sanityClient.transaction()
 
@@ -50,13 +49,14 @@ export async function batchMutationsTool(args: BatchMutationsParams, extra: Requ
         },
       ],
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
     return {
       isError: true,
       content: [
         {
           type: 'text' as const,
-          text: `Error executing batch mutations: ${error.message}`,
+          text: `Error mutating: ${errorMessage}`,
         },
       ],
     }

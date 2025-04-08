@@ -1,11 +1,6 @@
-import {RequestHandlerExtra} from '@modelcontextprotocol/sdk/shared/protocol.js'
 import {hasInitialContext} from './getInitialContextTool.js'
 
-export function enforceInitialContextMiddleware(
-  toolName: string,
-  args: any,
-  extra: RequestHandlerExtra,
-) {
+export function enforceInitialContextMiddleware(toolName: string) {
   if (toolName === 'get_initial_context') {
     return
   }

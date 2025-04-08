@@ -1,11 +1,10 @@
-import type {RequestHandlerExtra} from '@modelcontextprotocol/sdk/shared/protocol.js'
 import {sanityClient} from '../../../config/sanity.js'
 import {ModifyDocumentParams} from './schemas.js'
 
 /**
  * Tool for applying a single mutation to a document
  */
-export async function modifyDocumentTool(args: ModifyDocumentParams, extra: RequestHandlerExtra) {
+export async function modifyDocumentTool(args: ModifyDocumentParams) {
   try {
     let transaction = sanityClient.transaction()
 
@@ -19,7 +18,7 @@ export async function modifyDocumentTool(args: ModifyDocumentParams, extra: Requ
       case 'createIfNotExists':
         transaction = transaction.createIfNotExists(args.document)
         break
-      case 'patch':
+      case 'patch': {
         if (!args.patch) {
           throw new Error('Patch operation requires patch data')
         }
@@ -34,6 +33,7 @@ export async function modifyDocumentTool(args: ModifyDocumentParams, extra: Requ
 
         transaction = transaction.patch(patch)
         break
+      }
       case 'delete':
         transaction = transaction.delete(args.document._id)
         break
@@ -58,13 +58,14 @@ export async function modifyDocumentTool(args: ModifyDocumentParams, extra: Requ
         },
       ],
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
     return {
       isError: true,
       content: [
         {
           type: 'text' as const,
-          text: `Error executing mutation: ${error.message}`,
+          text: `Error deleting document: ${errorMessage}`,
         },
       ],
     }

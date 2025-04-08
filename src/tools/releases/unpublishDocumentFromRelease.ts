@@ -31,7 +31,7 @@ export async function unpublishDocumentFromRelease(
   try {
     let unpublishReq = await processUnpublishRequest(args)
 
-    await actionRequest<UnpublishRequest[], any>(sanityClient, [unpublishReq])
+    await actionRequest<UnpublishRequest[], unknown>(sanityClient, [unpublishReq])
 
     return {
       content: [

@@ -1,6 +1,4 @@
-import type {RequestHandlerExtra} from '@modelcontextprotocol/sdk/shared/protocol.js'
-
-import {GroqSpecification, GroqSpecificationSchema} from './schemas.js'
+import {type GroqSpecification, GroqSpecificationSchema} from './schemas.js'
 
 /**
  * Fetches and validates the GROQ specification
@@ -152,7 +150,7 @@ export async function getGroqSpecification(): Promise<{
 /**
  * Tool implementation for getting the GROQ specification
  */
-export async function getGroqSpecificationTool(args: {}, extra: RequestHandlerExtra) {
+export async function getGroqSpecificationTool() {
   try {
     const {specification, source} = await getGroqSpecification()
 

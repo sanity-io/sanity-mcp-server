@@ -1,14 +1,10 @@
-import type {RequestHandlerExtra} from '@modelcontextprotocol/sdk/shared/protocol.js'
 import {sanityClient} from '../../../config/sanity.js'
 import type {DeleteMultipleDocumentsParams} from './schemas.js'
 
 /**
  * Tool for deleting multiple documents from the Sanity dataset using either IDs or a GROQ query
  */
-export async function deleteMultipleDocumentsTool(
-  args: DeleteMultipleDocumentsParams,
-  extra: RequestHandlerExtra,
-) {
+export async function deleteMultipleDocumentsTool(args: DeleteMultipleDocumentsParams) {
   try {
     const {ids, query, params, options} = args
 
@@ -48,14 +44,14 @@ export async function deleteMultipleDocumentsTool(
         },
       ],
     }
-  } catch (error: any) {
-    // Handle errors gracefully
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
     return {
       isError: true,
       content: [
         {
           type: 'text' as const,
-          text: `Error deleting documents: ${error.message}`,
+          text: `Error deleting documents: ${errorMessage}`,
         },
       ],
     }

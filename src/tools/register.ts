@@ -17,11 +17,11 @@ function createContextCheckingServer(server: McpServer): McpServer {
   return new Proxy(server, {
     get(target, prop) {
       if (prop === 'tool') {
-        return function (this: any, ...args: any[]) {
+        return function (this: any, ...args: any) {
           const [name, description, schema, handler] = args
 
           const wrappedHandler = async (args: any, extra: RequestHandlerExtra) => {
-            enforceInitialContextMiddleware(name, args, extra)
+            enforceInitialContextMiddleware(name)
             return handler(args, extra)
           }
 
