@@ -7,7 +7,7 @@ export const ListEmbeddingsIndicesToolParams = z.object({})
 
 type Params = z.infer<typeof ListEmbeddingsIndicesToolParams>
 
-export async function listEmbeddingsIndicesTool(_params: Params) {
+export async function listEmbeddingsIndicesTool(_params?: Params) {
   try {
     const config = sanityClient.config()
     const indices = await sanityClient.request<EmbeddingsIndex[]>({

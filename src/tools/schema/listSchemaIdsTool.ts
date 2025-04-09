@@ -6,7 +6,7 @@ export const ListSchemaIdsToolParams = z.object({})
 
 type Params = z.infer<typeof ListSchemaIdsToolParams>
 
-export async function listSchemaIdsTool(_params: Params) {
+export async function listSchemaIdsTool(_params?: Params) {
   try {
     const schemas = await sanityClient.fetch<{_id: string}[]>(
       '*[_type == "sanity.workspace.schema"]{ _id }',

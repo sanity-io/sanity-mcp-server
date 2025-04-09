@@ -6,7 +6,7 @@ export const ListProjectsToolParams = z.object({})
 
 type Params = z.infer<typeof ListProjectsToolParams>
 
-export async function listProjectsTool(_params: Params) {
+export async function listProjectsTool(_params?: Params) {
   try {
     const projects = await sanityClient.projects.list()
 

@@ -6,7 +6,7 @@ export const GetSanityConfigToolParams = z.object({})
 
 type Params = z.infer<typeof GetSanityConfigToolParams>
 
-export async function getSanityConfigTool(_params: Params) {
+export async function getSanityConfigTool(_params?: Params) {
   try {
     const config = sanityClient.config()
 

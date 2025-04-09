@@ -6,7 +6,7 @@ export const ListDatasetsToolParams = z.object({})
 
 type Params = z.infer<typeof ListDatasetsToolParams>
 
-export async function listDatasetsTool(_params: Params) {
+export async function listDatasetsTool(_params?: Params) {
   try {
     const datasets = await sanityClient.datasets.list()
 

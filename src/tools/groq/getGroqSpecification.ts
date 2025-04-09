@@ -6,7 +6,7 @@ export const GetGroqSpecificationToolParams = z.object({})
 
 type Params = z.infer<typeof GetGroqSpecificationToolParams>
 
-export async function getGroqSpecificationTool(_params: Params) {
+export async function getGroqSpecificationTool(_params?: Params) {
   const mdPath = path.join(__dirname, 'groq-specification.md')
   const specification = await fs.readFile(mdPath, 'utf-8')
 
