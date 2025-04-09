@@ -26,6 +26,8 @@ export async function getInitialContextTool(_params: Params) {
       listReleasesTool({state: 'active'}),
     ])
 
+    const todaysDate = new Date().toLocaleDateString('en-US')
+
     const message = outdent`
       ${MCP_INSTRUCTIONS}
 
@@ -38,6 +40,8 @@ export async function getInitialContextTool(_params: Params) {
         ${embeddings.content[0].text}
         ${releases.content[0].text}
       </content>
+
+      <todaysDate>${todaysDate}</todaysDate>
     `
 
     contextStore.setInitialContextLoaded()
