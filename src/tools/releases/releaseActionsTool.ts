@@ -34,7 +34,7 @@ export async function releaseActionsTool(params: Params) {
     const {actionType, ...rest} = params
 
     const response = await sanityClient.request({
-      uri: `/v2024-05-23/data/actions/${sanityClient.config().dataset}`,
+      uri: `/data/actions/${sanityClient.config().dataset}`,
       method: 'POST',
       body: {
         actions: [

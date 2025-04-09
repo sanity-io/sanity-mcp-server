@@ -30,7 +30,7 @@ export async function createReleaseTool(params: Params) {
     const intendedPublishAt = parseDateString(params.intendedPublishAt)
 
     const response = await sanityClient.request({
-      uri: `/v2024-05-23/data/actions/${sanityClient.config().dataset}`,
+      uri: `/data/actions/${sanityClient.config().dataset}`,
       method: 'POST',
       body: {
         actions: [

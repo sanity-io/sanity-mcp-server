@@ -6,6 +6,7 @@ import {listEmbeddingsIndicesTool} from '../embeddings/listEmbeddingsTool.js'
 import {listReleasesTool} from '../releases/listReleases.js'
 import {getSchemaTool} from '../schema/getSchemaTool.js'
 import {contextStore} from './store.js'
+import {MCP_INSTRUCTIONS} from './instruction.js'
 
 export const GetInitialContextToolParams = z.object({})
 
@@ -26,7 +27,9 @@ export async function getInitialContextTool(_params: Params) {
     ])
 
     const message = outdent`
-      This is the initial context for your Sanity instance
+      ${MCP_INSTRUCTIONS}
+
+      This is the initial context for your Sanity instance:
 
       <context>
         ${config.content[0].text}

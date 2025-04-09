@@ -9,19 +9,10 @@ import {env} from './config/env.js'
 const MCP_SERVER_NAME = '@sanity/mcp'
 
 async function initializeServer() {
-  const server = new McpServer(
-    {
-      name: MCP_SERVER_NAME,
-      version: VERSION,
-    },
-    {
-      capabilities: {
-        tools: {
-          listChanged: false,
-        },
-      },
-    },
-  )
+  const server = new McpServer({
+    name: MCP_SERVER_NAME,
+    version: VERSION,
+  })
 
   // Initialize Tools
   registerAllTools(server, env.data?.MCP_USER_ROLE)
