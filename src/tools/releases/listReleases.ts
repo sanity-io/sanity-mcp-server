@@ -2,13 +2,10 @@ import {z} from 'zod'
 import {sanityClient} from '../../config/sanity.js'
 import {formatResponse} from '../../utils/formatters.js'
 import type {Release} from '../../types/sanity.js'
+import {ReleaseSchemas} from './schemas.js'
 
 export const ListReleasesToolParams = z.object({
-  state: z
-    .enum(['active', 'scheduled', 'published', 'archived', 'deleted', 'all'])
-    .optional()
-    .default('active')
-    .describe('Filter releases by state (active, scheduled, published, archived, deleted, or all)'),
+  state: ReleaseSchemas.state.optional().default('active'),
 })
 
 type Params = z.infer<typeof ListReleasesToolParams>

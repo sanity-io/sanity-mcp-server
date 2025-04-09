@@ -1,37 +1,27 @@
 import {z} from 'zod'
 import {sanityClient} from '../../config/sanity.js'
 import {formatResponse} from '../../utils/formatters.js'
+import {ReleaseSchemas} from './schemas.js'
 
+/* Create, edit and schedule are defined as separate tools */
 export const ReleaseActionTypes = z.enum([
-  'edit',
   'publish',
   'archive',
   'unarchive',
-  'schedule',
   'unschedule',
   'delete',
 ])
 
 export const ReleaseActionsToolParams = z.object({
   actionType: ReleaseActionTypes.describe('Type of release action to perform'),
-
-  releaseId: z.string().describe('ID of the release'),
-
-  // For edit action
-  patch: z.record(z.any()).optional().describe('Patch to apply to the release metadata'),
-
-  // For schedule action
-  publishAt: z
-    .string()
-    .optional()
-    .describe('When to publish the release in ISO format (e.g. 2024-09-23T10:12:00Z)'),
+  releaseId: ReleaseSchemas.releaseId,
 })
 
 type Params = z.infer<typeof ReleaseActionsToolParams>
 
 export async function releaseActionsTool(params: Params) {
   try {
-    const {actionType, ...rest} = params
+    const {actionType, releaseId} = params
 
     const response = await sanityClient.request({
       uri: `/data/actions/${sanityClient.config().dataset}`,
@@ -40,7 +30,7 @@ export async function releaseActionsTool(params: Params) {
         actions: [
           {
             actionType: `sanity.action.release.${actionType}`,
-            ...rest,
+            releaseId,
           },
         ],
       },
@@ -59,13 +49,11 @@ export async function releaseActionsTool(params: Params) {
     }
 
     const actionDescriptionMap = {
-      edit: `Updated metadata for release '${params.releaseId}'`,
-      publish: `Published all documents in release '${params.releaseId}'`,
-      archive: `Archived release '${params.releaseId}'`,
-      unarchive: `Unarchived release '${params.releaseId}'`,
-      schedule: `Scheduled release '${params.releaseId}' for publishing at ${params.publishAt}`,
-      unschedule: `Unscheduled release '${params.releaseId}'`,
-      delete: `Permanently deleted release '${params.releaseId}'`,
+      publish: `Published all documents in release '${releaseId}'`,
+      archive: `Archived release '${releaseId}'`,
+      unarchive: `Unarchived release '${releaseId}'`,
+      unschedule: `Unscheduled release '${releaseId}'`,
+      delete: `Permanently deleted release '${releaseId}'`,
     }
 
     return {

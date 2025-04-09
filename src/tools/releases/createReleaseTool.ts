@@ -3,23 +3,13 @@ import {sanityClient} from '../../config/sanity.js'
 import {formatResponse} from '../../utils/formatters.js'
 import {parseDateString} from '../../utils/dates.js'
 import {generateSanityId} from '../../utils/id.js'
+import {ReleaseSchemas} from './schemas.js'
 
 export const CreateReleaseToolParams = z.object({
-  title: z.string().describe('Title for the release (e.g., "Spring 2025 Product Launch")'),
-
-  description: z.string().optional().describe('Description for the release'),
-
-  releaseType: z
-    .enum(['asap', 'undecided', 'scheduled'])
-    .optional()
-    .describe('Type of release (asap, undecided, scheduled)'),
-
-  intendedPublishAt: z
-    .string()
-    .optional()
-    .describe(
-      'When to publish. Can be ISO date (2025-04-04T18:36:00.000Z) or natural language like "in two weeks"',
-    ),
+  title: ReleaseSchemas.title,
+  description: ReleaseSchemas.description.optional(),
+  releaseType: ReleaseSchemas.releaseType.optional(),
+  intendedPublishAt: ReleaseSchemas.publishDate.optional(),
 })
 
 type Params = z.infer<typeof CreateReleaseToolParams>

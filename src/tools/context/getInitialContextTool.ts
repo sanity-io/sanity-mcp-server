@@ -6,7 +6,7 @@ import {listEmbeddingsIndicesTool} from '../embeddings/listEmbeddingsTool.js'
 import {listReleasesTool} from '../releases/listReleases.js'
 import {getSchemaTool} from '../schema/getSchemaTool.js'
 import {contextStore} from './store.js'
-import {MCP_INSTRUCTIONS} from './instruction.js'
+import {MCP_INSTRUCTIONS} from './instructions.js'
 
 export const GetInitialContextToolParams = z.object({})
 
