@@ -1,12 +1,16 @@
 import {z} from 'zod'
-import {randomUUID} from 'node:crypto'
 import {sanityClient} from '../../config/sanity.js'
 import {formatResponse, truncateDocumentForLLMOutput} from '../../utils/formatters.js'
+import {type DocumentId, getPublishedId} from '@sanity/id-utils'
 
-export const CreateDocumentToolParams = z.object({
-  _type: z.string().describe('The document type'),
-  instruction: z.string().describe('Optional instruction for AI to create the document content'),
+export const UpdateDocumentToolParams = z.object({
+  documentId: z.string().describe('The ID of the document to update'),
+  instruction: z.string().describe('Instruction for AI to update the document content'),
   schemaId: z.string().describe('Schema ID to follow'),
+  path: z
+    .string()
+    .optional()
+    .describe('Optional field path within the document to target with the instruction'),
   releaseId: z
     .string()
     .optional()
@@ -18,26 +22,24 @@ export const CreateDocumentToolParams = z.object({
     .optional()
     .default(false)
     .describe(
-      'Set to true for background processing when creating multiple documents for better performance.',
+      'Set to true for background processing when updating multiple documents for better performance.',
     ),
 })
 
-type Params = z.infer<typeof CreateDocumentToolParams>
+type Params = z.infer<typeof UpdateDocumentToolParams>
 
-export async function createDocumentTool(params: Params) {
+export async function updateDocumentTool(params: Params) {
   try {
-    const publishedId = randomUUID()
+    const publishedId = getPublishedId(params.documentId as DocumentId)
     const documentId = params.releaseId
       ? `versions.${params.releaseId}.${publishedId}`
-      : `drafts.${publishedId}`
+      : publishedId
 
     const instructOptions = {
-      createDocument: {
-        _id: documentId,
-        _type: params._type,
-      },
+      documentId,
       schemaId: params.schemaId,
       instruction: params.instruction,
+      path: params.path,
     } as const
 
     if (params.async === true) {
@@ -46,9 +48,9 @@ export async function createDocumentTool(params: Params) {
         async: true,
       })
 
-      const message = formatResponse('Document creation initiated in background', {
+      const message = formatResponse('Document update initiated in background', {
         success: true,
-        document: {_id: documentId, _type: params._type},
+        document: {_id: params.documentId},
       })
 
       return {
@@ -61,11 +63,11 @@ export async function createDocumentTool(params: Params) {
       }
     }
 
-    const createdDocument = await sanityClient.agent.action.generate(instructOptions)
+    const updatedDocument = await sanityClient.agent.action.generate(instructOptions)
 
-    const message = formatResponse('Document created successfully', {
+    const message = formatResponse('Document updated successfully', {
       success: true,
-      document: truncateDocumentForLLMOutput(createdDocument),
+      document: truncateDocumentForLLMOutput(updatedDocument),
     })
 
     return {
@@ -83,7 +85,7 @@ export async function createDocumentTool(params: Params) {
       content: [
         {
           type: 'text' as const,
-          text: `Error creating document: ${errorMessage}`,
+          text: `Error updating document: ${errorMessage}`,
         },
       ],
     }

@@ -21,8 +21,6 @@ export const VersionActionsToolParams = z.object({
 
   // For discard actions
   versionId: z.string().optional().describe('ID of the version document to discard'),
-
-  purge: z.boolean().optional().describe('Whether to completely purge document history'),
 })
 
 type Params = z.infer<typeof VersionActionsToolParams>

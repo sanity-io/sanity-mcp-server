@@ -1,6 +1,7 @@
 import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js'
 import {queryDocumentsTool, QueryDocumentsToolParams} from './queryDocumentsTool.js'
 import {createDocumentTool, CreateDocumentToolParams} from './createDocumentTool.js'
+import {updateDocumentTool, UpdateDocumentToolParams} from './updateDocumentTool.js'
 import {documentActionsTool, DocumentActionsToolParams} from './documentActionsTool.js'
 import {versionActionsTool, VersionActionsToolParams} from './versionActionsTool.js'
 
@@ -10,6 +11,13 @@ export function registerDocumentsTools(server: McpServer) {
     'Create a new document in Sanity with AI-generated content based on instructions',
     CreateDocumentToolParams.shape,
     createDocumentTool,
+  )
+
+  server.tool(
+    'update_document',
+    'Update an existing document in Sanity with AI-generated content based on instructions',
+    UpdateDocumentToolParams.shape,
+    updateDocumentTool,
   )
 
   server.tool(
