@@ -1,19 +1,18 @@
-import {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js'
-import {getProjectsTool} from './getProjectsTool.js'
-import {GetProjectParams} from './schema.js'
-import {getStudiosTool} from './getStudiosTool.js'
+import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js'
+import {listProjectsTool, ListProjectsToolParams} from './listProjectsTool.js'
+import {getProjectStudiosTool, GetProjectStudiosToolParams} from './getProjectStudiosTool.js'
 
 export function registerProjectsTools(server: McpServer) {
   server.tool(
-    'get_projects',
-    'Get information about projects you have access to',
-    {},
-    getProjectsTool,
+    'list_projects',
+    'Lists all Sanity projects associated with your account',
+    ListProjectsToolParams.shape,
+    listProjectsTool,
   )
   server.tool(
-    'get_studios',
-    'List all studio hosts for a specific project',
-    GetProjectParams,
-    getStudiosTool,
+    'get_project_studios',
+    'Retrieves all studio applications linked to a specific Sanity project',
+    GetProjectStudiosToolParams.shape,
+    getProjectStudiosTool,
   )
 }

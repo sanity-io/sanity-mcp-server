@@ -63,3 +63,18 @@ export interface EmbeddingsQueryResultItem {
     type: string
   }
 }
+
+export interface SanityApplication {
+  id: string
+  projectId: string
+  organizationId: string | null
+  title: string | null
+  type: string
+  urlType: string
+  appHost: string
+  dashboardStatus: string
+  createdAt: string
+  updatedAt: string
+  activeDeployment: string | null
+  manifest: string | null
+}
