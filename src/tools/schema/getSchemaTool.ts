@@ -3,27 +3,44 @@ import {sanityClient} from '../../config/sanity.js'
 import type {ManifestSchemaType} from '../../types/manifest.js'
 import {formatSchema} from '../../utils/schema.js'
 
+const DEFAULT_SCHEMA_ID = 'sanity.workspace.schema.default'
+
 export const GetSchemaToolParams = z.object({
   type: z
     .string()
     .optional()
     .describe('Optional: Specific type name to fetch. If not provided, returns the full schema'),
-  schemaId: z
-    .string()
+  schemaId: z.string().default(DEFAULT_SCHEMA_ID).optional().describe('The schema ID to fetch'),
+  lite: z
+    .boolean()
     .optional()
-    .default('sanity.workspace.schema.default')
-    .describe('The schema ID to fetch'),
+    .default(false)
+    .describe(
+      'Get a simplified version of the schema without field details. Useful for quick overviews.',
+    ),
 })
 
 type Params = z.infer<typeof GetSchemaToolParams>
 
 export async function getSchemaTool(params: Params) {
   try {
-    const schemaString: string = await sanityClient.fetch('*[_id == $schemaId][0].schema', {
-      schemaId: params.schemaId,
+    const schemaDoc = await sanityClient.fetch('*[_id == $schemaId][0]', {
+      schemaId: params.schemaId ?? DEFAULT_SCHEMA_ID,
     })
 
-    let schema = JSON.parse(schemaString) as ManifestSchemaType[]
+    if (!schemaDoc?.schema) {
+      return {
+        isError: true,
+        content: [
+          {
+            type: 'text' as const,
+            text: `Schema ID "${params.schemaId}" not found. Please use the list_schema_ids tool to see available schemas.`,
+          },
+        ],
+      }
+    }
+
+    let schema = JSON.parse(schemaDoc.schema) as ManifestSchemaType[]
 
     if (params.type) {
       const typeSchema = schema.filter((type) => type.name === params.type)
@@ -37,7 +54,7 @@ export async function getSchemaTool(params: Params) {
       content: [
         {
           type: 'text' as const,
-          text: formatSchema(schema) as string,
+          text: formatSchema(schema, {lite: params.lite}) as string,
         },
       ],
     }

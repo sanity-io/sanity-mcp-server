@@ -1,10 +1,9 @@
 import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js'
 import type {RequestHandlerExtra} from '@modelcontextprotocol/sdk/shared/protocol.js'
-import {registerConfigTools} from './config/register.js'
 import {enforceInitialContextMiddleware} from './context/middleware.js'
 import {registerContextTools} from './context/register.js'
 import {registerDatasetsTools} from './datasets/register.js'
-import {registerDocumentTools} from './documents/register.js'
+import {registerDocumentsTools} from './documents/register.js'
 import {registerEmbeddingsTools} from './embeddings/register.js'
 import {registerGroqTools} from './groq/register.js'
 import {registerProjectsTools} from './projects/register.js'
@@ -40,9 +39,8 @@ function developerTools(server: McpServer) {
   const wrappedServer = createContextCheckingServer(server)
 
   registerContextTools(wrappedServer)
-  registerConfigTools(wrappedServer)
   registerGroqTools(wrappedServer)
-  registerDocumentTools(wrappedServer)
+  registerDocumentsTools(wrappedServer)
   registerProjectsTools(wrappedServer)
   registerSchemaTools(wrappedServer)
   registerDatasetsTools(wrappedServer)
@@ -54,9 +52,8 @@ function editorTools(server: McpServer) {
   const wrappedServer = createContextCheckingServer(server)
 
   registerContextTools(wrappedServer)
-  registerConfigTools(wrappedServer)
   registerGroqTools(wrappedServer)
-  registerDocumentTools(wrappedServer)
+  registerDocumentsTools(wrappedServer)
   registerSchemaTools(wrappedServer)
   registerReleasesTools(wrappedServer)
   registerEmbeddingsTools(wrappedServer)

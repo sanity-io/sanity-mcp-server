@@ -1,5 +1,5 @@
 import {XMLBuilder} from 'fast-xml-parser'
-import type {ManifestSchemaType, ManifestSerializable} from '../types/manifest'
+import type {ManifestSchemaType, ManifestSerializable} from '../types/manifest.js'
 
 interface SchemaXmlNode {
   [key: string]:
@@ -16,7 +16,7 @@ interface FormatOptions {
   format?: 'xml' | 'json'
 }
 
-type SchemaObject = Record<string, any>
+type SchemaObject = Record<string, unknown>
 
 /**
  * Format the schema as XML for better parsing by LLMs
