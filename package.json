@@ -26,6 +26,7 @@
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.7",
     "fast-xml-parser": "^5.2.0",
+    "outdent": "^0.8.0",
     "zod": "^3.24.2"
   },
   "devDependencies": {

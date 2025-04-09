@@ -1,19 +1,18 @@
 import {z} from 'zod'
+import {outdent} from 'outdent'
 import {getSanityConfigTool} from './getSanityConfigTool.js'
 import {listDatasetsTool} from '../datasets/listDatasets.js'
 import {listEmbeddingsIndicesTool} from '../embeddings/listEmbeddingsTool.js'
 import {listReleasesTool} from '../releases/listReleases.js'
-import {formatResponse} from '../../utils/formatters.js'
 import {getSchemaTool} from '../schema/getSchemaTool.js'
+import {contextStore} from './store.js'
 
 export const GetInitialContextToolParams = z.object({})
 
 type Params = z.infer<typeof GetInitialContextToolParams>
 
-let contextInitialized = false
-
 export function hasInitialContext(): boolean {
-  return contextInitialized
+  return contextStore.hasInitialContext()
 }
 
 export async function getInitialContextTool(_params: Params) {
@@ -26,21 +25,19 @@ export async function getInitialContextTool(_params: Params) {
       listReleasesTool({state: 'active'}),
     ])
 
-    contextInitialized = true
+    const message = outdent`
+      This is the initial context for your Sanity instance
 
-    // Collect all the information
-    const contextInfo = {
-      config: config.content[0].text,
-      datasets: datasets.content[0].text,
-      schema: schema.content[0].text,
-      embeddings: embeddings.content[0].text,
-      releases: releases.content[0].text,
-    }
+      <context>
+        ${config.content[0].text}
+        ${datasets.content[0].text}
+        ${schema.content[0].text}
+        ${embeddings.content[0].text}
+        ${releases.content[0].text}
+      </content>
+    `
 
-    const message = formatResponse(
-      'This is the initial context for your Sanity instance',
-      contextInfo,
-    )
+    contextStore.setInitialContextLoaded()
 
     return {
       content: [
