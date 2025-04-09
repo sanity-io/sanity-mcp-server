@@ -24,7 +24,6 @@
     "dotenv": "^16.4.7",
     "fast-xml-parser": "^5.2.0",
     "nanoid": "^5.1.5",
-    "outdent": "^0.8.0",
     "zod": "^3.24.2"
   },
   "devDependencies": {
