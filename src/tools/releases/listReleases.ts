@@ -2,7 +2,7 @@ import {z} from 'zod'
 import {sanityClient} from '../../config/sanity.js'
 import {formatResponse} from '../../utils/formatters.js'
 import type {Release} from '../../types/sanity.js'
-import {ReleaseSchemas} from './schemas.js'
+import {ReleaseSchemas} from './common.js'
 
 export const ListReleasesToolParams = z.object({
   state: ReleaseSchemas.state.optional().default('active'),

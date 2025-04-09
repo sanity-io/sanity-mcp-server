@@ -3,7 +3,7 @@ import {sanityClient} from '../../config/sanity.js'
 import {formatResponse} from '../../utils/formatters.js'
 import {parseDateString} from '../../utils/dates.js'
 import {generateSanityId} from '../../utils/id.js'
-import {ReleaseSchemas} from './schemas.js'
+import {ReleaseSchemas} from './common.js'
 
 export const CreateReleaseToolParams = z.object({
   title: ReleaseSchemas.title,

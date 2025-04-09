@@ -1,7 +1,7 @@
 import {z} from 'zod'
 import {sanityClient} from '../../config/sanity.js'
 import {formatResponse} from '../../utils/formatters.js'
-import {ReleaseSchemas} from './schemas.js'
+import {ReleaseSchemas} from './common.js'
 
 /* Create, edit and schedule are defined as separate tools */
 export const ReleaseActionTypes = z.enum([

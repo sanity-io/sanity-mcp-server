@@ -2,7 +2,7 @@ import {z} from 'zod'
 import {sanityClient} from '../../config/sanity.js'
 import {formatResponse} from '../../utils/formatters.js'
 import {parseDateString} from '../../utils/dates.js'
-import {ReleaseSchemas} from './schemas.js'
+import {ReleaseSchemas} from './common.js'
 
 export const EditReleaseToolParams = z.object({
   releaseId: ReleaseSchemas.releaseId,
