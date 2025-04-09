@@ -1,29 +1,17 @@
+import {z} from 'zod'
 import {sanityClient} from '../../config/sanity.js'
-import {outdent} from 'outdent'
+import {formatResponse} from '../../utils/formatters.js'
+import type {EmbeddingsIndex} from '../../types/sanity.js'
 
-export async function listEmbeddingsIndicesTool() {
+export const ListEmbeddingsIndicesToolParams = z.object({})
+
+type Params = z.infer<typeof ListEmbeddingsIndicesToolParams>
+
+export async function listEmbeddingsIndicesTool(_params: Params) {
   try {
     const config = sanityClient.config()
-    // const apiHost = config.apiHost.replace('https://', '')
-    // const embeddingsEndpoint = `https://${config.projectId}.${apiHost}/vX/embeddings-index/${config.dataset}`
-    // const response = await fetch(embeddingsEndpoint, {
-    //   method: 'GET',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'Authorization': `Bearer ${config.token}`,
-    //     'Accept': 'application/json',
-    //   },
-    // })
-
-    // if (!response.ok) {
-    //   throw new Error(`API request failed with status ${response.status}`)
-    // }
-
-    // const indices = await response.json()
-
-    const indices = await sanityClient.request({
-      uri: `https://api.sanity.io/vX/embeddings-index/${config.dataset}`,
-      withCredentials: true,
+    const indices = await sanityClient.request<EmbeddingsIndex[]>({
+      uri: `/vX/embeddings-index/${config.dataset}`,
     })
 
     if (!indices.length) {
@@ -37,42 +25,36 @@ export async function listEmbeddingsIndicesTool() {
       }
     }
 
-    const formattedIndices = indices
-      .map((index: any) => {
-        return outdent`
-          • Index: ${index.indexName}
-            Status: ${index.status}
-            Project ID: ${index.projectId}
-            Dataset: ${index.dataset}
-            Projection: ${index.projection}
-            Filter: ${index.filter}
-            Created At: ${index.createdAt}
-            Updated At: ${index.updatedAt}
-            Failed Document Count: ${index.failedDocumentCount}
-            Start Document Count: ${index.startDocumentCount}
-            Remaining Document Count: ${index.remainingDocumentCount}
-            Webhook ID: ${index.webhookId}`
-      })
-      .join('\n\n')
+    const flattenedIndices: Record<string, object> = {}
+    for (const index of indices) {
+      flattenedIndices[index.indexName] = {
+        name: index.indexName,
+        status: index.status,
+        projection: index.projection,
+        filter: index.filter,
+      }
+    }
+
+    const message = formatResponse(`Found ${indices.length} embeddings indices`, {
+      indices: flattenedIndices,
+    })
 
     return {
       content: [
         {
           type: 'text' as const,
-          text:
-            indices.length === 1
-              ? `Found 1 embeddings index:\n${formattedIndices}`
-              : `Found ${indices.length} embeddings indices:\n${formattedIndices}`,
+          text: message,
         },
       ],
     }
-  } catch (error) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
     return {
       isError: true,
       content: [
         {
           type: 'text' as const,
-          text: `Error fetching embeddings indices: ${error}`,
+          text: `Error fetching embeddings indices: ${errorMessage}`,
         },
       ],
     }

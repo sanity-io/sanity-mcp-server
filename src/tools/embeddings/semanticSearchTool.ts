@@ -1,46 +1,67 @@
+import {z} from 'zod'
 import {sanityClient} from '../../config/sanity.js'
-import type {SemanticSearchParamsType} from './schema.js'
+import {formatResponse} from '../../utils/formatters.js'
+import type {EmbeddingsQueryResultItem} from '../../types/sanity.js'
 
-export async function semanticSearchTool(args: SemanticSearchParamsType) {
+export const SemanticSearchToolParams = z.object({
+  indexName: z.string().describe('The name of the embeddings index to search'),
+  query: z.string().describe('The search query to find semantically similar content'),
+})
+
+type Params = z.infer<typeof SemanticSearchToolParams>
+
+export async function semanticSearchTool(params: Params) {
   try {
     const config = sanityClient.config()
 
-    const result = await sanityClient.request({
-      uri: `/vX/embeddings-index/query/${config.dataset}/${args.indexName}`,
+    const results = await sanityClient.request<EmbeddingsQueryResultItem[]>({
+      uri: `/vX/embeddings-index/query/${config.dataset}/${params.indexName}`,
       method: 'post',
       withCredentials: true,
+      body: {
+        query: params.query,
+      },
     })
 
-    function formatSearchResults(results: any[]) {
-      if (results.length === 0) {
-        return 'No results found'
+    if (!results || results.length === 0) {
+      return {
+        content: [
+          {
+            type: 'text' as const,
+            text: 'No search results found',
+          },
+        ],
       }
-
-      return results
-        .map((item, index) => {
-          const score = (item.score * 100).toFixed(1)
-          return `${index + 1}. ${item.value.type} (ID: ${item.value.documentId})
-   Relevance: ${score}%`
-        })
-        .join('\n\n')
     }
 
-    const outputText = formatSearchResults(result)
+    const formattedResults = results.map((item, index) => ({
+      rank: index + 1,
+      type: item.value.type,
+      documentId: item.value.documentId,
+      relevance: `${(item.score * 100).toFixed(1)}%`,
+    }))
+
+    const message = formatResponse(
+      `Found ${results.length} semantic search results for "${params.query}"`,
+      {results: formattedResults},
+    )
+
     return {
       content: [
         {
           type: 'text' as const,
-          text: `Semantic Search Results:\n\n${outputText}`,
+          text: message,
         },
       ],
     }
-  } catch (error) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
     return {
       isError: true,
       content: [
         {
           type: 'text' as const,
-          text: `Error fetching embeddings indices: ${error}`,
+          text: `Error performing semantic search: ${errorMessage}`,
         },
       ],
     }

@@ -35,16 +35,14 @@ export async function listDatasetsTool(_params: Params) {
       }
     }
 
-    const flattenedDatasets = filteredDatasets.reduce<
-      Record<string, {name: string; aclMode: string; createdAt: string}>
-    >((acc, dataset) => {
-      acc[dataset.name] = {
+    const flattenedDatasets: Record<string, object> = {}
+    for (const dataset of filteredDatasets) {
+      flattenedDatasets[dataset.name] = {
         name: dataset.name,
         aclMode: dataset.aclMode,
         createdAt: dataset.createdAt,
       }
-      return acc
-    }, {})
+    }
 
     const message = formatResponse('Here are the datasets', {datasets: flattenedDatasets})
 

@@ -40,3 +40,26 @@ export interface SanityMutationResult {
     operation: string
   }>
 }
+
+export interface EmbeddingsIndex {
+  status: string
+  indexName: string
+  projectId: string
+  dataset: string
+  projection: string
+  filter: string
+  createdAt: string
+  updatedAt: string
+  failedDocumentCount: number
+  startDocumentCount: number
+  remainingDocumentCount: number
+  webhookId: string
+}
+
+export interface EmbeddingsQueryResultItem {
+  score: number
+  value: {
+    documentId: string
+    type: string
+  }
+}
