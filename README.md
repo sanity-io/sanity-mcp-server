@@ -2,6 +2,17 @@
 
 Sanity MCP Server implements the Model Context Protocol to enable AI models to interact with Sanity's content management system. It provides tools for content creation, retrieval, and management, executing GROQ queries, handling releases, working with datasets, and more.
 
+> [!IMPORTANT]
+> Before using the MCP server, you must deploy your studio's schema manifest. This allows AI tools to understand your content structure.
+>
+> Run this command from your Sanity Studio directory:
+>
+> ```bash
+> SANITY_CLI_SCHEMA_STORE_ENABLED=true npx sanity@latest schema deploy
+> ```
+>
+> This command is currently behind a feature flag but will be enabled by default in future releases.
+
 ## Using with Claude
 
 To use this MCP server with Claude Desktop, add this to your Claude Desktop configuration:
