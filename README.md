@@ -2,6 +2,29 @@
 
 Sanity MCP Server implements the Model Context Protocol to enable AI models to interact with Sanity's content management system. It provides tools for content creation, retrieval, and management, executing GROQ queries, handling releases, working with datasets, and more.
 
+## Using with Claude
+
+To use this MCP server with Claude Desktop, add this to your Claude Desktop configuration:
+
+```json
+{
+  "mcpServers": {
+    "sanity": {
+      "command": "npx",
+      "args": ["-y", "@sanity/mcp-server@latest"],
+      "env": {
+        "SANITY_PROJECT_ID": "your-project-id",
+        "SANITY_DATASET": "production",
+        "SANITY_API_HOST": "https://api.sanity.io",
+        "SANITY_API_TOKEN": "your-sanity-api-token"
+      }
+    }
+  }
+}
+```
+
+This MCP server is designed to be used with AI models that support the Model Context Protocol, such as Claude via Claude Desktop or other MCP-compatible interfaces.
+
 ## Available Tools
 
 ### Context & Setup
@@ -56,11 +79,7 @@ Sanity MCP Server implements the Model Context Protocol to enable AI models to i
 - **list_projects** – List all Sanity projects associated with your account
 - **get_project_studios** – Get studio applications linked to a specific project
 
-## Usage
-
-This MCP server is designed to be used with AI models that support the Model Context Protocol, such as Claude via Claude Desktop or other MCP-compatible interfaces.
-
-### Configuration
+## Configuration
 
 The server requires the following environment variables:
 
@@ -71,6 +90,13 @@ SANITY_DATASET - The dataset to use
 SANITY_API_HOST - Optional, defaults to https://api.sanity.io
 MCP_USER_ROLE - Optional, determines tool access level (developer or editor)
 ```
+
+### User Roles
+
+The server supports two user roles:
+
+- **developer**: Access to all tools
+- **editor**: Content-focused tools without project administration
 
 ## Development
 
@@ -97,37 +123,6 @@ Run the built server:
 ```
 pnpm start
 ```
-
-### Connecting with Claude Desktop
-
-To use this MCP server with Claude Desktop, add this to your Claude Desktop configuration:
-
-```json
-{
-  "mcpServers": {
-    "sanity": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@sanity/mcp-server@latest",
-        "--dataset",
-        "production",
-        "--project-id",
-        "your-project-id",
-        "--token",
-        "<sanity-api-token>"
-      ]
-    }
-  }
-}
-```
-
-### User Roles
-
-The server supports three user roles:
-
-- **developer**: Access to all tools
-- **editor**: Content-focused tools without project administration
 
 ### Debugging
 
