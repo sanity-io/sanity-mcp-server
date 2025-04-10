@@ -2,6 +2,7 @@ import {z} from 'zod'
 import {sanityClient} from '../../config/sanity.js'
 import type {ManifestSchemaType} from '../../types/manifest.js'
 import {formatSchema} from '../../utils/schema.js'
+import {createErrorResponse, withErrorHandling} from '../../utils/response.js'
 
 const DEFAULT_SCHEMA_ID = 'sanity.workspace.schema.default'
 
@@ -22,51 +23,35 @@ export const GetSchemaToolParams = z.object({
 
 type Params = z.infer<typeof GetSchemaToolParams>
 
-export async function getSchemaTool(params: Params) {
-  try {
-    const schemaDoc = await sanityClient.fetch('*[_id == $schemaId][0]', {
-      schemaId: params.schemaId ?? DEFAULT_SCHEMA_ID,
-    })
+async function tool(params: Params) {
+  const schemaDoc = await sanityClient.fetch('*[_id == $schemaId][0]', {
+    schemaId: params.schemaId ?? DEFAULT_SCHEMA_ID,
+  })
 
-    if (!schemaDoc?.schema) {
-      return {
-        isError: true,
-        content: [
-          {
-            type: 'text' as const,
-            text: `Schema ID "${params.schemaId}" not found. Please use the list_schema_ids tool to see available schemas.`,
-          },
-        ],
-      }
-    }
+  if (!schemaDoc?.schema) {
+    return createErrorResponse(
+      `Schema ID "${params.schemaId}" not found. Please use the list_schema_ids tool to see available schemas.`,
+    )
+  }
 
-    let schema = JSON.parse(schemaDoc.schema) as ManifestSchemaType[]
+  let schema = JSON.parse(schemaDoc.schema) as ManifestSchemaType[]
 
-    if (params.type) {
-      const typeSchema = schema.filter((type) => type.name === params.type)
-      if (typeSchema.length === 0) {
-        throw new Error(`Type "${params.type}" not found in schema`)
-      }
-      schema = typeSchema
+  if (params.type) {
+    const typeSchema = schema.filter((type) => type.name === params.type)
+    if (typeSchema.length === 0) {
+      throw new Error(`Type "${params.type}" not found in schema`)
     }
+    schema = typeSchema
+  }
 
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: formatSchema(schema, {lite: params.lite}) as string,
-        },
-      ],
-    }
-  } catch (error) {
-    return {
-      isError: true,
-      content: [
-        {
-          type: 'text' as const,
-          text: `Error fetching schema overview: ${error}`,
-        },
-      ],
-    }
+  return {
+    content: [
+      {
+        type: 'text' as const,
+        text: formatSchema(schema, {lite: params.lite}) as string,
+      },
+    ],
   }
 }
+
+export const getSchemaTool = withErrorHandling(tool, 'Error fetching schema overview')

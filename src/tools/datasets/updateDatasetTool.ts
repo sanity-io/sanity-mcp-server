@@ -1,6 +1,6 @@
 import {z} from 'zod'
 import {sanityClient} from '../../config/sanity.js'
-import {formatResponse} from '../../utils/formatters.js'
+import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 
 export const UpdateDatasetToolParams = z.object({
   name: z
@@ -11,32 +11,13 @@ export const UpdateDatasetToolParams = z.object({
 
 type Params = z.infer<typeof UpdateDatasetToolParams>
 
-export async function updateDatasetTool(args: Params) {
-  try {
-    const datasetName = args.name.toLowerCase().replace(/[^a-z0-9]/g, '')
-    const newDataset = await sanityClient.datasets.edit(datasetName, {
-      aclMode: args.aclMode,
-    })
-    const message = formatResponse('Dataset updated successfully', {newDataset})
+async function tool(args: Params) {
+  const datasetName = args.name.toLowerCase().replace(/[^a-z0-9]/g, '')
+  const newDataset = await sanityClient.datasets.edit(datasetName, {
+    aclMode: args.aclMode,
+  })
 
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: message,
-        },
-      ],
-    }
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    return {
-      isError: true,
-      content: [
-        {
-          type: 'text' as const,
-          text: `Error updating dataset: ${errorMessage}`,
-        },
-      ],
-    }
-  }
+  return createSuccessResponse('Dataset updated successfully', {newDataset})
 }
+
+export const updateDatasetTool = withErrorHandling(tool, 'Error updating dataset')

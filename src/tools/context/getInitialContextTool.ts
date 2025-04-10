@@ -6,6 +6,7 @@ import {listEmbeddingsIndicesTool} from '../embeddings/listEmbeddingsTool.js'
 import {listReleasesTool} from '../releases/listReleases.js'
 import {getSchemaTool} from '../schema/getSchemaTool.js'
 import {contextStore} from './store.js'
+import {withErrorHandling} from '../../utils/response.js'
 import {MCP_INSTRUCTIONS} from './instructions.js'
 
 export const GetInitialContextToolParams = z.object({})
@@ -16,54 +17,43 @@ export function hasInitialContext(): boolean {
   return contextStore.hasInitialContext()
 }
 
-export async function getInitialContextTool(_params: Params) {
-  try {
-    const [config, datasets, schema, embeddings, releases] = await Promise.all([
-      getSanityConfigTool({}),
-      listDatasetsTool({}),
-      getSchemaTool({lite: true}),
-      listEmbeddingsIndicesTool({}),
-      listReleasesTool({state: 'active'}),
-    ])
+async function tool(_params: Params) {
+  const [config, datasets, schema, embeddings, releases] = await Promise.all([
+    getSanityConfigTool({}),
+    listDatasetsTool({}),
+    getSchemaTool({lite: true}),
+    listEmbeddingsIndicesTool({}),
+    listReleasesTool({state: 'active'}),
+  ])
 
-    const todaysDate = new Date().toLocaleDateString('en-US')
+  const todaysDate = new Date().toLocaleDateString('en-US')
 
-    const message = outdent`
-      ${MCP_INSTRUCTIONS}
+  const message = outdent`
+    ${MCP_INSTRUCTIONS}
 
-      This is the initial context for your Sanity instance:
+    This is the initial context for your Sanity instance:
 
-      <context>
-        ${config.content[0].text}
-        ${datasets.content[0].text}
-        ${schema.content[0].text}
-        ${embeddings.content[0].text}
-        ${releases.content[0].text}
-      </content>
+    <context>
+      ${config.content[0].text}
+      ${datasets.content[0].text}
+      ${schema.content[0].text}
+      ${embeddings.content[0].text}
+      ${releases.content[0].text}
+    </content>
 
-      <todaysDate>${todaysDate}</todaysDate>
-    `
+    <todaysDate>${todaysDate}</todaysDate>
+  `
 
-    contextStore.setInitialContextLoaded()
+  contextStore.setInitialContextLoaded()
 
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: message,
-        },
-      ],
-    }
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    return {
-      isError: true,
-      content: [
-        {
-          type: 'text' as const,
-          text: `Error getting initial context: ${errorMessage}`,
-        },
-      ],
-    }
+  return {
+    content: [
+      {
+        type: 'text' as const,
+        text: message,
+      },
+    ],
   }
 }
+
+export const getInitialContextTool = withErrorHandling(tool, 'Error getting initial context')

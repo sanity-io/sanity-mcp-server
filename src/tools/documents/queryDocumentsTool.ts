@@ -1,6 +1,7 @@
 import {z} from 'zod'
 import {sanityClient} from '../../config/sanity.js'
-import {formatResponse, truncateDocumentForLLMOutput, ensureArray} from '../../utils/formatters.js'
+import {truncateDocumentForLLMOutput, ensureArray} from '../../utils/formatters.js'
+import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 
 const DEUFALT_PERSPECTIVE = 'raw'
 
@@ -17,37 +18,17 @@ export const QueryDocumentsToolParams = z.object({
 
 type Params = z.infer<typeof QueryDocumentsToolParams>
 
-export async function queryDocumentsTool(params: Params) {
-  try {
-    const perspectiveClient = sanityClient.withConfig({
-      perspective: params.perspective ? [params.perspective] : DEUFALT_PERSPECTIVE,
-    })
-    const result = await perspectiveClient.fetch(params.query, params.params || {})
+async function tool(params: Params) {
+  const perspectiveClient = sanityClient.withConfig({
+    perspective: params.perspective ? [params.perspective] : DEUFALT_PERSPECTIVE,
+  })
+  const result = await perspectiveClient.fetch(params.query, params.params || {})
 
-    const documents = ensureArray(result)
-      .map(truncateDocumentForLLMOutput)
-      .map((doc) => JSON.stringify(doc, null, 2))
+  const documents = ensureArray(result)
+    .map(truncateDocumentForLLMOutput)
+    .map((doc) => JSON.stringify(doc, null, 2))
 
-    const message = formatResponse(`Found a total of ${documents.length} documents`, {documents})
-
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: message,
-        },
-      ],
-    }
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    return {
-      isError: true,
-      content: [
-        {
-          type: 'text' as const,
-          text: `Error executing GROQ query: ${errorMessage}`,
-        },
-      ],
-    }
-  }
+  return createSuccessResponse(`Found a total of ${documents.length} documents`, {documents})
 }
+
+export const queryDocumentsTool = withErrorHandling(tool, 'Error executing GROQ query')

@@ -1,6 +1,6 @@
 import {z} from 'zod'
 import {sanityClient} from '../../config/sanity.js'
-import {formatResponse} from '../../utils/formatters.js'
+import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 
 export const CreateDatasetToolParams = z.object({
   name: z
@@ -11,32 +11,14 @@ export const CreateDatasetToolParams = z.object({
 
 type Params = z.infer<typeof CreateDatasetToolParams>
 
-export async function createDatasetTool(args: Params) {
-  try {
-    // Only lowercase letters and numbers are allowed
-    const datasetName = args.name.toLowerCase().replace(/[^a-z0-9]/g, '')
-    const newDataset = await sanityClient.datasets.create(datasetName, {
-      aclMode: args.aclMode,
-    })
-    const message = formatResponse('Dataset created successfully', {newDataset})
+async function tool(args: Params) {
+  // Only lowercase letters and numbers are allowed
+  const datasetName = args.name.toLowerCase().replace(/[^a-z0-9]/g, '')
+  const newDataset = await sanityClient.datasets.create(datasetName, {
+    aclMode: args.aclMode,
+  })
 
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: message,
-        },
-      ],
-    }
-  } catch (error) {
-    return {
-      isError: true,
-      content: [
-        {
-          type: 'text' as const,
-          text: `Error creating dataset: ${error}`,
-        },
-      ],
-    }
-  }
+  return createSuccessResponse('Dataset created successfully', {newDataset})
 }
+
+export const createDatasetTool = withErrorHandling(tool, 'Error creating dataset')

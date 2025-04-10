@@ -1,7 +1,11 @@
 import {z} from 'zod'
 import {VersionId} from '@sanity/id-utils'
 import {sanityClient} from '../../config/sanity.js'
-import {formatResponse} from '../../utils/formatters.js'
+import {
+  createSuccessResponse,
+  createErrorResponse,
+  withErrorHandling,
+} from '../../utils/response.js'
 
 export const DiscardVersionToolParams = z.object({
   versionId: z
@@ -11,52 +15,26 @@ export const DiscardVersionToolParams = z.object({
 
 type Params = z.infer<typeof DiscardVersionToolParams>
 
-export async function discardVersionTool(params: Params) {
-  try {
-    const versionId = VersionId(params.versionId)
-    const response = await sanityClient.request({
-      uri: `/data/actions/${sanityClient.config().dataset}`,
-      method: 'POST',
-      body: {
-        actions: [
-          {
-            actionType: 'sanity.action.document.version.discard',
-            versionId,
-          },
-        ],
-      },
-    })
-
-    if (response.error) {
-      return {
-        isError: true,
-        content: [
-          {
-            type: 'text' as const,
-            text: `Error discarding version: ${response.error.description}`,
-          },
-        ],
-      }
-    }
-
-    return {
-      content: [
+async function tool(params: Params) {
+  const versionId = VersionId(params.versionId)
+  const response = await sanityClient.request({
+    uri: `/data/actions/${sanityClient.config().dataset}`,
+    method: 'POST',
+    body: {
+      actions: [
         {
-          type: 'text' as const,
-          text: formatResponse(`Successfully discarded version document '${versionId}'`),
+          actionType: 'sanity.action.document.version.discard',
+          versionId,
         },
       ],
-    }
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    return {
-      isError: true,
-      content: [
-        {
-          type: 'text' as const,
-          text: `Error discarding version: ${errorMessage}`,
-        },
-      ],
-    }
+    },
+  })
+
+  if (response.error) {
+    return createErrorResponse(`${response.error.description}`)
   }
+
+  return createSuccessResponse(`Successfully discarded version document '${versionId}'`)
 }
+
+export const discardVersionTool = withErrorHandling(tool, 'Error discarding version')

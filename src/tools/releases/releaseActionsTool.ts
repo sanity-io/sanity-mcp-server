@@ -1,6 +1,10 @@
 import {z} from 'zod'
 import {sanityClient} from '../../config/sanity.js'
-import {formatResponse} from '../../utils/formatters.js'
+import {
+  createSuccessResponse,
+  createErrorResponse,
+  withErrorHandling,
+} from '../../utils/response.js'
 import {ReleaseSchemas} from './common.js'
 
 /* Create, edit and schedule are defined as separate tools */
@@ -19,61 +23,35 @@ export const ReleaseActionsToolParams = z.object({
 
 type Params = z.infer<typeof ReleaseActionsToolParams>
 
-export async function releaseActionsTool(params: Params) {
-  try {
-    const {actionType, releaseId} = params
+async function tool(params: Params) {
+  const {actionType, releaseId} = params
 
-    const response = await sanityClient.request({
-      uri: `/data/actions/${sanityClient.config().dataset}`,
-      method: 'POST',
-      body: {
-        actions: [
-          {
-            actionType: `sanity.action.release.${actionType}`,
-            releaseId,
-          },
-        ],
-      },
-    })
-
-    if (response.error) {
-      return {
-        isError: true,
-        content: [
-          {
-            type: 'text' as const,
-            text: `Error performing release action: ${response.error.description}`,
-          },
-        ],
-      }
-    }
-
-    const actionDescriptionMap = {
-      publish: `Published all documents in release '${releaseId}'`,
-      archive: `Archived release '${releaseId}'`,
-      unarchive: `Unarchived release '${releaseId}'`,
-      unschedule: `Unscheduled release '${releaseId}'`,
-      delete: `Permanently deleted release '${releaseId}'`,
-    }
-
-    return {
-      content: [
+  const response = await sanityClient.request({
+    uri: `/data/actions/${sanityClient.config().dataset}`,
+    method: 'POST',
+    body: {
+      actions: [
         {
-          type: 'text' as const,
-          text: formatResponse(actionDescriptionMap[actionType]),
+          actionType: `sanity.action.release.${actionType}`,
+          releaseId,
         },
       ],
-    }
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    return {
-      isError: true,
-      content: [
-        {
-          type: 'text' as const,
-          text: `Error performing release action: ${errorMessage}`,
-        },
-      ],
-    }
+    },
+  })
+
+  if (response.error) {
+    return createErrorResponse(response.error.description)
   }
+
+  const actionDescriptionMap = {
+    publish: `Published all documents in release '${releaseId}'`,
+    archive: `Archived release '${releaseId}'`,
+    unarchive: `Unarchived release '${releaseId}'`,
+    unschedule: `Unscheduled release '${releaseId}'`,
+    delete: `Permanently deleted release '${releaseId}'`,
+  }
+
+  return createSuccessResponse(actionDescriptionMap[actionType])
 }
+
+export const releaseActionsTool = withErrorHandling(tool, 'Error performing release action')

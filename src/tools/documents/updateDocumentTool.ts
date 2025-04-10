@@ -1,6 +1,7 @@
 import {z} from 'zod'
 import {sanityClient} from '../../config/sanity.js'
-import {formatResponse, truncateDocumentForLLMOutput} from '../../utils/formatters.js'
+import {truncateDocumentForLLMOutput} from '../../utils/formatters.js'
+import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {type DocumentId, getPublishedId} from '@sanity/id-utils'
 
 export const UpdateDocumentToolParams = z.object({
@@ -28,66 +29,35 @@ export const UpdateDocumentToolParams = z.object({
 
 type Params = z.infer<typeof UpdateDocumentToolParams>
 
-export async function updateDocumentTool(params: Params) {
-  try {
-    const publishedId = getPublishedId(params.documentId as DocumentId)
-    const documentId = params.releaseId
-      ? `versions.${params.releaseId}.${publishedId}`
-      : publishedId
+async function tool(params: Params) {
+  const publishedId = getPublishedId(params.documentId as DocumentId)
+  const documentId = params.releaseId ? `versions.${params.releaseId}.${publishedId}` : publishedId
 
-    const instructOptions = {
-      documentId,
-      schemaId: params.schemaId,
-      instruction: params.instruction,
-      path: params.path,
-    } as const
+  const instructOptions = {
+    documentId,
+    schemaId: params.schemaId,
+    instruction: params.instruction,
+    path: params.path,
+  } as const
 
-    if (params.async === true) {
-      await sanityClient.agent.action.generate({
-        ...instructOptions,
-        async: true,
-      })
-
-      const message = formatResponse('Document update initiated in background', {
-        success: true,
-        document: {_id: params.documentId},
-      })
-
-      return {
-        content: [
-          {
-            type: 'text' as const,
-            text: message,
-          },
-        ],
-      }
-    }
-
-    const updatedDocument = await sanityClient.agent.action.generate(instructOptions)
-
-    const message = formatResponse('Document updated successfully', {
-      success: true,
-      document: truncateDocumentForLLMOutput(updatedDocument),
+  if (params.async === true) {
+    await sanityClient.agent.action.generate({
+      ...instructOptions,
+      async: true,
     })
 
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: message,
-        },
-      ],
-    }
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    return {
-      isError: true,
-      content: [
-        {
-          type: 'text' as const,
-          text: `Error updating document: ${errorMessage}`,
-        },
-      ],
-    }
+    return createSuccessResponse('Document update initiated in background', {
+      success: true,
+      document: {_id: params.documentId},
+    })
   }
+
+  const updatedDocument = await sanityClient.agent.action.generate(instructOptions)
+
+  return createSuccessResponse('Document updated successfully', {
+    success: true,
+    document: truncateDocumentForLLMOutput(updatedDocument),
+  })
 }
+
+export const updateDocumentTool = withErrorHandling(tool, 'Error updating document')
