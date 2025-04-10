@@ -1,5 +1,5 @@
 import {z} from 'zod'
-import {VersionId} from '@sanity/id-utils'
+import {isVersionId, VersionId, DraftId, type DocumentId} from '@sanity/id-utils'
 import {sanityClient} from '../../config/sanity.js'
 import {
   createSuccessResponse,
@@ -10,13 +10,18 @@ import {
 export const DiscardVersionToolParams = z.object({
   versionId: z
     .string()
-    .describe('ID of the version document to discard (with versions.releaseId prefix)'),
+    .describe(
+      'ID of the version document to discard (with versions.releaseId prefix or a draft ID)',
+    ),
 })
 
 type Params = z.infer<typeof DiscardVersionToolParams>
 
 async function tool(params: Params) {
-  const versionId = VersionId(params.versionId)
+  const versionId = isVersionId(params.versionId as DocumentId)
+    ? VersionId(params.versionId)
+    : DraftId(params.versionId)
+
   const response = await sanityClient.request({
     uri: `/data/actions/${sanityClient.config().dataset}`,
     method: 'POST',
@@ -24,7 +29,7 @@ async function tool(params: Params) {
       actions: [
         {
           actionType: 'sanity.action.document.version.discard',
-          versionId,
+          versionId: versionId,
         },
       ],
     },

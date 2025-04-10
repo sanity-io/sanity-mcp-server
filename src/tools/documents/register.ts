@@ -58,7 +58,7 @@ export function registerDocumentsTools(server: McpServer) {
 
   server.tool(
     'discard_version',
-    'Delete a specific version document from a release',
+    'Discard a draft or delete a specific version document from a release',
     DiscardVersionToolParams.shape,
     discardVersionTool,
   )
