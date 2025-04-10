@@ -1,42 +1,24 @@
-import { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
-import { sanityClient } from "../../config/sanity.js";
-import { CreateDatasetParams } from "./schemas.js";
+import {z} from 'zod'
+import {sanityClient} from '../../config/sanity.js'
+import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 
-export async function createDatasetTool(
-  args: CreateDatasetParams,
-  extra: RequestHandlerExtra
-) {
-  try {
-    const newDataset = await sanityClient.datasets.create(args.name, {
-      aclMode: args.aclMode,
-    });
+export const CreateDatasetToolParams = z.object({
+  name: z
+    .string()
+    .describe('The name of the dataset (will be automatically formatted to match requirements)'),
+  aclMode: z.enum(['private', 'public']).optional().describe('The ACL mode for the dataset'),
+})
 
-    const text = JSON.stringify(
-      {
-        operation: "create",
-        dataset: newDataset,
-      },
-      null,
-      2
-    );
+type Params = z.infer<typeof CreateDatasetToolParams>
 
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: `Dataset created: ${text}`,
-        },
-      ],
-    };
-  } catch (error) {
-    return {
-      isError: true,
-      content: [
-        {
-          type: "text" as const,
-          text: `Error creating dataset: ${error}`,
-        },
-      ],
-    };
-  }
+async function tool(args: Params) {
+  // Only lowercase letters and numbers are allowed
+  const datasetName = args.name.toLowerCase().replace(/[^a-z0-9]/g, '')
+  const newDataset = await sanityClient.datasets.create(datasetName, {
+    aclMode: args.aclMode,
+  })
+
+  return createSuccessResponse('Dataset created successfully', {newDataset})
 }
+
+export const createDatasetTool = withErrorHandling(tool, 'Error creating dataset')

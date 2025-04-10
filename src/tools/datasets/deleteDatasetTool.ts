@@ -1,40 +1,21 @@
-import { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
-import { sanityClient } from "../../config/sanity.js";
-import { DeleteDatasetParams } from "./schemas.js";
+import {z} from 'zod'
+import {sanityClient} from '../../config/sanity.js'
+import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 
-export async function deleteDatasetTool(
-  args: DeleteDatasetParams,
-  extra: RequestHandlerExtra
-) {
-  try {
-    const deletedDataset = await sanityClient.datasets.delete(args.dataset);
+export const DeleteDatasetToolParams = z.object({
+  name: z.string().describe('The name of the dataset to delete'),
+})
 
-    const text = JSON.stringify(
-      {
-        operation: "deletedDataset",
-        success: deletedDataset,
-      },
-      null,
-      2
-    );
+type Params = z.infer<typeof DeleteDatasetToolParams>
 
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: `Dataset deleted: ${text}`,
-        },
-      ],
-    };
-  } catch (error) {
-    return {
-      isError: true,
-      content: [
-        {
-          type: "text" as const,
-          text: `Error deleting dataset: ${error}`,
-        },
-      ],
-    };
-  }
+async function tool(args: Params) {
+  // Only lowercase letters and numbers are allowed
+  const datasetToDelete = args.name.toLowerCase().replace(/[^a-z0-9]/g, '')
+  await sanityClient.datasets.delete(datasetToDelete)
+
+  return createSuccessResponse('Dataset deleted successfully', {
+    deletedDataset: datasetToDelete,
+  })
 }
+
+export const deleteDatasetTool = withErrorHandling(tool, 'Error deleting dataset')

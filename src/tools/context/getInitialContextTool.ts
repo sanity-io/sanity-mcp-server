@@ -1,71 +1,59 @@
-import { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
-import { sanityClient } from "../../config/sanity.js";
-import { getSanityConfigTool } from "../config/getSanityConfigTool.js";
-import { getDatasetsTool } from "../datasets/getDatasetsTool.js";
-import { listEmbeddingsIndicesTool } from "../embeddings/listEmbeddingsTool.js";
-import { listReleases } from "../releases/listReleaseDocuments.js";
-import { getSchemaOverview } from "../schema/getSchemaOverviewTool.js";
+import {z} from 'zod'
+import {outdent} from 'outdent'
+import {getSanityConfigTool} from './getSanityConfigTool.js'
+import {listDatasetsTool} from '../datasets/listDatasets.js'
+import {listEmbeddingsIndicesTool} from '../embeddings/listEmbeddingsTool.js'
+import {listReleasesTool} from '../releases/listReleases.js'
+import {getSchemaTool} from '../schema/getSchemaTool.js'
+import {contextStore} from './store.js'
+import {withErrorHandling} from '../../utils/response.js'
+import {MCP_INSTRUCTIONS} from './instructions.js'
 
-let contextInitialized = false;
+export const GetInitialContextToolParams = z.object({})
+
+type Params = z.infer<typeof GetInitialContextToolParams>
 
 export function hasInitialContext(): boolean {
-  return contextInitialized;
+  return contextStore.hasInitialContext()
 }
 
-export async function getInitialContextTool(
-  args: {},
-  extra: RequestHandlerExtra
-) {
-  try {
-    const [config, datasets, schemaTypes, embeddings, activeReleases] =
-      await Promise.all([
-        getSanityConfigTool({}, extra),
-        getDatasetsTool({}, extra),
-        getSchemaOverview({ lite: true }),
-        listEmbeddingsIndicesTool({}, extra),
-        listReleases(sanityClient),
-      ]);
-    let schemaTypesText = [
-      "Overview of the of available schema types and its fields:",
-      JSON.stringify(schemaTypes, null, 1),
-      "If you need more information about a specific schema type, you can use the `get_schema_overview` tool.",
-    ].join("\n\n");
+async function tool(_params: Params) {
+  const [config, datasets, schema, embeddings, releases] = await Promise.all([
+    getSanityConfigTool({}),
+    listDatasetsTool({}),
+    getSchemaTool({lite: true}),
+    listEmbeddingsIndicesTool({}),
+    listReleasesTool({state: 'active'}),
+  ])
 
-    const activeReleasesText = JSON.stringify(activeReleases);
+  const todaysDate = new Date().toLocaleDateString('en-US')
 
-    contextInitialized = true;
+  const message = outdent`
+    ${MCP_INSTRUCTIONS}
 
-    const outputText = `Sanity MCP Server:
+    This is the initial context for your Sanity instance:
 
-CONFIG & DATASETS
-${config.content[0].text}
-${datasets.content[0].text}
+    <context>
+      ${config.content[0].text}
+      ${datasets.content[0].text}
+      ${schema.content[0].text}
+      ${embeddings.content[0].text}
+      ${releases.content[0].text}
+    </content>
 
-SCHEMA:
-${schemaTypesText}
+    <todaysDate>${todaysDate}</todaysDate>
+  `
 
-EMBEDDINGS: 
-${embeddings.content[0].text}
+  contextStore.setInitialContextLoaded()
 
-ACTIVE RELEASES: ${activeReleasesText}`;
-
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: outputText,
-        },
-      ],
-    };
-  } catch (error) {
-    return {
-      isError: true,
-      content: [
-        {
-          type: "text" as const,
-          text: `Error getting context: ${error}`,
-        },
-      ],
-    };
+  return {
+    content: [
+      {
+        type: 'text' as const,
+        text: message,
+      },
+    ],
   }
 }
+
+export const getInitialContextTool = withErrorHandling(tool, 'Error getting initial context')

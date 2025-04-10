@@ -1,5 +1,3 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js'
 
-export function registerAllPrompts(server: McpServer) {
-  // Register prompts here
-} 
+export function registerAllPrompts(_server: McpServer) {}

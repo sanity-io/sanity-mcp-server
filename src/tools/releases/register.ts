@@ -1,71 +1,43 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { listAllReleases } from "./listReleaseDocuments.js";
-import { addDocumentToRelease } from "./addDocumentToRelease.js";
-import {
-  ReleaseDocument,
-  PublishMultipleDocuments,
-  UnpublishDocument,
-  UnpublishMultipleDocuments,
-  Release,
-  ListReleaseDocumentsParams,
-  RemoveDocumentFromRelease,
-  ReleaseMetadataUpdate,
-} from "./schemas.js";
-import { unpublishDocumentFromRelease } from "./unpublishDocumentFromRelease.js";
-import { addMultipleDocumentsToRelease } from "./addMultipleDocumentsToRelease.js";
-import { unpublishMultipleDocumentsFromRelease } from "./unpublishMultipleDocumentsFromRelease.js";
-import { createRelease } from "./createRelease.js";
-import { removeDocumentFromRelease } from "./discardDocumentFromRelease.js";
-import { updateReleaseInformation } from "./updateReleaseInformation.js";
+import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js'
+import {releaseActionsTool, ReleaseActionsToolParams} from './releaseActionsTool.js'
+import {createReleaseTool, CreateReleaseToolParams} from './createReleaseTool.js'
+import {editReleaseTool, EditReleaseToolParams} from './editReleaseTool.js'
+import {scheduleReleaseTool, ScheduleReleaseToolParams} from './scheduleReleaseTool.js'
+import {listReleasesTool, ListReleasesToolParams} from './listReleases.js'
 
 export function registerReleasesTools(server: McpServer) {
-  server.tool("create_release", "Create a new release", Release, createRelease);
   server.tool(
-    "update_release_information",
-    "update the metadata for a given release",
-    ReleaseMetadataUpdate,
-    updateReleaseInformation,
-  );
+    'list_releases',
+    'List content releases in Sanity, optionally filtered by state (active, scheduled, etc)',
+    ListReleasesToolParams.shape,
+    listReleasesTool,
+  )
 
   server.tool(
-    "add_document_to_release",
-    "Add a docuement to a release",
-    ReleaseDocument,
-    addDocumentToRelease,
-  );
+    'create_release',
+    'Create a new content release in Sanity with an automatically generated ID',
+    CreateReleaseToolParams.shape,
+    createReleaseTool,
+  )
 
   server.tool(
-    "add_multiple_documents_to_release",
-    "Add multiple docuements to a release",
-    PublishMultipleDocuments,
-    addMultipleDocumentsToRelease,
-  );
+    'edit_release',
+    'Update metadata for an existing content release',
+    EditReleaseToolParams.shape,
+    editReleaseTool,
+  )
 
   server.tool(
-    "remove_document_from_release",
-    "removes a document from a given release",
-    RemoveDocumentFromRelease,
-    removeDocumentFromRelease,
-  );
+    'schedule_release',
+    'Schedule a content release to be published at a specific time',
+    ScheduleReleaseToolParams.shape,
+    scheduleReleaseTool,
+  )
 
   server.tool(
-    "unpublish_multiple_documents_from_release",
-    "unpublish multiple documents from a release",
-    UnpublishMultipleDocuments,
-    unpublishMultipleDocumentsFromRelease,
-  );
-
-  server.tool(
-    "unpublish_document_from_release",
-    "unpublish a document from a release",
-    UnpublishDocument,
-    unpublishDocumentFromRelease,
-  );
-
-  server.tool(
-    "list_release_documents",
-    "List all releases documents",
-    ListReleaseDocumentsParams,
-    listAllReleases,
-  );
+    'release_action',
+    'Perform basic actions on existing content releases (publish, archive, unschedule, delete)',
+    ReleaseActionsToolParams.shape,
+    releaseActionsTool,
+  )
 }

@@ -1,42 +1,23 @@
-import { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
-import { sanityClient } from "../../config/sanity.js";
-import { UpdateDatasetParams } from "./schemas.js";
+import {z} from 'zod'
+import {sanityClient} from '../../config/sanity.js'
+import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 
-export async function updateDatasetTool(
-  args: UpdateDatasetParams,
-  extra: RequestHandlerExtra
-) {
-  try {
-    const updatedDataset = await sanityClient.datasets.edit(args.name, {
-      aclMode: args.aclMode,
-    });
+export const UpdateDatasetToolParams = z.object({
+  name: z
+    .string()
+    .describe('The name of the dataset (will be automatically formatted to match requirements)'),
+  aclMode: z.enum(['private', 'public']).optional().describe('The ACL mode for the dataset'),
+})
 
-    const text = JSON.stringify(
-      {
-        operation: "update",
-        dataset: updatedDataset,
-      },
-      null,
-      2
-    );
+type Params = z.infer<typeof UpdateDatasetToolParams>
 
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: `Dataset updated: ${text}`,
-        },
-      ],
-    };
-  } catch (error) {
-    return {
-      isError: true,
-      content: [
-        {
-          type: "text" as const,
-          text: `Error updating dataset: ${error}`,
-        },
-      ],
-    };
-  }
+async function tool(args: Params) {
+  const datasetName = args.name.toLowerCase().replace(/[^a-z0-9]/g, '')
+  const newDataset = await sanityClient.datasets.edit(datasetName, {
+    aclMode: args.aclMode,
+  })
+
+  return createSuccessResponse('Dataset updated successfully', {newDataset})
 }
+
+export const updateDatasetTool = withErrorHandling(tool, 'Error updating dataset')

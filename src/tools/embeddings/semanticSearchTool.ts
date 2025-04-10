@@ -1,69 +1,49 @@
-import { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
-import { sanityClient } from "../../config/sanity.js";
-import { SemanticSearchParamsType } from "./schema.js";
+import {z} from 'zod'
+import {sanityClient} from '../../config/sanity.js'
+import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
+import type {EmbeddingsQueryResultItem} from '../../types/sanity.js'
 
-export async function semanticSearchTool(
-  args: SemanticSearchParamsType,
-  extra: RequestHandlerExtra
-) {
-  try {
-    const config = sanityClient.config();
-    const apiHost = config.apiHost.replace("https://", "");
-    const embeddingsEndpoint = `https://${config.projectId}.${apiHost}/vX/embeddings-index/query/${config.dataset}/${args.indexName}`;
-    const response = await fetch(embeddingsEndpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${config.token}`,
-        Accept: "application/json",
-      },
-      body: JSON.stringify({
-        query: args.query,
-        maxResults: args.maxResults || 10,
-        filter: args.filter || {},
-      }),
-    });
+export const SemanticSearchToolParams = z.object({
+  indexName: z.string().describe('The name of the embeddings index to search'),
+  query: z.string().describe('The search query to find semantically similar content'),
+})
 
-    if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`);
-    }
+type Params = z.infer<typeof SemanticSearchToolParams>
 
-    const result = await response.json();
+async function tool(params: Params) {
+  const config = sanityClient.config()
 
-    function formatSearchResults(results: any[]) {
-      if (results.length === 0) {
-        return "No results found";
-      }
+  const results = await sanityClient.request<EmbeddingsQueryResultItem[]>({
+    uri: `/vX/embeddings-index/query/${config.dataset}/${params.indexName}`,
+    method: 'post',
+    withCredentials: true,
+    body: {
+      query: params.query,
+    },
+  })
 
-      return results
-        .map((item, index) => {
-          const score = (item.score * 100).toFixed(1);
-          return `${index + 1}. ${item.value.type} (ID: ${
-            item.value.documentId
-          })
-   Relevance: ${score}%`;
-        })
-        .join("\n\n");
-    }
-
-    const outputText = formatSearchResults(result);
+  if (!results || results.length === 0) {
     return {
       content: [
         {
-          type: "text" as const,
-          text: `Semantic Search Results:\n\n${outputText}`,
+          type: 'text' as const,
+          text: 'No search results found',
         },
       ],
-    };
-  } catch (error) {
-    return {
-      isError: true,
-      content: [
-        {
-          type: "text" as const,
-          text: `Error fetching embeddings indices: ${error}`,
-        },
-      ],
-    };
+    }
   }
+
+  const formattedResults = results.map((item, index) => ({
+    rank: index + 1,
+    type: item.value.type,
+    documentId: item.value.documentId,
+    relevance: `${(item.score * 100).toFixed(1)}%`,
+  }))
+
+  return createSuccessResponse(
+    `Found ${results.length} semantic search results for "${params.query}"`,
+    {results: formattedResults},
+  )
 }
+
+export const semanticSearchTool = withErrorHandling(tool, 'Error performing semantic search')
