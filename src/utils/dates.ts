@@ -1,4 +1,3 @@
-import {parseISO, isValid} from 'date-fns'
 import {parse as chronoParse} from 'chrono-node'
 
 /**
@@ -10,9 +9,11 @@ export function parseDateString(dateString: string | undefined): string | null {
   if (!dateString) return null
 
   // First try to parse as ISO date
-  const isoDate = parseISO(dateString)
+  const isoDate = new Date(dateString)
 
-  if (isValid(isoDate)) {
+  // Check if the date is valid by ensuring it's not NaN
+  // and that the ISO string conversion works properly
+  if (!Number.isNaN(isoDate.getTime())) {
     return isoDate.toISOString()
   }
 
