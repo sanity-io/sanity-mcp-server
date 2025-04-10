@@ -2,6 +2,7 @@ import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js'
 import {queryDocumentsTool, QueryDocumentsToolParams} from './queryDocumentsTool.js'
 import {createDocumentTool, CreateDocumentToolParams} from './createDocumentTool.js'
 import {updateDocumentTool, UpdateDocumentToolParams} from './updateDocumentTool.js'
+import {patchDocumentTool, PatchDocumentToolParams} from './patchDocumentTool.js'
 import {documentActionsTool, DocumentActionsToolParams} from './documentActionsTool.js'
 import {createVersionTool, CreateVersionToolParams} from './createVersionTool.js'
 import {discardVersionTool, DiscardVersionToolParams} from './discardVersionTool.js'
@@ -24,6 +25,13 @@ export function registerDocumentsTools(server: McpServer) {
     'Update an existing document or version with AI-generated content based on instructions',
     UpdateDocumentToolParams.shape,
     updateDocumentTool,
+  )
+
+  server.tool(
+    'patch_document',
+    'Apply direct patch operations to modify specific parts of a document without using AI generation',
+    PatchDocumentToolParams.shape,
+    patchDocumentTool,
   )
 
   server.tool(

@@ -3,6 +3,7 @@ import {randomUUID} from 'node:crypto'
 import {sanityClient} from '../../config/sanity.js'
 import {truncateDocumentForLLMOutput} from '../../utils/formatters.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
+import {type DocumentId, getDraftId, getVersionId} from '@sanity/id-utils'
 
 export const CreateDocumentToolParams = z.object({
   _type: z.string().describe('The document type'),
@@ -26,10 +27,10 @@ export const CreateDocumentToolParams = z.object({
 type Params = z.infer<typeof CreateDocumentToolParams>
 
 async function tool(params: Params) {
-  const publishedId = randomUUID()
+  const publishedId = randomUUID() as DocumentId
   const documentId = params.releaseId
-    ? `versions.${params.releaseId}.${publishedId}`
-    : `drafts.${publishedId}`
+    ? getVersionId(publishedId, params.releaseId)
+    : getDraftId(publishedId)
 
   const instructOptions = {
     createDocument: {

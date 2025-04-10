@@ -6,7 +6,7 @@ import {
   createErrorResponse,
   withErrorHandling,
 } from '../../utils/response.js'
-import {type DocumentId, getPublishedId} from '@sanity/id-utils'
+import {type DocumentId, getPublishedId, getVersionId} from '@sanity/id-utils'
 
 export const CreateVersionToolParams = z.object({
   documentId: z.string().describe('ID of the document to create a version for'),
@@ -27,7 +27,7 @@ type Params = z.infer<typeof CreateVersionToolParams>
 
 async function tool(params: Params) {
   const publishedId = getPublishedId(params.documentId as DocumentId)
-  const versionId = `versions.${params.releaseId}.${publishedId}`
+  const versionId = getVersionId(publishedId, params.releaseId)
 
   const originalDocument = await sanityClient.getDocument(publishedId)
 

@@ -3,6 +3,7 @@ import {sanityClient} from '../../config/sanity.js'
 import {truncateDocumentForLLMOutput} from '../../utils/formatters.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {type DocumentId, getPublishedId} from '@sanity/id-utils'
+import {getDraftId, getVersionId} from '@sanity/client/csm'
 
 export const UpdateDocumentToolParams = z.object({
   documentId: z.string().describe('The ID of the document to update'),
@@ -31,7 +32,9 @@ type Params = z.infer<typeof UpdateDocumentToolParams>
 
 async function tool(params: Params) {
   const publishedId = getPublishedId(params.documentId as DocumentId)
-  const documentId = params.releaseId ? `versions.${params.releaseId}.${publishedId}` : publishedId
+  const documentId = params.releaseId
+    ? getVersionId(publishedId, params.releaseId)
+    : getDraftId(publishedId)
 
   const instructOptions = {
     documentId,

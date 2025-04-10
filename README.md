@@ -13,6 +13,7 @@ Sanity MCP Server implements the Model Context Protocol to enable AI models to i
 
 - **create_document** – Create a new document with AI-generated content based on instructions
 - **update_document** – Update an existing document with AI-generated content based on instructions
+- **patch_document** - Apply direct patch operations to modify specific parts of a document without using AI generation
 - **query_documents** – Execute GROQ queries to search for and retrieve content
 - **document_action** – Perform document actions like publishing, unpublishing, or deleting documents
 

@@ -1,6 +1,6 @@
 import {z} from 'zod'
 import {sanityClient} from '../../config/sanity.js'
-import {truncateDocumentForLLMOutput, ensureArray} from '../../utils/formatters.js'
+import {ensureArray} from '../../utils/formatters.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 
 const DEUFALT_PERSPECTIVE = 'raw'
@@ -23,10 +23,7 @@ async function tool(params: Params) {
     perspective: params.perspective ? [params.perspective] : DEUFALT_PERSPECTIVE,
   })
   const result = await perspectiveClient.fetch(params.query, params.params || {})
-
-  const documents = ensureArray(result)
-    .map(truncateDocumentForLLMOutput)
-    .map((doc) => JSON.stringify(doc, null, 2))
+  const documents = ensureArray(result).map((doc) => JSON.stringify(doc, null, 2))
 
   return createSuccessResponse(`Found a total of ${documents.length} documents`, {documents})
 }
