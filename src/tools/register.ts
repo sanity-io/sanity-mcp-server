@@ -59,10 +59,19 @@ function editorTools(server: McpServer) {
   registerEmbeddingsTools(wrappedServer)
 }
 
+function agentTools(server: McpServer) {
+  registerGroqTools(server)
+  registerDocumentsTools(server)
+  registerSchemaTools(server)
+  registerReleasesTools(server)
+  registerEmbeddingsTools(server)
+}
+
 export function registerAllTools(server: McpServer, userRole: McpRole = 'developer') {
   const toolMap: Record<McpRole, (server: McpServer) => void> = {
     developer: developerTools,
     editor: editorTools,
+    agent: agentTools,
   }
   const registerTools = toolMap[userRole]
 

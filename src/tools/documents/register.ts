@@ -3,9 +3,15 @@ import {queryDocumentsTool, QueryDocumentsToolParams} from './queryDocumentsTool
 import {createDocumentTool, CreateDocumentToolParams} from './createDocumentTool.js'
 import {updateDocumentTool, UpdateDocumentToolParams} from './updateDocumentTool.js'
 import {documentActionsTool, DocumentActionsToolParams} from './documentActionsTool.js'
-import {versionActionsTool, VersionActionsToolParams} from './versionActionsTool.js'
+import {createVersionTool, CreateVersionToolParams} from './createVersionTool.js'
+import {discardVersionTool, DiscardVersionToolParams} from './discardVersionTool.js'
+import {
+  markVersionForUnpublishTool,
+  MarkVersionForUnpublishParams,
+} from './markVersionForUnpublishTool.js'
 
 export function registerDocumentsTools(server: McpServer) {
+  // Document tools
   server.tool(
     'create_document',
     'Create a new document in Sanity with AI-generated content based on instructions',
@@ -15,7 +21,7 @@ export function registerDocumentsTools(server: McpServer) {
 
   server.tool(
     'update_document',
-    'Update an existing document in Sanity with AI-generated content based on instructions',
+    'Update an existing document or version with AI-generated content based on instructions',
     UpdateDocumentToolParams.shape,
     updateDocumentTool,
   )
@@ -34,10 +40,25 @@ export function registerDocumentsTools(server: McpServer) {
     documentActionsTool,
   )
 
+  // Versioning tools
   server.tool(
-    'version_action',
-    'Manage document versions for content releases - create manual versions without AI, discard versions, replace, or mark for unpublishing',
-    VersionActionsToolParams.shape,
-    versionActionsTool,
+    'create_version',
+    'Create a version of an existing document for a specific release, with optional AI-generated modifications',
+    CreateVersionToolParams.shape,
+    createVersionTool,
+  )
+
+  server.tool(
+    'discard_version',
+    'Delete a specific version document from a release',
+    DiscardVersionToolParams.shape,
+    discardVersionTool,
+  )
+
+  server.tool(
+    'mark_for_unpublish',
+    'Mark a document to be unpublished when a specific release is published',
+    MarkVersionForUnpublishParams.shape,
+    markVersionForUnpublishTool,
   )
 }

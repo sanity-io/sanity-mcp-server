@@ -20,6 +20,8 @@ export function formatResponse(
     format: true,
     indentBy: '  ',
     suppressEmptyNode: true,
+    ignoreAttributes: false,
+    processEntities: false,
   })
 
   const contextString = builder.build(formattedObject)

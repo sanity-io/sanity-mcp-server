@@ -26,7 +26,7 @@ export async function queryDocumentsTool(params: Params) {
 
     const documents = ensureArray(result)
       .map(truncateDocumentForLLMOutput)
-      .map((doc) => JSON.stringify(doc))
+      .map((doc) => JSON.stringify(doc, null, 2))
 
     const message = formatResponse(`Found a total of ${documents.length} documents`, {documents})
 
