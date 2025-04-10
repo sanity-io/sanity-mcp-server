@@ -13,4 +13,5 @@ export const sanityClient = createClient({
   apiVersion: 'vX', // vX until generate API ships in GA
   perspective: 'raw',
   useCdn: false,
+  ...env.data.INTERNAL_SANITY_CLIENT_OPTIONS,
 })

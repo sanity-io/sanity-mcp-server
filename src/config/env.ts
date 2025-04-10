@@ -12,6 +12,7 @@ const envSchema = z.object({
     .optional()
     .default('https://api.sanity.io')
     .describe('Sanity API host'),
+  INTERNAL_SANITY_CLIENT_OPTIONS: z.record(z.any()).optional(),
   MCP_USER_ROLE: McpRoleSchema,
 })
 
