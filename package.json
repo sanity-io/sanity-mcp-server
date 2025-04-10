@@ -1,6 +1,6 @@
 {
   "name": "@sanity/mcp-server",
-  "version": "0.7.6",
+  "version": "0.7.7",
   "repository": {
     "type": "git",
     "url": "https://github.com/sanity-io/sanity-mcp-server"
@@ -31,7 +31,6 @@
     "chrono-node": "^2.8.0",
     "dotenv": "^16.4.7",
     "fast-xml-parser": "^5.2.0",
-    "minimist": "^1.2.8",
     "outdent": "^0.8.0",
     "zod": "^3.24.2"
   },
