@@ -2,7 +2,7 @@ import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js'
 import {listDatasetsTool, ListDatasetsToolParams} from './listDatasets.js'
 import {createDatasetTool, CreateDatasetToolParams} from './createDatasetTool.js'
 import {updateDatasetTool, UpdateDatasetToolParams} from './updateDatasetTool.js'
-import {deleteDatasetTool, DeleteDatasetToolParams} from './deleteDatasetTool.js'
+// import {deleteDatasetTool, DeleteDatasetToolParams} from './deleteDatasetTool.js'
 
 export function registerDatasetsTools(server: McpServer) {
   server.tool(
@@ -18,15 +18,15 @@ export function registerDatasetsTools(server: McpServer) {
     createDatasetTool,
   )
   server.tool(
-    'delete_dataset',
-    'Permanently removes a dataset and all its content - use with caution',
-    DeleteDatasetToolParams.shape,
-    deleteDatasetTool,
-  )
-  server.tool(
     'update_dataset',
     "Modifies a dataset's name or access control settings",
     UpdateDatasetToolParams.shape,
     updateDatasetTool,
   )
+  // server.tool(
+  //   'delete_dataset',
+  //   'Permanently removes a dataset and all its content - use with caution',
+  //   DeleteDatasetToolParams.shape,
+  //   deleteDatasetTool,
+  // )
 }
