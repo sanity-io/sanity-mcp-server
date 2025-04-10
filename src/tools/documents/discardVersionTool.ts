@@ -31,7 +31,7 @@ async function tool(params: Params) {
   })
 
   if (response.error) {
-    return createErrorResponse(`${response.error.description}`)
+    return createErrorResponse(response.error.description)
   }
 
   return createSuccessResponse(`Successfully discarded version document '${versionId}'`)
