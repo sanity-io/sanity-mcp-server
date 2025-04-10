@@ -29,7 +29,7 @@ async function tool(params: Params) {
   const publishedId = getPublishedId(params.documentId as DocumentId)
   const versionId = getVersionId(publishedId, params.releaseId)
 
-  const originalDocument = await sanityClient.getDocument(publishedId)
+  const originalDocument = await sanityClient.getDocument(params.documentId)
 
   if (!originalDocument) {
     return createErrorResponse(`Document with ID '${params.documentId}' not found`)
