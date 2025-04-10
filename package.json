@@ -1,9 +1,9 @@
 {
-  "name": "@sanity/mcp",
-  "version": "0.6.0",
+  "name": "@sanity/mcp-server",
+  "version": "0.7.0",
   "type": "module",
   "bin": {
-    "sanity-mcp": "./build/index.js"
+    "sanity-mcp-server": "./build/index.js"
   },
   "files": [
     "build"
