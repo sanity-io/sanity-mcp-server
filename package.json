@@ -1,6 +1,11 @@
 {
   "name": "@sanity/mcp-server",
-  "version": "0.7.4",
+  "version": "0.7.5",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sanity-io/sanity-mcp-server"
+  },
+  "license": "MIT",
   "type": "module",
   "bin": {
     "sanity-mcp-server": "./build/index.js"
