@@ -4,7 +4,7 @@ import {getGroqSpecificationTool, GetGroqSpecificationToolParams} from './getGro
 export function registerGroqTools(server: McpServer) {
   server.tool(
     'get_groq_specification',
-    'Get the GROQ language specification',
+    'Get the GROQ language specification summary',
     GetGroqSpecificationToolParams.shape,
     getGroqSpecificationTool,
   )

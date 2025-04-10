@@ -1,6 +1,6 @@
 import {z} from 'zod'
 import {sanityClient} from '../../config/sanity.js'
-import {formatResponse, truncateDocumentForLLMOutput} from '../../../utils/formatters.js'
+import {formatResponse, truncateDocumentForLLMOutput} from '../../utils/formatters.js'
 import {type DocumentId, getPublishedId} from '@sanity/id-utils'
 
 export const CreateVersionToolParams = z.object({
