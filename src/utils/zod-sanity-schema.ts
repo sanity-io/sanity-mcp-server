@@ -141,7 +141,7 @@ function getFieldSchema(
     case 'object':
       return createObjectSchema(field as ManifestSchemaType, schemaMap, zodSchemas)
     case 'reference':
-      return convertReferenceType(true) // Pass true to use the transform for fields
+      return convertReferenceType(true)
     case 'image':
       return convertImageType()
     default:
@@ -173,16 +173,9 @@ function convertBasicType(type: string | undefined, isField: boolean): z.ZodType
   }
 }
 
-function convertReferenceType(transformId: boolean): z.ZodTypeAny {
-  const refSchema = z.string()
-
-  // Only apply the transform for field references, not for top-level schema types
-  const refWithTransform = transformId
-    ? refSchema.transform((id) => getPublishedId(id as DocumentId))
-    : refSchema
-
+function convertReferenceType(_transformId: boolean): z.ZodTypeAny {
   return z.object({
-    _ref: refWithTransform,
+    _ref: z.string().transform((id) => getPublishedId(id as DocumentId)),
     _type: z.literal('reference'),
   })
 }

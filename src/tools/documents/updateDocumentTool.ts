@@ -1,6 +1,5 @@
 import {z} from 'zod'
 import {sanityClient} from '../../config/sanity.js'
-import {truncateDocumentForLLMOutput} from '../../utils/formatters.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {type DocumentId, getDraftId, getPublishedId} from '@sanity/id-utils'
 import {getVersionId} from '@sanity/client/csm'
@@ -64,7 +63,7 @@ async function tool(params: Params) {
 
   return createSuccessResponse('Document updated successfully', {
     success: true,
-    document: truncateDocumentForLLMOutput(updatedDocument),
+    document: updatedDocument,
   })
 }
 

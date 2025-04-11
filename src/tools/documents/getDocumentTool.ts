@@ -1,6 +1,5 @@
 import {z} from 'zod'
 import {sanityClient} from '../../config/sanity.js'
-import {truncateDocumentForLLMOutput} from '../../utils/formatters.js'
 import {
   createErrorResponse,
   createSuccessResponse,
@@ -43,7 +42,7 @@ async function tool(params: Params) {
 
   return createSuccessResponse('Document retrieved successfully', {
     success: true,
-    document: truncateDocumentForLLMOutput(document),
+    document,
   })
 }
 

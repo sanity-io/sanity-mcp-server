@@ -1,7 +1,6 @@
 import {z} from 'zod'
 import {get, set} from 'lodash-es'
 import {sanityClient} from '../../config/sanity.js'
-import {truncateDocumentForLLMOutput} from '../../utils/formatters.js'
 import {
   createSuccessResponse,
   createErrorResponse,
@@ -215,7 +214,7 @@ async function tool(params: Params) {
 
   return createSuccessResponse('Document patched successfully', {
     success: true,
-    document: truncateDocumentForLLMOutput(updatedDocument),
+    document: updatedDocument,
   })
 }
 

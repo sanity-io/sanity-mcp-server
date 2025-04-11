@@ -47,7 +47,7 @@ async function tool(params: Params) {
   query += `{${params.projection}}`
 
   const result = await perspectiveClient.fetch(query, params.params)
-  const documents = ensureArray(result).map((doc) => JSON.stringify(doc, null, 2))
+  const documents = ensureArray(result).map((doc) => `\n${JSON.stringify(doc, null, 2)}\n`)
 
   const totalCount = await perspectiveClient.fetch(`count(*[${params.filter}])`, params.params)
   const totalPages = Math.ceil(totalCount / params.pageSize)
@@ -55,7 +55,7 @@ async function tool(params: Params) {
   return createSuccessResponse(
     `Found ${documents.length} documents (page ${params.page} of ${totalPages})`,
     {
-      documents,
+      documents: {document: documents}, // This looks wrong but the formatting ends up being correct
       pagination: {
         page: params.page,
         pageSize: params.pageSize,
