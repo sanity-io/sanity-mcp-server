@@ -11,8 +11,8 @@ import {type DocumentId, getDraftId, getPublishedId, getVersionId} from '@sanity
 import {schemaIdSchema} from '../schema/common.js'
 import {DEFAULT_SCHEMA_ID, getSchemaById} from '../../utils/manifest.js'
 import {createZodSchemaFromSanitySchema} from '../../utils/zod-sanity-schema.js'
+import type {DocumentLike} from '../../types/sanity.js'
 
-// Define base patch operations
 const SetOperation = z.object({
   op: z.literal('set'),
   path: z.string().describe('The path to set, e.g. "title" or "author.name"'),
@@ -85,61 +85,37 @@ async function tool(params: Params) {
     return createErrorResponse(`Document with ID '${documentId}' not found`)
   }
 
-  // Get the schema and create Zod schema
   const schema = await getSchemaById(params.schemaId ?? DEFAULT_SCHEMA_ID)
   const zodSchemas = createZodSchemaFromSanitySchema(schema)
 
-  // Find the correct schema for this document type
   const documentType = document._type
   const documentSchema = zodSchemas[documentType]
 
-  if (!documentSchema) {
-    return createErrorResponse(`Schema for document type '${documentType}' not found`)
-  }
-
   let patch = sanityClient.patch(documentId)
+  let simulatedDoc: DocumentLike = {...document}
 
-  // Create a simulated document to validate against
-  let simulatedDoc = {...document}
-
-  // Validate each operation
   for (const operation of params.operations) {
     try {
       switch (operation.op) {
         case 'set': {
-          // Simulate the set operation
           const tempDoc = {...simulatedDoc}
           set(tempDoc, operation.path, operation.value)
-
-          // Validate the document with the updated value
           documentSchema.parse(tempDoc)
-
-          // Apply the operation to our simulated doc
           simulatedDoc = tempDoc
-
-          // Apply the actual patch
           patch = patch.set({[operation.path]: operation.value})
           break
         }
 
         case 'unset': {
-          // Simulate the unset operation
           const tempDoc = {...simulatedDoc}
           set(tempDoc, operation.path, undefined)
-
-          // Validate the document with the updated value
           documentSchema.parse(tempDoc)
-
-          // Apply the operation to our simulated doc
           simulatedDoc = tempDoc
-
-          // Apply the actual patch
           patch = patch.unset([operation.path])
           break
         }
 
         case 'insert': {
-          // For insert, we need to determine what path we're working with
           const pathValue = get(simulatedDoc, operation.path)
 
           if (
@@ -151,19 +127,18 @@ async function tool(params: Params) {
             )
           }
 
-          // Simulate the insert operation based on position
           const tempDoc = {...simulatedDoc}
           let arrayPath = operation.path
           let index = -1
 
-          // Handle array index notation like "path[0]"
           const indexMatch = operation.path.match(/\[(\d+)\]$/)
           if (indexMatch) {
             index = Number.parseInt(indexMatch[1])
             arrayPath = operation.path.substring(0, operation.path.lastIndexOf('['))
           }
 
-          const array = [...(get(tempDoc, arrayPath) || [])]
+          const arrayValue = get(tempDoc, arrayPath)
+          const array = Array.isArray(arrayValue) ? [...arrayValue] : []
 
           if (operation.position === 'before' && index !== -1) {
             array.splice(index, 0, ...operation.items)
@@ -172,86 +147,56 @@ async function tool(params: Params) {
           } else if (operation.position === 'replace' && index !== -1) {
             array.splice(index, 1, ...operation.items)
           } else {
-            // Default for inserting into the array without a specific position
             array.push(...operation.items)
           }
 
           set(tempDoc, arrayPath, array)
-
-          // Validate the document with the updated array
           documentSchema.parse(tempDoc)
-
-          // Apply the operation to our simulated doc
           simulatedDoc = tempDoc
-
-          // Apply the actual patch
           patch = patch.insert(operation.position, operation.path, operation.items)
           break
         }
 
         case 'inc': {
-          // Get the current value
           const currentValue = get(simulatedDoc, operation.path)
 
           if (typeof currentValue !== 'number' && currentValue !== undefined) {
             return createErrorResponse(`Inc operation target '${operation.path}' is not a number`)
           }
 
-          // Simulate the increment
           const tempDoc = {...simulatedDoc}
           set(tempDoc, operation.path, (currentValue || 0) + operation.amount)
-
-          // Validate the document with the updated value
           documentSchema.parse(tempDoc)
-
-          // Apply the operation to our simulated doc
           simulatedDoc = tempDoc
-
-          // Apply the actual patch
           patch = patch.inc({[operation.path]: operation.amount})
           break
         }
 
         case 'dec': {
-          // Get the current value
           const currentValue = get(simulatedDoc, operation.path)
 
           if (typeof currentValue !== 'number' && currentValue !== undefined) {
             return createErrorResponse(`Dec operation target '${operation.path}' is not a number`)
           }
 
-          // Simulate the decrement
           const tempDoc = {...simulatedDoc}
           set(tempDoc, operation.path, (currentValue || 0) - operation.amount)
-
-          // Validate the document with the updated value
           documentSchema.parse(tempDoc)
-
-          // Apply the operation to our simulated doc
           simulatedDoc = tempDoc
-
-          // Apply the actual patch
           patch = patch.dec({[operation.path]: operation.amount})
           break
         }
 
         case 'setIfMissing': {
-          // Only apply if the value is missing
           const currentValue = get(simulatedDoc, operation.path)
 
           if (currentValue === undefined) {
-            // Simulate the setIfMissing
             const tempDoc = {...simulatedDoc}
             set(tempDoc, operation.path, operation.value)
-
-            // Validate the document with the updated value
             documentSchema.parse(tempDoc)
-
-            // Apply the operation to our simulated doc
             simulatedDoc = tempDoc
           }
 
-          // Apply the actual patch (will only affect doc if value is missing)
           patch = patch.setIfMissing({[operation.path]: operation.value})
           break
         }
