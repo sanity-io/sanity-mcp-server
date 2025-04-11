@@ -1,7 +1,11 @@
 import {z} from 'zod'
 import {sanityClient} from '../../config/sanity.js'
 import {truncateDocumentForLLMOutput} from '../../utils/formatters.js'
-import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
+import {
+  createErrorResponse,
+  createSuccessResponse,
+  withErrorHandling,
+} from '../../utils/response.js'
 import {isDraftId, getPublishedId, getDraftId, type DocumentId} from '@sanity/id-utils'
 
 export const GetDocumentToolParams = z.object({
@@ -32,10 +36,9 @@ async function tool(params: Params) {
   const document = primaryDoc || alternateDoc
 
   if (!document) {
-    return createSuccessResponse('Document not found', {
-      success: false,
-      message: `No document found with ID: ${params.documentId} or its published/draft equivalent in perspective: ${params.perspective}`,
-    })
+    return createErrorResponse(
+      `No document found with ID: ${params.documentId} or its published/draft equivalent in perspective: ${params.perspective}`,
+    )
   }
 
   return createSuccessResponse('Document retrieved successfully', {
