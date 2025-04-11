@@ -25,9 +25,12 @@ async function tool(params: Params) {
   const publishedId = getPublishedId(params.documentId as DocumentId)
   const versionId = getVersionId(publishedId, params.releaseId)
 
-  const originalDocument = await sanityClient
-    .getDocument(params.documentId) // Get requested document, whether it's a draft or published
-    .catch(() => sanityClient.getDocument(getDraftId(publishedId))) // Fallback to draft if not found
+  const [requestedDoc, draftDoc] = await Promise.all([
+    sanityClient.getDocument(params.documentId).catch(() => null),
+    sanityClient.getDocument(getDraftId(publishedId)).catch(() => null),
+  ])
+
+  const originalDocument = requestedDoc || draftDoc
 
   if (!originalDocument) {
     return createErrorResponse(`Document with ID '${params.documentId}' not found`)
