@@ -201,7 +201,7 @@ function convertImageType(): z.ZodTypeAny {
 }
 
 function createBlockContentSchema(_blockConfig: ManifestSchemaType): z.ZodTypeAny {
-  // Basic structure for block content
+  // TODO: Implement block content schema creation
   const blockSchema = z.object({
     _type: z.literal('block'),
     style: z.string(),
