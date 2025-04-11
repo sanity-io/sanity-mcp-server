@@ -7,6 +7,7 @@ import {
   createSuccessResponse,
   withErrorHandling,
 } from '../../utils/response.js'
+import {SCHEMA_DEPLOYMENT_INSTRUCTIONS} from './common.js'
 
 const DEFAULT_SCHEMA_ID = 'sanity.workspace.schema.default'
 
@@ -33,9 +34,7 @@ async function tool(params: Params) {
   })
 
   if (!schemaDoc?.schema) {
-    return createErrorResponse(
-      `Schema ID "${params.schemaId}" not found. Please use the list_schema_ids tool to see available schemas.`,
-    )
+    return createErrorResponse(SCHEMA_DEPLOYMENT_INSTRUCTIONS)
   }
 
   let schema = JSON.parse(schemaDoc.schema) as ManifestSchemaType[]

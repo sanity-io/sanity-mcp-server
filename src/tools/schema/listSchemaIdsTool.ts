@@ -1,6 +1,11 @@
 import {z} from 'zod'
 import {sanityClient} from '../../config/sanity.js'
-import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
+import {
+  createSuccessResponse,
+  createErrorResponse,
+  withErrorHandling,
+} from '../../utils/response.js'
+import {SCHEMA_DEPLOYMENT_INSTRUCTIONS} from './common.js'
 
 export const ListSchemaIdsToolParams = z.object({})
 
@@ -12,14 +17,7 @@ async function tool(_params?: Params) {
   )
 
   if (!schemas || schemas.length === 0) {
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: 'No schema documents found in the dataset.',
-        },
-      ],
-    }
+    return createErrorResponse(SCHEMA_DEPLOYMENT_INSTRUCTIONS)
   }
 
   return createSuccessResponse(`Found ${schemas.length} schema IDs.`, {
