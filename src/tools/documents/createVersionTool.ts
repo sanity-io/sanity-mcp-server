@@ -33,13 +33,6 @@ async function tool(params: Params) {
     return createErrorResponse(`Document with ID '${params.documentId}' not found`)
   }
 
-  console.log({
-    document: {
-      ...originalDocument,
-      _id: versionId,
-    },
-  })
-
   let newDocument = await sanityClient.request({
     uri: `/data/actions/${sanityClient.config().dataset}`,
     method: 'POST',
