@@ -34,7 +34,7 @@ Sanity MCP Server implements the [Model Context Protocol](https://modelcontextpr
 
 Before you can use the MCP server, you need to:
 
-1. **Deploy your schema manifest**
+1. **Deploy your Sanity Studio with schema manifest**
 
    The MCP server needs access to your content structure to work effectively. Redeploy your Sanity Studio with a schema manifest file:
 
