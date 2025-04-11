@@ -92,13 +92,13 @@ async function tool(params: Params) {
   const documentSchema = zodSchemas[documentType]
 
   let patch = sanityClient.patch(documentId)
-  let simulatedDoc: DocumentLike = {...document}
+  let simulatedDoc: DocumentLike = structuredClone(document)
 
   for (const operation of params.operations) {
     try {
       switch (operation.op) {
         case 'set': {
-          const tempDoc = {...simulatedDoc}
+          const tempDoc = structuredClone(simulatedDoc)
           set(tempDoc, operation.path, operation.value)
           documentSchema.parse(tempDoc)
           simulatedDoc = tempDoc
@@ -107,7 +107,7 @@ async function tool(params: Params) {
         }
 
         case 'unset': {
-          const tempDoc = {...simulatedDoc}
+          const tempDoc = structuredClone(simulatedDoc)
           set(tempDoc, operation.path, undefined)
           documentSchema.parse(tempDoc)
           simulatedDoc = tempDoc
@@ -127,7 +127,7 @@ async function tool(params: Params) {
             )
           }
 
-          const tempDoc = {...simulatedDoc}
+          const tempDoc = structuredClone(simulatedDoc)
           let arrayPath = operation.path
           let index = -1
 
@@ -164,7 +164,7 @@ async function tool(params: Params) {
             return createErrorResponse(`Inc operation target '${operation.path}' is not a number`)
           }
 
-          const tempDoc = {...simulatedDoc}
+          const tempDoc = structuredClone(simulatedDoc)
           set(tempDoc, operation.path, (currentValue || 0) + operation.amount)
           documentSchema.parse(tempDoc)
           simulatedDoc = tempDoc
@@ -179,7 +179,7 @@ async function tool(params: Params) {
             return createErrorResponse(`Dec operation target '${operation.path}' is not a number`)
           }
 
-          const tempDoc = {...simulatedDoc}
+          const tempDoc = structuredClone(simulatedDoc)
           set(tempDoc, operation.path, (currentValue || 0) - operation.amount)
           documentSchema.parse(tempDoc)
           simulatedDoc = tempDoc
@@ -191,7 +191,7 @@ async function tool(params: Params) {
           const currentValue = get(simulatedDoc, operation.path)
 
           if (currentValue === undefined) {
-            const tempDoc = {...simulatedDoc}
+            const tempDoc = structuredClone(simulatedDoc)
             set(tempDoc, operation.path, operation.value)
             documentSchema.parse(tempDoc)
             simulatedDoc = tempDoc
