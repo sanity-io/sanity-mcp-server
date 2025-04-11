@@ -2,7 +2,11 @@ import {z} from 'zod'
 import {sanityClient} from '../../config/sanity.js'
 import type {ManifestSchemaType} from '../../types/manifest.js'
 import {formatSchema} from '../../utils/schema.js'
-import {createErrorResponse, withErrorHandling} from '../../utils/response.js'
+import {
+  createErrorResponse,
+  createSuccessResponse,
+  withErrorHandling,
+} from '../../utils/response.js'
 
 const DEFAULT_SCHEMA_ID = 'sanity.workspace.schema.default'
 
@@ -44,14 +48,7 @@ async function tool(params: Params) {
     schema = typeSchema
   }
 
-  return {
-    content: [
-      {
-        type: 'text' as const,
-        text: formatSchema(schema, {lite: params.lite}) as string,
-      },
-    ],
-  }
+  return createSuccessResponse(formatSchema(schema, {lite: params.lite}))
 }
 
 export const getSchemaTool = withErrorHandling(tool, 'Error fetching schema overview')

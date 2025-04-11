@@ -13,18 +13,12 @@ interface SchemaXmlNode {
 
 interface FormatOptions {
   lite?: boolean
-  format?: 'xml' | 'json'
 }
-
-type SchemaObject = Record<string, unknown>
 
 /**
  * Format the schema as XML for better parsing by LLMs
  */
-export function formatSchema(
-  schema: ManifestSchemaType[],
-  options?: FormatOptions,
-): string | SchemaObject {
+export function formatSchema(schema: ManifestSchemaType[], options?: FormatOptions): string {
   // Filter out types that start with "sanity."
   const filteredSchema = schema.filter((type) => !type.name?.startsWith('sanity.'))
 
@@ -45,7 +39,7 @@ export function formatSchema(
   }
 
   // If lite mode is enabled, only include the overview
-  const schemaObject: SchemaObject = {
+  const schemaObject = {
     sanitySchema: options?.lite
       ? {...schemaOverview}
       : {
@@ -54,10 +48,6 @@ export function formatSchema(
             types: filteredSchema.map(formatTypeAsObject),
           },
         },
-  }
-
-  if (options?.format === 'json') {
-    return schemaObject
   }
 
   const builder = new XMLBuilder({
