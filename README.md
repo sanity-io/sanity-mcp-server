@@ -36,11 +36,11 @@ Before you can use the MCP server, you need to:
 
 1. **Deploy your schema manifest**
 
-   The MCP server needs access to your content structure to work effectively. Deploy your schema from your Sanity Studio project:
+   The MCP server needs access to your content structure to work effectively. Redeploy your Sanity Studio with a schema manifest file:
 
    ```bash
    # Run this in your Sanity Studio directory
-   SANITY_CLI_SCHEMA_STORE_ENABLED=true npx sanity@latest schema deploy
+   SANITY_CLI_SCHEMA_STORE_ENABLED=true npx sanity@latest deploy
    ```
 
    > [!NOTE]
