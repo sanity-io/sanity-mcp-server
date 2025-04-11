@@ -1,4 +1,5 @@
 import {z} from 'zod'
+import {get, set} from 'lodash-es'
 import {sanityClient} from '../../config/sanity.js'
 import {truncateDocumentForLLMOutput} from '../../utils/formatters.js'
 import {
@@ -7,29 +8,15 @@ import {
   withErrorHandling,
 } from '../../utils/response.js'
 import {type DocumentId, getDraftId, getPublishedId, getVersionId} from '@sanity/id-utils'
+import {schemaIdSchema} from '../schema/common.js'
+import {DEFAULT_SCHEMA_ID, getSchemaById} from '../../utils/manifest.js'
+import {createZodSchemaFromSanitySchema} from '../../utils/zod-sanity-schema.js'
 
-const SanityValueSchema: z.ZodType = z.lazy(() =>
-  z.union([
-    z.string(),
-    z.number(),
-    z.boolean(),
-    z.null(),
-    z.undefined(),
-    z.array(SanityValueSchema),
-    z
-      .object({
-        _type: z.literal('reference'),
-        _ref: z.string().transform((ref) => getPublishedId(ref as DocumentId)),
-      })
-      .passthrough(),
-    z.record(SanityValueSchema),
-  ]),
-)
-
+// Define base patch operations
 const SetOperation = z.object({
   op: z.literal('set'),
   path: z.string().describe('The path to set, e.g. "title" or "author.name"'),
-  value: SanityValueSchema.describe('The value to set at the specified path'),
+  value: z.unknown().describe('The value to set at the specified path'),
 })
 
 const UnsetOperation = z.object({
@@ -43,7 +30,7 @@ const InsertOperation = z.object({
   path: z
     .string()
     .describe('The path to the array or element, e.g. "categories" or "categories[0]"'),
-  items: z.array(SanityValueSchema).describe('The items to insert'),
+  items: z.array(z.unknown()).describe('The items to insert'),
 })
 
 const IncOperation = z.object({
@@ -61,7 +48,7 @@ const DecOperation = z.object({
 const SetIfMissingOperation = z.object({
   op: z.literal('setIfMissing'),
   path: z.string().describe('The path to set if missing, e.g. "metadata" or "settings.defaults"'),
-  value: SanityValueSchema.describe('The value to set if the path is missing'),
+  value: z.unknown().describe('The value to set if the path is missing'),
 })
 
 const PatchOperation = z.discriminatedUnion('op', [
@@ -82,6 +69,7 @@ export const PatchDocumentToolParams = z.object({
     .describe(
       'Optional release ID for patching versioned documents. If provided, the document in the specified release will be patched.',
     ),
+  schemaId: schemaIdSchema,
 })
 
 type Params = z.infer<typeof PatchDocumentToolParams>
@@ -97,28 +85,184 @@ async function tool(params: Params) {
     return createErrorResponse(`Document with ID '${documentId}' not found`)
   }
 
+  // Get the schema and create Zod schema
+  const schema = await getSchemaById(params.schemaId ?? DEFAULT_SCHEMA_ID)
+  const zodSchemas = createZodSchemaFromSanitySchema(schema)
+
+  // Find the correct schema for this document type
+  const documentType = document._type
+  const documentSchema = zodSchemas[documentType]
+
+  if (!documentSchema) {
+    return createErrorResponse(`Schema for document type '${documentType}' not found`)
+  }
+
   let patch = sanityClient.patch(documentId)
 
+  // Create a simulated document to validate against
+  let simulatedDoc = {...document}
+
+  // Validate each operation
   for (const operation of params.operations) {
-    switch (operation.op) {
-      case 'set':
-        patch = patch.set({[operation.path]: operation.value})
-        break
-      case 'unset':
-        patch = patch.unset([operation.path])
-        break
-      case 'insert':
-        patch = patch.insert(operation.position, operation.path, operation.items)
-        break
-      case 'inc':
-        patch = patch.inc({[operation.path]: operation.amount})
-        break
-      case 'dec':
-        patch = patch.dec({[operation.path]: operation.amount})
-        break
-      case 'setIfMissing':
-        patch = patch.setIfMissing({[operation.path]: operation.value})
-        break
+    try {
+      switch (operation.op) {
+        case 'set': {
+          // Simulate the set operation
+          const tempDoc = {...simulatedDoc}
+          set(tempDoc, operation.path, operation.value)
+
+          // Validate the document with the updated value
+          documentSchema.parse(tempDoc)
+
+          // Apply the operation to our simulated doc
+          simulatedDoc = tempDoc
+
+          // Apply the actual patch
+          patch = patch.set({[operation.path]: operation.value})
+          break
+        }
+
+        case 'unset': {
+          // Simulate the unset operation
+          const tempDoc = {...simulatedDoc}
+          set(tempDoc, operation.path, undefined)
+
+          // Validate the document with the updated value
+          documentSchema.parse(tempDoc)
+
+          // Apply the operation to our simulated doc
+          simulatedDoc = tempDoc
+
+          // Apply the actual patch
+          patch = patch.unset([operation.path])
+          break
+        }
+
+        case 'insert': {
+          // For insert, we need to determine what path we're working with
+          const pathValue = get(simulatedDoc, operation.path)
+
+          if (
+            !Array.isArray(pathValue) &&
+            !Array.isArray(get(simulatedDoc, operation.path.replace(/\[\d+\]$/, '')))
+          ) {
+            return createErrorResponse(
+              `Insert operation target '${operation.path}' is not an array`,
+            )
+          }
+
+          // Simulate the insert operation based on position
+          const tempDoc = {...simulatedDoc}
+          let arrayPath = operation.path
+          let index = -1
+
+          // Handle array index notation like "path[0]"
+          const indexMatch = operation.path.match(/\[(\d+)\]$/)
+          if (indexMatch) {
+            index = Number.parseInt(indexMatch[1])
+            arrayPath = operation.path.substring(0, operation.path.lastIndexOf('['))
+          }
+
+          const array = [...(get(tempDoc, arrayPath) || [])]
+
+          if (operation.position === 'before' && index !== -1) {
+            array.splice(index, 0, ...operation.items)
+          } else if (operation.position === 'after' && index !== -1) {
+            array.splice(index + 1, 0, ...operation.items)
+          } else if (operation.position === 'replace' && index !== -1) {
+            array.splice(index, 1, ...operation.items)
+          } else {
+            // Default for inserting into the array without a specific position
+            array.push(...operation.items)
+          }
+
+          set(tempDoc, arrayPath, array)
+
+          // Validate the document with the updated array
+          documentSchema.parse(tempDoc)
+
+          // Apply the operation to our simulated doc
+          simulatedDoc = tempDoc
+
+          // Apply the actual patch
+          patch = patch.insert(operation.position, operation.path, operation.items)
+          break
+        }
+
+        case 'inc': {
+          // Get the current value
+          const currentValue = get(simulatedDoc, operation.path)
+
+          if (typeof currentValue !== 'number' && currentValue !== undefined) {
+            return createErrorResponse(`Inc operation target '${operation.path}' is not a number`)
+          }
+
+          // Simulate the increment
+          const tempDoc = {...simulatedDoc}
+          set(tempDoc, operation.path, (currentValue || 0) + operation.amount)
+
+          // Validate the document with the updated value
+          documentSchema.parse(tempDoc)
+
+          // Apply the operation to our simulated doc
+          simulatedDoc = tempDoc
+
+          // Apply the actual patch
+          patch = patch.inc({[operation.path]: operation.amount})
+          break
+        }
+
+        case 'dec': {
+          // Get the current value
+          const currentValue = get(simulatedDoc, operation.path)
+
+          if (typeof currentValue !== 'number' && currentValue !== undefined) {
+            return createErrorResponse(`Dec operation target '${operation.path}' is not a number`)
+          }
+
+          // Simulate the decrement
+          const tempDoc = {...simulatedDoc}
+          set(tempDoc, operation.path, (currentValue || 0) - operation.amount)
+
+          // Validate the document with the updated value
+          documentSchema.parse(tempDoc)
+
+          // Apply the operation to our simulated doc
+          simulatedDoc = tempDoc
+
+          // Apply the actual patch
+          patch = patch.dec({[operation.path]: operation.amount})
+          break
+        }
+
+        case 'setIfMissing': {
+          // Only apply if the value is missing
+          const currentValue = get(simulatedDoc, operation.path)
+
+          if (currentValue === undefined) {
+            // Simulate the setIfMissing
+            const tempDoc = {...simulatedDoc}
+            set(tempDoc, operation.path, operation.value)
+
+            // Validate the document with the updated value
+            documentSchema.parse(tempDoc)
+
+            // Apply the operation to our simulated doc
+            simulatedDoc = tempDoc
+          }
+
+          // Apply the actual patch (will only affect doc if value is missing)
+          patch = patch.setIfMissing({[operation.path]: operation.value})
+          break
+        }
+      }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return createErrorResponse(
+          `Invalid patch operation: ${operation.op} on path '${operation.path}' would result in an invalid document: ${error.message}`,
+        )
+      }
+      throw error
     }
   }
 

@@ -2,7 +2,7 @@ import {z} from 'zod'
 import {sanityClient} from '../../config/sanity.js'
 import {truncateDocumentForLLMOutput} from '../../utils/formatters.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
-import {type DocumentId, getPublishedId} from '@sanity/id-utils'
+import {type DocumentId, getDraftId, getPublishedId} from '@sanity/id-utils'
 import {getVersionId} from '@sanity/client/csm'
 import {schemaIdSchema} from '../schema/common.js'
 import type {GenerateInstruction} from '@sanity/client'
@@ -39,7 +39,7 @@ async function tool(params: Params) {
   const publishedId = getPublishedId(params.documentId as DocumentId)
   const documentId = params.releaseId
     ? getVersionId(publishedId, params.releaseId)
-    : params.documentId
+    : getDraftId(publishedId)
 
   const instructOptions: GenerateInstruction = {
     documentId,
@@ -56,7 +56,7 @@ async function tool(params: Params) {
 
     return createSuccessResponse('Document update initiated in background', {
       success: true,
-      document: {_id: params.documentId},
+      document: {_id: documentId},
     })
   }
 

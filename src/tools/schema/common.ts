@@ -1,14 +1,5 @@
-import {outdent} from 'outdent'
 import {z} from 'zod'
-
-export const DEFAULT_SCHEMA_ID = 'sanity.workspace.schema.default'
-
-export const SCHEMA_DEPLOYMENT_INSTRUCTIONS = outdent`
-  Your Sanity schema has not been deployed. In your Sanity project, run the following command:
-  \`\`\`shell
-  SANITY_CLI_SCHEMA_STORE_ENABLED=true npx sanity@latest schema deploy
-  \`\`\`
-`
+import {DEFAULT_SCHEMA_ID} from '../../utils/manifest.js'
 
 export const schemaIdSchema = z
   .string()
