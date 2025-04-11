@@ -8,10 +8,28 @@ import {
 } from '../../utils/response.js'
 import {type DocumentId, getDraftId, getPublishedId, getVersionId} from '@sanity/id-utils'
 
+const SanityValueSchema: z.ZodType = z.lazy(() =>
+  z.union([
+    z.string(),
+    z.number(),
+    z.boolean(),
+    z.null(),
+    z.undefined(),
+    z.array(SanityValueSchema),
+    z
+      .object({
+        _type: z.literal('reference'),
+        _ref: z.string().transform((ref) => getPublishedId(ref as DocumentId)),
+      })
+      .passthrough(),
+    z.record(SanityValueSchema),
+  ]),
+)
+
 const SetOperation = z.object({
   op: z.literal('set'),
   path: z.string().describe('The path to set, e.g. "title" or "author.name"'),
-  value: z.any().describe('The value to set at the specified path'),
+  value: SanityValueSchema.describe('The value to set at the specified path'),
 })
 
 const UnsetOperation = z.object({
@@ -25,7 +43,7 @@ const InsertOperation = z.object({
   path: z
     .string()
     .describe('The path to the array or element, e.g. "categories" or "categories[0]"'),
-  items: z.array(z.any()).describe('The items to insert'),
+  items: z.array(SanityValueSchema).describe('The items to insert'),
 })
 
 const IncOperation = z.object({
@@ -43,7 +61,7 @@ const DecOperation = z.object({
 const SetIfMissingOperation = z.object({
   op: z.literal('setIfMissing'),
   path: z.string().describe('The path to set if missing, e.g. "metadata" or "settings.defaults"'),
-  value: z.any().describe('The value to set if the path is missing'),
+  value: SanityValueSchema.describe('The value to set if the path is missing'),
 })
 
 const PatchOperation = z.discriminatedUnion('op', [
