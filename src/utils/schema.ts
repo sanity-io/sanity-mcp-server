@@ -18,13 +18,18 @@ interface FormatOptions {
 /**
  * Format the schema as XML for better parsing by LLMs
  */
-export function formatSchema(schema: ManifestSchemaType[], options?: FormatOptions): string {
+export function formatSchema(
+  schema: ManifestSchemaType[],
+  schemaId: string,
+  options?: FormatOptions,
+): string {
   // Filter out types that start with "sanity."
   const filteredSchema = schema.filter((type) => !type.name?.startsWith('sanity.'))
 
   // Create a schema overview section
   const schemaOverview = {
     schemaOverview: {
+      schemaId,
       totalTypes: filteredSchema.length,
       typesSummary: {
         type: filteredSchema.map((type) => ({

@@ -6,7 +6,8 @@ import {
   createErrorResponse,
   withErrorHandling,
 } from '../../utils/response.js'
-import {type DocumentId, getPublishedId, getVersionId} from '@sanity/id-utils'
+import {type DocumentId, getDraftId, getPublishedId, getVersionId} from '@sanity/id-utils'
+import {schemaIdSchema} from '../schema/common.js'
 
 export const CreateVersionToolParams = z.object({
   documentId: z.string().describe('ID of the document to create a version for'),
@@ -15,12 +16,7 @@ export const CreateVersionToolParams = z.object({
     .string()
     .optional()
     .describe('Optional instruction for AI to modify the document while creating the version'),
-  schemaId: z
-    .string()
-    .optional()
-    .describe(
-      'Schema ID defining the document structure - required when providing an instruction for AI modification',
-    ),
+  schemaId: schemaIdSchema,
 })
 
 type Params = z.infer<typeof CreateVersionToolParams>
@@ -29,7 +25,12 @@ async function tool(params: Params) {
   const publishedId = getPublishedId(params.documentId as DocumentId)
   const versionId = getVersionId(publishedId, params.releaseId)
 
-  const originalDocument = await sanityClient.getDocument(params.documentId)
+  const [requestedDoc, draftDoc] = await Promise.all([
+    sanityClient.getDocument(params.documentId).catch(() => null),
+    sanityClient.getDocument(getDraftId(publishedId)).catch(() => null),
+  ])
+
+  const originalDocument = requestedDoc || draftDoc
 
   if (!originalDocument) {
     return createErrorResponse(`Document with ID '${params.documentId}' not found`)
@@ -42,7 +43,7 @@ async function tool(params: Params) {
       actions: [
         {
           actionType: 'sanity.action.document.version.create',
-          publishedId: publishedId,
+          publishedId,
           document: {
             ...originalDocument,
             _id: versionId,

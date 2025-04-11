@@ -18,4 +18,4 @@ export const VERSION = '${packageJson.version}';
 `
 
 writeFileSync(outputPath, content)
-console.log(`Generated version.ts with version ${packageJson.version}`)
+console.info(`Generated version.ts with version ${packageJson.version}`)

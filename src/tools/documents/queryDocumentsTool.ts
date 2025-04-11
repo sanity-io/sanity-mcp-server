@@ -22,10 +22,10 @@ export const QueryDocumentsToolParams = z.object({
     .describe('Page number for paginated results (starts at 1)'),
   pageSize: z.number().optional().default(DEFAULT_PAGE_SIZE).describe('Number of results per page'),
   perspective: z
-    .string()
+    .union([z.enum(['raw', 'drafts', 'published']), z.string()])
     .optional()
     .default(DEFAULT_PERSPECTIVE)
-    .describe('Optional perspective to query from, such as a release ID or "published"'),
+    .describe('Optional perspective to query from: "raw", "drafts", "published", or a release ID'),
 })
 
 type Params = z.infer<typeof QueryDocumentsToolParams>

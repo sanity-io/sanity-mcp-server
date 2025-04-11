@@ -3,16 +3,21 @@ import {sanityClient} from '../../config/sanity.js'
 import {truncateDocumentForLLMOutput} from '../../utils/formatters.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {type DocumentId, getPublishedId} from '@sanity/id-utils'
-import {getDraftId, getVersionId} from '@sanity/client/csm'
+import {getVersionId} from '@sanity/client/csm'
+import {schemaIdSchema} from '../schema/common.js'
+import type {GenerateInstruction} from '@sanity/client'
+import {stringToPath} from '../../utils/path.js'
 
 export const UpdateDocumentToolParams = z.object({
   documentId: z.string().describe('The ID of the document to update'),
   instruction: z.string().describe('Instruction for AI to update the document content'),
-  schemaId: z.string().describe('Schema ID to follow'),
-  path: z
-    .string()
+  schemaId: schemaIdSchema,
+  paths: z
+    .array(z.string())
     .optional()
-    .describe('Optional field path within the document to target with the instruction'),
+    .describe(
+      'Target field paths for the instruction. Specifies fields to update. Should always be set if you want to update specific fields. If not set, targets the whole document. ie: ["field", "array[_key==\"key\"]"]',
+    ),
   releaseId: z
     .string()
     .optional()
@@ -34,13 +39,13 @@ async function tool(params: Params) {
   const publishedId = getPublishedId(params.documentId as DocumentId)
   const documentId = params.releaseId
     ? getVersionId(publishedId, params.releaseId)
-    : getDraftId(publishedId)
+    : params.documentId
 
-  const instructOptions = {
+  const instructOptions: GenerateInstruction = {
     documentId,
     schemaId: params.schemaId,
     instruction: params.instruction,
-    path: params.path,
+    target: params.paths ? params.paths.map((path) => ({path: stringToPath(path)})) : undefined,
   } as const
 
   if (params.async === true) {

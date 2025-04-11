@@ -4,7 +4,6 @@ import {getSanityConfigTool} from './getSanityConfigTool.js'
 import {listDatasetsTool} from '../datasets/listDatasets.js'
 import {listEmbeddingsIndicesTool} from '../embeddings/listEmbeddingsTool.js'
 import {listReleasesTool} from '../releases/listReleases.js'
-import {getSchemaTool} from '../schema/getSchemaTool.js'
 import {contextStore} from './store.js'
 import {withErrorHandling} from '../../utils/response.js'
 import {MCP_INSTRUCTIONS} from './instructions.js'
@@ -18,10 +17,9 @@ export function hasInitialContext(): boolean {
 }
 
 async function tool(_params: Params) {
-  const [config, datasets, schema, embeddings, releases] = await Promise.all([
+  const [config, datasets, embeddings, releases] = await Promise.all([
     getSanityConfigTool({}),
     listDatasetsTool({}),
-    getSchemaTool({lite: true}),
     listEmbeddingsIndicesTool({}),
     listReleasesTool({state: 'active'}),
   ])
@@ -36,7 +34,6 @@ async function tool(_params: Params) {
     <context>
       ${config.content[0].text}
       ${datasets.content[0].text}
-      ${schema.content[0].text}
       ${embeddings.content[0].text}
       ${releases.content[0].text}
     </content>
