@@ -7,16 +7,14 @@ import {
   createSuccessResponse,
   withErrorHandling,
 } from '../../utils/response.js'
-import {SCHEMA_DEPLOYMENT_INSTRUCTIONS} from './common.js'
-
-const DEFAULT_SCHEMA_ID = 'sanity.workspace.schema.default'
+import {DEFAULT_SCHEMA_ID, SCHEMA_DEPLOYMENT_INSTRUCTIONS, schemaIdSchema} from './common.js'
 
 export const GetSchemaToolParams = z.object({
   type: z
     .string()
     .optional()
     .describe('Optional: Specific type name to fetch. If not provided, returns the full schema'),
-  schemaId: z.string().default(DEFAULT_SCHEMA_ID).optional().describe('The schema ID to fetch'),
+  schemaId: schemaIdSchema,
   lite: z
     .boolean()
     .optional()
@@ -29,8 +27,9 @@ export const GetSchemaToolParams = z.object({
 type Params = z.infer<typeof GetSchemaToolParams>
 
 async function tool(params: Params) {
+  const schemaId = params.schemaId ?? DEFAULT_SCHEMA_ID
   const schemaDoc = await sanityClient.fetch('*[_id == $schemaId][0]', {
-    schemaId: params.schemaId ?? DEFAULT_SCHEMA_ID,
+    schemaId,
   })
 
   if (!schemaDoc?.schema) {
@@ -47,7 +46,7 @@ async function tool(params: Params) {
     schema = typeSchema
   }
 
-  return createSuccessResponse(formatSchema(schema, {lite: params.lite}))
+  return createSuccessResponse(formatSchema(schema, schemaId, {lite: params.lite}))
 }
 
 export const getSchemaTool = withErrorHandling(tool, 'Error fetching schema overview')
