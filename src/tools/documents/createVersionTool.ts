@@ -6,7 +6,13 @@ import {
   createErrorResponse,
   withErrorHandling,
 } from '../../utils/response.js'
-import {type DocumentId, getDraftId, getPublishedId, getVersionId} from '@sanity/id-utils'
+import {
+  type DocumentId,
+  getDraftId,
+  getPublishedId,
+  getVersionId,
+  isDraftId,
+} from '@sanity/id-utils'
 import {schemaIdSchema} from '../schema/common.js'
 
 export const CreateVersionToolParams = z.object({
@@ -22,15 +28,20 @@ export const CreateVersionToolParams = z.object({
 type Params = z.infer<typeof CreateVersionToolParams>
 
 async function tool(params: Params) {
-  const publishedId = getPublishedId(params.documentId as DocumentId)
+  const documentId = params.documentId as DocumentId
+
+  const publishedId = getPublishedId(documentId)
   const versionId = getVersionId(publishedId, params.releaseId)
 
-  const [requestedDoc, draftDoc] = await Promise.all([
-    sanityClient.getDocument(params.documentId).catch(() => null),
-    sanityClient.getDocument(getDraftId(publishedId)).catch(() => null),
+  const alternateId = isDraftId(documentId) ? publishedId : getDraftId(documentId)
+
+  // Fetch both the document and its alternative version in parallel
+  const [primaryDoc, alternateDoc] = await Promise.all([
+    sanityClient.getDocument(documentId).catch(() => null),
+    sanityClient.getDocument(alternateId).catch(() => null),
   ])
 
-  const originalDocument = requestedDoc || draftDoc
+  const originalDocument = primaryDoc || alternateDoc
 
   if (!originalDocument) {
     return createErrorResponse(`Document with ID '${params.documentId}' not found`)
