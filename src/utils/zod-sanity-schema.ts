@@ -2,53 +2,44 @@ import {z} from 'zod'
 import {type DocumentId, getPublishedId} from '@sanity/id-utils'
 import type {ManifestArrayMember, ManifestField, ManifestSchemaType} from '../types/manifest.js'
 
-/**
- * Creates a Zod schema from the Sanity schema array format
- */
 export function createZodSchemaFromSanitySchema(sanitySchema: ManifestSchemaType[]) {
-  // Create a schema map for easier lookup
-  const schemaMap = sanitySchema.reduce<Record<string, ManifestSchemaType>>((acc, schema) => {
-    acc[schema.name] = schema
-    return acc
-  }, {})
-
-  // Build Zod schemas for each type
-  const zodSchemas: Record<string, z.ZodTypeAny> = {}
-
+  const schemaMap = new Map<string, ManifestSchemaType>()
   for (const schema of sanitySchema) {
-    zodSchemas[schema.name] = createZodTypeFromSanityType(schema, schemaMap, zodSchemas)
+    schemaMap.set(schema.name, schema)
   }
 
-  // Return a record of all schemas
-  return zodSchemas
+  // Build Zod schemas for each type
+  const zodSchemas = new Map<string, z.ZodTypeAny>()
+
+  for (const schema of sanitySchema) {
+    zodSchemas.set(schema.name, createZodTypeFromSanityType(schema, schemaMap, zodSchemas))
+  }
+
+  return Object.fromEntries(zodSchemas)
 }
 
-/**
- * Recursively creates Zod types from Sanity types
- */
 function createZodTypeFromSanityType(
   schema: ManifestSchemaType,
-  schemaMap: Record<string, ManifestSchemaType>,
-  zodSchemas: Record<string, z.ZodTypeAny>,
+  schemaMap: Map<string, ManifestSchemaType>,
+  zodSchemas: Map<string, z.ZodTypeAny>,
 ): z.ZodTypeAny {
   // If we've already processed this schema, return the cached result
-  if (zodSchemas[schema.name]) {
-    return zodSchemas[schema.name]
+  if (zodSchemas.has(schema.name)) {
+    const existingSchema = zodSchemas.get(schema.name)
+    if (existingSchema) return existingSchema
   }
 
   // Create a placeholder to handle circular references
-  zodSchemas[schema.name] = z.lazy(() => createActualZodType(schema, schemaMap, zodSchemas))
+  const lazySchema = z.lazy(() => createActualZodType(schema, schemaMap, zodSchemas))
+  zodSchemas.set(schema.name, lazySchema)
 
-  return zodSchemas[schema.name]
+  return lazySchema
 }
 
-/**
- * Creates the actual Zod type based on the Sanity schema type
- */
 function createActualZodType(
   schema: ManifestSchemaType,
-  schemaMap: Record<string, ManifestSchemaType>,
-  zodSchemas: Record<string, z.ZodTypeAny>,
+  schemaMap: Map<string, ManifestSchemaType>,
+  zodSchemas: Map<string, z.ZodTypeAny>,
 ): z.ZodTypeAny {
   switch (schema.type) {
     case 'document':
@@ -66,12 +57,12 @@ function createActualZodType(
 }
 
 /**
- * Creates a Zod document schema from a Sanity document schema
+ * Type helpers
  */
 function createDocumentSchema(
   schema: ManifestSchemaType,
-  schemaMap: Record<string, ManifestSchemaType>,
-  zodSchemas: Record<string, z.ZodTypeAny>,
+  schemaMap: Map<string, ManifestSchemaType>,
+  zodSchemas: Map<string, z.ZodTypeAny>,
 ): z.ZodTypeAny {
   const fields: Record<string, z.ZodTypeAny> = {
     _id: z.string(),
@@ -90,13 +81,10 @@ function createDocumentSchema(
   return z.object(fields)
 }
 
-/**
- * Creates a Zod object schema from a Sanity object schema
- */
 function createObjectSchema(
   schema: ManifestSchemaType,
-  schemaMap: Record<string, ManifestSchemaType>,
-  zodSchemas: Record<string, z.ZodTypeAny>,
+  schemaMap: Map<string, ManifestSchemaType>,
+  zodSchemas: Map<string, z.ZodTypeAny>,
 ): z.ZodTypeAny {
   const fields: Record<string, z.ZodTypeAny> = {
     _type: z.literal(schema.name),
@@ -111,13 +99,10 @@ function createObjectSchema(
   return z.object(fields)
 }
 
-/**
- * Creates a Zod array schema from a Sanity array schema
- */
 function createArraySchema(
   schema: ManifestSchemaType,
-  schemaMap: Record<string, ManifestSchemaType>,
-  zodSchemas: Record<string, z.ZodTypeAny>,
+  schemaMap: Map<string, ManifestSchemaType>,
+  zodSchemas: Map<string, z.ZodTypeAny>,
 ): z.ZodTypeAny {
   if (!schema.of || schema.of.length === 0) {
     return z.array(z.unknown())
@@ -131,28 +116,25 @@ function createArraySchema(
   return z.array(z.union(unionTypes as [z.ZodTypeAny, z.ZodTypeAny, ...z.ZodTypeAny[]]))
 }
 
-/**
- * Gets the appropriate Zod schema for a field
- */
 function getFieldSchema(
   field: ManifestField | ManifestArrayMember,
-  schemaMap: Record<string, ManifestSchemaType>,
-  zodSchemas: Record<string, z.ZodTypeAny>,
+  schemaMap: Map<string, ManifestSchemaType>,
+  zodSchemas: Map<string, z.ZodTypeAny>,
 ): z.ZodTypeAny {
   // First check if field.type is defined and a string
   const fieldType = typeof field.type === 'string' ? field.type : undefined
 
   // If it's a reference to another type in the schema
-  if (fieldType && schemaMap[fieldType]) {
-    return createZodTypeFromSanityType(schemaMap[fieldType], schemaMap, zodSchemas)
+  if (fieldType && schemaMap.has(fieldType)) {
+    const referencedSchema = schemaMap.get(fieldType)
+    if (referencedSchema)
+      return createZodTypeFromSanityType(referencedSchema, schemaMap, zodSchemas)
   }
 
-  // Special case for block content
   if (fieldType === 'block') {
     return createBlockContentSchema(field as ManifestSchemaType)
   }
 
-  // Array and object types need special handling
   switch (fieldType) {
     case 'array':
       return createArraySchema(field as ManifestSchemaType, schemaMap, zodSchemas)
@@ -167,9 +149,6 @@ function getFieldSchema(
   }
 }
 
-/**
- * Shared helper for converting basic primitive types
- */
 function convertBasicType(type: string | undefined, isField: boolean): z.ZodTypeAny {
   switch (type) {
     case 'string':
@@ -194,9 +173,6 @@ function convertBasicType(type: string | undefined, isField: boolean): z.ZodType
   }
 }
 
-/**
- * Shared helper for converting reference types
- */
 function convertReferenceType(transformId: boolean): z.ZodTypeAny {
   const refSchema = z.string()
 
@@ -211,9 +187,6 @@ function convertReferenceType(transformId: boolean): z.ZodTypeAny {
   })
 }
 
-/**
- * Shared helper for converting image types
- */
 function convertImageType(): z.ZodTypeAny {
   return z.object({
     _type: z.literal('image'),
@@ -227,10 +200,7 @@ function convertImageType(): z.ZodTypeAny {
   })
 }
 
-/**
- * Creates a schema for Portable Text blocks
- */
-function createBlockContentSchema(blockConfig: ManifestSchemaType): z.ZodTypeAny {
+function createBlockContentSchema(_blockConfig: ManifestSchemaType): z.ZodTypeAny {
   // Basic structure for block content
   const blockSchema = z.object({
     _type: z.literal('block'),
