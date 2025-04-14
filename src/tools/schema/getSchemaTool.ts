@@ -1,13 +1,8 @@
 import {z} from 'zod'
-import {sanityClient} from '../../config/sanity.js'
-import type {ManifestSchemaType} from '../../types/manifest.js'
 import {formatSchema} from '../../utils/schema.js'
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  withErrorHandling,
-} from '../../utils/response.js'
-import {DEFAULT_SCHEMA_ID, SCHEMA_DEPLOYMENT_INSTRUCTIONS, schemaIdSchema} from './common.js'
+import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
+import {schemaIdSchema} from './common.js'
+import {DEFAULT_SCHEMA_ID, getSchemaById} from '../../utils/manifest.js'
 
 export const GetSchemaToolParams = z.object({
   type: z
@@ -27,16 +22,8 @@ export const GetSchemaToolParams = z.object({
 type Params = z.infer<typeof GetSchemaToolParams>
 
 async function tool(params: Params) {
-  const schemaId = params.schemaId ?? DEFAULT_SCHEMA_ID
-  const schemaDoc = await sanityClient.fetch('*[_id == $schemaId][0]', {
-    schemaId,
-  })
-
-  if (!schemaDoc?.schema) {
-    return createErrorResponse(SCHEMA_DEPLOYMENT_INSTRUCTIONS)
-  }
-
-  let schema = JSON.parse(schemaDoc.schema) as ManifestSchemaType[]
+  const effectiveSchemaId = params.schemaId ?? DEFAULT_SCHEMA_ID
+  let schema = await getSchemaById(effectiveSchemaId)
 
   if (params.type) {
     const typeSchema = schema.filter((type) => type.name === params.type)
@@ -46,7 +33,7 @@ async function tool(params: Params) {
     schema = typeSchema
   }
 
-  return createSuccessResponse(formatSchema(schema, schemaId, {lite: params.lite}))
+  return createSuccessResponse(formatSchema(schema, effectiveSchemaId, {lite: params.lite}))
 }
 
 export const getSchemaTool = withErrorHandling(tool, 'Error fetching schema overview')

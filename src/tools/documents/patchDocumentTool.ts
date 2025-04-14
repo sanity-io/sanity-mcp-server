@@ -1,17 +1,21 @@
 import {z} from 'zod'
+import {get, set} from 'lodash-es'
 import {sanityClient} from '../../config/sanity.js'
-import {truncateDocumentForLLMOutput} from '../../utils/formatters.js'
 import {
   createSuccessResponse,
   createErrorResponse,
   withErrorHandling,
 } from '../../utils/response.js'
 import {type DocumentId, getDraftId, getPublishedId, getVersionId} from '@sanity/id-utils'
+import {schemaIdSchema} from '../schema/common.js'
+import {DEFAULT_SCHEMA_ID, getSchemaById} from '../../utils/manifest.js'
+import {createZodSchemaFromSanitySchema} from '../../utils/zod-sanity-schema.js'
+import type {DocumentLike} from '../../types/sanity.js'
 
 const SetOperation = z.object({
   op: z.literal('set'),
   path: z.string().describe('The path to set, e.g. "title" or "author.name"'),
-  value: z.any().describe('The value to set at the specified path'),
+  value: z.unknown().describe('The value to set at the specified path'),
 })
 
 const UnsetOperation = z.object({
@@ -25,7 +29,7 @@ const InsertOperation = z.object({
   path: z
     .string()
     .describe('The path to the array or element, e.g. "categories" or "categories[0]"'),
-  items: z.array(z.any()).describe('The items to insert'),
+  items: z.array(z.unknown()).describe('The items to insert'),
 })
 
 const IncOperation = z.object({
@@ -43,7 +47,7 @@ const DecOperation = z.object({
 const SetIfMissingOperation = z.object({
   op: z.literal('setIfMissing'),
   path: z.string().describe('The path to set if missing, e.g. "metadata" or "settings.defaults"'),
-  value: z.any().describe('The value to set if the path is missing'),
+  value: z.unknown().describe('The value to set if the path is missing'),
 })
 
 const PatchOperation = z.discriminatedUnion('op', [
@@ -64,6 +68,7 @@ export const PatchDocumentToolParams = z.object({
     .describe(
       'Optional release ID for patching versioned documents. If provided, the document in the specified release will be patched.',
     ),
+  schemaId: schemaIdSchema,
 })
 
 type Params = z.infer<typeof PatchDocumentToolParams>
@@ -79,28 +84,129 @@ async function tool(params: Params) {
     return createErrorResponse(`Document with ID '${documentId}' not found`)
   }
 
+  const schema = await getSchemaById(params.schemaId ?? DEFAULT_SCHEMA_ID)
+  const zodSchemas = createZodSchemaFromSanitySchema(schema)
+
+  const documentType = document._type
+  const documentSchema = zodSchemas[documentType]
+
   let patch = sanityClient.patch(documentId)
+  let simulatedDoc: DocumentLike = structuredClone(document)
 
   for (const operation of params.operations) {
-    switch (operation.op) {
-      case 'set':
-        patch = patch.set({[operation.path]: operation.value})
-        break
-      case 'unset':
-        patch = patch.unset([operation.path])
-        break
-      case 'insert':
-        patch = patch.insert(operation.position, operation.path, operation.items)
-        break
-      case 'inc':
-        patch = patch.inc({[operation.path]: operation.amount})
-        break
-      case 'dec':
-        patch = patch.dec({[operation.path]: operation.amount})
-        break
-      case 'setIfMissing':
-        patch = patch.setIfMissing({[operation.path]: operation.value})
-        break
+    try {
+      switch (operation.op) {
+        case 'set': {
+          const tempDoc = structuredClone(simulatedDoc)
+          set(tempDoc, operation.path, operation.value)
+          documentSchema.parse(tempDoc)
+          simulatedDoc = tempDoc
+          patch = patch.set({[operation.path]: operation.value})
+          break
+        }
+
+        case 'unset': {
+          const tempDoc = structuredClone(simulatedDoc)
+          set(tempDoc, operation.path, undefined)
+          documentSchema.parse(tempDoc)
+          simulatedDoc = tempDoc
+          patch = patch.unset([operation.path])
+          break
+        }
+
+        case 'insert': {
+          const pathValue = get(simulatedDoc, operation.path)
+
+          if (
+            !Array.isArray(pathValue) &&
+            !Array.isArray(get(simulatedDoc, operation.path.replace(/\[\d+\]$/, '')))
+          ) {
+            return createErrorResponse(
+              `Insert operation target '${operation.path}' is not an array`,
+            )
+          }
+
+          const tempDoc = structuredClone(simulatedDoc)
+          let arrayPath = operation.path
+          let index = -1
+
+          const indexMatch = operation.path.match(/\[(\d+)\]$/)
+          if (indexMatch) {
+            index = Number.parseInt(indexMatch[1])
+            arrayPath = operation.path.substring(0, operation.path.lastIndexOf('['))
+          }
+
+          const arrayValue = get(tempDoc, arrayPath)
+          const array = Array.isArray(arrayValue) ? [...arrayValue] : []
+
+          if (operation.position === 'before' && index !== -1) {
+            array.splice(index, 0, ...operation.items)
+          } else if (operation.position === 'after' && index !== -1) {
+            array.splice(index + 1, 0, ...operation.items)
+          } else if (operation.position === 'replace' && index !== -1) {
+            array.splice(index, 1, ...operation.items)
+          } else {
+            array.push(...operation.items)
+          }
+
+          set(tempDoc, arrayPath, array)
+          documentSchema.parse(tempDoc)
+          simulatedDoc = tempDoc
+          patch = patch.insert(operation.position, operation.path, operation.items)
+          break
+        }
+
+        case 'inc': {
+          const currentValue = get(simulatedDoc, operation.path)
+
+          if (typeof currentValue !== 'number' && currentValue !== undefined) {
+            return createErrorResponse(`Inc operation target '${operation.path}' is not a number`)
+          }
+
+          const tempDoc = structuredClone(simulatedDoc)
+          set(tempDoc, operation.path, (currentValue || 0) + operation.amount)
+          documentSchema.parse(tempDoc)
+          simulatedDoc = tempDoc
+          patch = patch.inc({[operation.path]: operation.amount})
+          break
+        }
+
+        case 'dec': {
+          const currentValue = get(simulatedDoc, operation.path)
+
+          if (typeof currentValue !== 'number' && currentValue !== undefined) {
+            return createErrorResponse(`Dec operation target '${operation.path}' is not a number`)
+          }
+
+          const tempDoc = structuredClone(simulatedDoc)
+          set(tempDoc, operation.path, (currentValue || 0) - operation.amount)
+          documentSchema.parse(tempDoc)
+          simulatedDoc = tempDoc
+          patch = patch.dec({[operation.path]: operation.amount})
+          break
+        }
+
+        case 'setIfMissing': {
+          const currentValue = get(simulatedDoc, operation.path)
+
+          if (currentValue === undefined) {
+            const tempDoc = structuredClone(simulatedDoc)
+            set(tempDoc, operation.path, operation.value)
+            documentSchema.parse(tempDoc)
+            simulatedDoc = tempDoc
+          }
+
+          patch = patch.setIfMissing({[operation.path]: operation.value})
+          break
+        }
+      }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return createErrorResponse(
+          `Invalid patch operation: ${operation.op} on path '${operation.path}' would result in an invalid document: ${error.message}`,
+        )
+      }
+      throw error
     }
   }
 
@@ -108,7 +214,7 @@ async function tool(params: Params) {
 
   return createSuccessResponse('Document patched successfully', {
     success: true,
-    document: truncateDocumentForLLMOutput(updatedDocument),
+    document: updatedDocument,
   })
 }
 

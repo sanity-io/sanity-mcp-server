@@ -1,7 +1,6 @@
 import {z} from 'zod'
 import {randomUUID} from 'node:crypto'
 import {sanityClient} from '../../config/sanity.js'
-import {truncateDocumentForLLMOutput} from '../../utils/formatters.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {type DocumentId, getDraftId, getVersionId} from '@sanity/id-utils'
 
@@ -57,7 +56,7 @@ async function tool(params: Params) {
 
   return createSuccessResponse('Document created successfully', {
     success: true,
-    document: truncateDocumentForLLMOutput(createdDocument),
+    document: createdDocument,
   })
 }
 

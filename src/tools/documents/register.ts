@@ -6,6 +6,7 @@ import {patchDocumentTool, PatchDocumentToolParams} from './patchDocumentTool.js
 import {documentActionsTool, DocumentActionsToolParams} from './documentActionsTool.js'
 import {createVersionTool, CreateVersionToolParams} from './createVersionTool.js'
 import {discardVersionTool, DiscardVersionToolParams} from './discardVersionTool.js'
+import {getDocumentTool, GetDocumentToolParams} from './getDocumentTool.js'
 import {
   markVersionForUnpublishTool,
   MarkVersionForUnpublishParams,
@@ -32,6 +33,13 @@ export function registerDocumentsTools(server: McpServer) {
     'Apply direct patch operations to modify specific parts of a document without using AI generation',
     PatchDocumentToolParams.shape,
     patchDocumentTool,
+  )
+
+  server.tool(
+    'get_document',
+    'Retrieve a single document by ID from Sanity. Use this tool when you need to fetch a specific document by its ID. For multiple documents or complex queries, use query_documents instead.',
+    GetDocumentToolParams.shape,
+    getDocumentTool,
   )
 
   server.tool(
