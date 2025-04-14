@@ -166,6 +166,10 @@ The server takes the following environment variables:
 | `SANITY_API_HOST`   | API host (defaults to https://api.sanity.io)       | ❌       |
 | `MCP_USER_ROLE`     | Determines tool access level (developer or editor) | ❌       |
 
+> [!WARNING]  
+> **Using AI with Production Datasets**  
+> When configuring the MCP server with a token that has write access to a production dataset, please be aware that the AI can perform destructive actions like creating, updating, or deleting content. This is not a concern if you're using a read-only token. While we are actively developing guardrails, you should exercise caution and consider using a development/staging dataset for testing AI operations that require write access.
+
 ### 🔑 API Tokens and Permissions
 
 The MCP server requires appropriate API tokens and permissions to function correctly. Here's what you need to know:
