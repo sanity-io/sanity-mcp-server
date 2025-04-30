@@ -32,18 +32,18 @@ async function tool(params: Params) {
     ? getVersionId(publishedId, params.releaseId)
     : getDraftId(publishedId)
 
-  const instructOptions = {
-    createDocument: {
-      _id: documentId,
+  const generateOptions = {
+    targetDocument: {
+      operation: 'create',
       _type: params._type,
     },
-    schemaId: params.schemaId,
     instruction: params.instruction,
+    schemaId: params.schemaId,
   } as const
 
   if (params.async === true) {
     await sanityClient.agent.action.generate({
-      ...instructOptions,
+      ...generateOptions,
       async: true,
     })
 
@@ -53,7 +53,7 @@ async function tool(params: Params) {
     })
   }
 
-  const createdDocument = await sanityClient.agent.action.generate(instructOptions)
+  const createdDocument = await sanityClient.agent.action.generate(generateOptions)
 
   return createSuccessResponse('Document created successfully', {
     success: true,

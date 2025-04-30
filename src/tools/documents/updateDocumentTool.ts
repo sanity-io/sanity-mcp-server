@@ -43,8 +43,8 @@ async function tool(params: Params) {
 
   const instructOptions: GenerateInstruction = {
     documentId,
-    schemaId: params.schemaId,
     instruction: params.instruction,
+    schemaId: params.schemaId,
     target: params.paths ? params.paths.map((path) => ({path: stringToPath(path)})) : undefined,
   } as const
 
