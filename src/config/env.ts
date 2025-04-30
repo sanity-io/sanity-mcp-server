@@ -18,10 +18,8 @@ const envSchema = z.object({
     .transform((v) => (v ? JSON.parse(v) : undefined)),
   INTERNAL_REQUEST_TAG_PREFIX: z.string().optional(),
   INTERNAL_USE_PROJECT_HOSTNAME: z
-    .string()
-    .optional()
-    .default('true')
-    .transform((v) => v === 'true'),
+    .union([z.literal('true').transform(() => true), z.literal('false').transform(() => false)])
+    .optional(),
   MCP_USER_ROLE: McpRoleSchema,
 })
 
