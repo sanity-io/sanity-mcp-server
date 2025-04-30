@@ -35,6 +35,7 @@ async function tool(params: Params) {
   const generateOptions = {
     targetDocument: {
       operation: 'create',
+      _id: documentId,
       _type: params._type,
     },
     instruction: params.instruction,

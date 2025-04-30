@@ -8,8 +8,8 @@ if (!env.success) {
 
 const clientConfig: ClientConfig = {
   projectId: env.data.SANITY_PROJECT_ID,
-  apiHost: env.data.SANITY_API_HOST,
   dataset: env.data.SANITY_DATASET,
+  apiHost: env.data.SANITY_API_HOST,
   token: env.data.SANITY_API_TOKEN,
   apiVersion: 'vX', // vX until generate API ships in GA
   perspective: 'raw',
