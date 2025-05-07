@@ -14,7 +14,7 @@ async function tool(params: Params) {
   const config = sanityClient.config()
 
   const results = await sanityClient.request<EmbeddingsQueryResultItem[]>({
-    uri: `/vX/embeddings-index/query/${config.dataset}/${params.indexName}`,
+    uri: `/embeddings-index/query/${config.dataset}/${params.indexName}`,
     method: 'post',
     withCredentials: true,
     body: {

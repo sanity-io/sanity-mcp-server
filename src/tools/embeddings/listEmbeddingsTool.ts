@@ -9,10 +9,10 @@ type Params = z.infer<typeof ListEmbeddingsIndicesToolParams>
 
 async function tool(_params?: Params) {
   const config = sanityClient.config()
-  const indices = await sanityClient.request<EmbeddingsIndex[]>({
-    uri: `/vX/embeddings-index/${config.dataset}`,
-  })
 
+  const indices = await sanityClient.request<EmbeddingsIndex[]>({
+    uri: `/embeddings-index/${config.dataset}?projectId=${config.projectId}`,
+  })
   if (!indices.length) {
     return {
       content: [
@@ -29,8 +29,6 @@ async function tool(_params?: Params) {
     flattenedIndices[index.indexName] = {
       name: index.indexName,
       status: index.status,
-      projection: index.projection,
-      filter: index.filter,
     }
   }
 
