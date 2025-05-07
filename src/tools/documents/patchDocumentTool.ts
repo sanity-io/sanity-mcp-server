@@ -19,13 +19,20 @@ const UnsetOperation = z.object({
   path: z.string().describe('The path to unset, e.g. "description" or "metadata.keywords"'),
 })
 
+const InsertValueSchema = z.union([
+  z.string(),
+  z.number(),
+  z.boolean(),
+  z.record(z.unknown()),
+]);
+
 const InsertOperation = z.object({
   op: z.literal('insert'),
   position: z.enum(['before', 'after', 'replace']),
   path: z
     .string()
     .describe('The path to the array or element, e.g. "categories" or "categories[0]"'),
-  items: z.array(z.any()).describe('The items to insert'),
+  items: z.array(InsertValueSchema).describe('The items to insert. Array items must be either all primitives or all objects, they can never be mixed in one array.'),
 })
 
 const IncOperation = z.object({

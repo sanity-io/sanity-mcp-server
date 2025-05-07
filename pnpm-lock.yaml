@@ -26,6 +26,9 @@ importers:
       fast-xml-parser:
         specifier: ^5.2.0
         version: 5.2.0
+      get-it:
+        specifier: ^8.3.2
+        version: 8.6.7
       outdent:
         specifier: ^0.8.0
         version: 0.8.0
