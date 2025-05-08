@@ -7,7 +7,12 @@ import {
   createSuccessResponse,
   withErrorHandling,
 } from '../../utils/response.js'
-import {DEFAULT_SCHEMA_ID, SCHEMA_DEPLOYMENT_INSTRUCTIONS, schemaIdSchema} from './common.js'
+import {
+  DEFAULT_SCHEMA_ID,
+  SCHEMA_DEPLOYMENT_INSTRUCTIONS,
+  SCHEMA_TYPE,
+  schemaIdSchema,
+} from './common.js'
 
 export const GetSchemaToolParams = z.object({
   type: z
@@ -28,7 +33,8 @@ type Params = z.infer<typeof GetSchemaToolParams>
 
 async function tool(params: Params) {
   const schemaId = params.schemaId ?? DEFAULT_SCHEMA_ID
-  const schemaDoc = await sanityClient.fetch('*[_id == $schemaId][0]', {
+  const schemaDoc = await sanityClient.fetch('*[_id == $schemaId && _type == $schemaType][0]', {
+    schemaType: SCHEMA_TYPE,
     schemaId,
   })
 

@@ -42,16 +42,22 @@ Before you can use the MCP server, you need to:
    # Option A: If you have the CLI installed globally
    npm install -g sanity
    cd /path/to/studio
-   SANITY_CLI_SCHEMA_STORE_ENABLED=true sanity schema deploy
+   sanity schema deploy
 
    # Option B: Update your Studio
    cd /path/to/studio
    npm update sanity
-   SANITY_CLI_SCHEMA_STORE_ENABLED=true npx sanity schema deploy
+   npx sanity schema deploy
+   ```
+
+   When running in CI environments without Sanity login, you'll need to provide an auth token:
+
+   ```bash
+   SANITY_AUTH_TOKEN=<token> sanity schema deploy
    ```
 
    > [!NOTE]
-   > Schema deployment requires both the latest CLI version and the SANITY_CLI_SCHEMA_STORE_ENABLED flag. This feature will be enabled by default in a future release.
+   > Schema deployment requires Sanity CLI version 3.88.1 or newer.
 
 2. **Get your API credentials**
    - Project ID
@@ -162,8 +168,7 @@ The server takes the following environment variables:
 | `SANITY_API_HOST`   | API host (defaults to https://api.sanity.io)       | ❌       |
 | `MCP_USER_ROLE`     | Determines tool access level (developer or editor) | ❌       |
 
-> [!WARNING]  
-> **Using AI with Production Datasets**  
+> [!WARNING] > **Using AI with Production Datasets**
 > When configuring the MCP server with a token that has write access to a production dataset, please be aware that the AI can perform destructive actions like creating, updating, or deleting content. This is not a concern if you're using a read-only token. While we are actively developing guardrails, you should exercise caution and consider using a development/staging dataset for testing AI operations that require write access.
 
 ### 🔑 API Tokens and Permissions

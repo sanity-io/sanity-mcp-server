@@ -65,3 +65,5 @@ export interface Release {
   finalDocumentStates: Array<{id: string; _key?: string}> | null
   userId: string
 }
+
+export type SchemaId = `_.schemas.${string}`

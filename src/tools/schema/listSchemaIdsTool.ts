@@ -5,16 +5,16 @@ import {
   createErrorResponse,
   withErrorHandling,
 } from '../../utils/response.js'
-import {SCHEMA_DEPLOYMENT_INSTRUCTIONS} from './common.js'
+import {SCHEMA_DEPLOYMENT_INSTRUCTIONS, SCHEMA_TYPE} from './common.js'
 
 export const ListSchemaIdsToolParams = z.object({})
 
 type Params = z.infer<typeof ListSchemaIdsToolParams>
 
 async function tool(_params?: Params) {
-  const schemas = await sanityClient.fetch<{_id: string}[]>(
-    '*[_type == "sanity.workspace.schema"]{ _id }',
-  )
+  const schemas = await sanityClient.fetch<{_id: string}[]>('*[_type == $schemaType]{ _id }', {
+    schemaType: SCHEMA_TYPE,
+  })
 
   if (!schemas || schemas.length === 0) {
     return createErrorResponse(SCHEMA_DEPLOYMENT_INSTRUCTIONS)
