@@ -28,9 +28,10 @@ type Params = z.infer<typeof GetSchemaToolParams>
 
 async function tool(params: Params) {
   const schemaId = params.schemaId ?? DEFAULT_SCHEMA_ID
-  const schemaDoc = await sanityClient.fetch('*[_id == $schemaId][0]', {
-    schemaId,
-  })
+  const schemaDoc = await sanityClient.fetch(
+    '*[_id == $schemaId && _type == "sanity.workspace.schema"][0]',
+    {schemaId},
+  )
 
   if (!schemaDoc?.schema) {
     return createErrorResponse(SCHEMA_DEPLOYMENT_INSTRUCTIONS)

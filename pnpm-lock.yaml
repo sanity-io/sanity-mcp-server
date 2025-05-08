@@ -12,8 +12,8 @@ importers:
         specifier: ^1.7.0
         version: 1.8.0
       '@sanity/client':
-        specifier: 6.29.1-agent-actions.2
-        version: 6.29.1-agent-actions.2
+        specifier: 7.1.0
+        version: 7.1.0
       '@sanity/id-utils':
         specifier: ^1.0.0
         version: 1.0.0
@@ -148,9 +148,9 @@ packages:
     resolution: {integrity: sha512-fdDH1LSGfZdTH2sxdpVMw31BanV28K/Gry0cVFxaNP77neJSkd82mM8ErPNYs9e+0O7SdHBLTDzDgwUuy18RnQ==}
     engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
 
-  '@sanity/client@6.29.1-agent-actions.2':
-    resolution: {integrity: sha512-tjYylnrs/s6UdHdLJM8OESC4w8Y5RiCECNiKSCggNvxwg29Qe7ifKluT/K7QcSWhv52MzfrbJtr0eA9NictBLA==}
-    engines: {node: '>=14.18'}
+  '@sanity/client@7.1.0':
+    resolution: {integrity: sha512-AQ9NV2iXSGKlWFywxT1bnLKUfyq6GnZvY0KJLZiob/12faOoWHXYOF/m1qevpahXaw0le2ytUfCbvwZMYZfH4g==}
+    engines: {node: '>=20'}
 
   '@sanity/eventsource@5.0.2':
     resolution: {integrity: sha512-/B9PMkUvAlUrpRq0y+NzXgRv5lYCLxZNsBJD2WXVnqZYOfByL9oQBV7KiTaARuObp5hcQYuPfOAVjgXe3hrixA==}
@@ -1226,7 +1226,7 @@ snapshots:
 
   '@pkgr/core@0.1.2': {}
 
-  '@sanity/client@6.29.1-agent-actions.2':
+  '@sanity/client@7.1.0':
     dependencies:
       '@sanity/eventsource': 5.0.2
       get-it: 8.6.7
