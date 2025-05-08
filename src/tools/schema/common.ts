@@ -1,9 +1,10 @@
 import {outdent} from 'outdent'
 import {z} from 'zod'
+import type {SchemaId} from '../../types/sanity.js'
 
 export const SCHEMA_TYPE = 'system.schema'
 
-export const DEFAULT_SCHEMA_ID = '_.schemas.default'
+export const DEFAULT_SCHEMA_ID: SchemaId = '_.schemas.default'
 
 export const SCHEMA_DEPLOYMENT_INSTRUCTIONS = outdent`
   Your Sanity schema has not been deployed. In your Sanity project, run the following command:
