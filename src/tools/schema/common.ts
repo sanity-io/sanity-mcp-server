@@ -1,7 +1,9 @@
 import {outdent} from 'outdent'
 import {z} from 'zod'
 
-export const DEFAULT_SCHEMA_ID = 'sanity.workspace.schemas.default'
+export const SCHEMA_TYPE = 'system.schema'
+
+export const DEFAULT_SCHEMA_ID = '_.schemas.default'
 
 export const SCHEMA_DEPLOYMENT_INSTRUCTIONS = outdent`
   Your Sanity schema has not been deployed. In your Sanity project, run the following command:
@@ -12,6 +14,7 @@ export const SCHEMA_DEPLOYMENT_INSTRUCTIONS = outdent`
 
 export const schemaIdSchema = z
   .string()
+  .regex(/^_\.schemas\..+$/, 'Schema ID must be in the format of `_.schemas.${string}`')
   .optional()
   .default(DEFAULT_SCHEMA_ID)
   .describe(
