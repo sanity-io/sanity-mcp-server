@@ -3,6 +3,8 @@ import {queryDocumentsTool, QueryDocumentsToolParams} from './queryDocumentsTool
 import {createDocumentTool, CreateDocumentToolParams} from './createDocumentTool.js'
 import {updateDocumentTool, UpdateDocumentToolParams} from './updateDocumentTool.js'
 import {patchDocumentTool, PatchDocumentToolParams} from './patchDocumentTool.js'
+import {transformDocumentTool, TransformDocumentToolParams} from './transformDocumentTool.js'
+import {translateDocumentTool, TranslateDocumentToolParams} from './translateDocumentTool.js'
 import {documentActionsTool, DocumentActionsToolParams} from './documentActionsTool.js'
 import {createVersionTool, CreateVersionToolParams} from './createVersionTool.js'
 import {discardVersionTool, DiscardVersionToolParams} from './discardVersionTool.js'
@@ -32,6 +34,20 @@ export function registerDocumentsTools(server: McpServer) {
     'Apply direct patch operations to modify specific parts of a document without using AI generation',
     PatchDocumentToolParams.shape,
     patchDocumentTool,
+  )
+  
+  server.tool(
+    'transform_document',
+    'Transform document content while preserving formatting and structure, ideal for text replacements, style corrections and other content transformations. Unlike "update_document", it maintains the original formatting, annotations, and inline blocks.',
+    TransformDocumentToolParams.shape,
+    transformDocumentTool,
+  )
+
+  server.tool(
+    'translate_document',
+    'Translate document content to another language while preserving formatting and structure. Supports both document-level and field-level translation, with options for style guides and protected phrases. Use instead of "update_document" for translation use cases.',
+    TranslateDocumentToolParams.shape,
+    translateDocumentTool,
   )
 
   server.tool(
