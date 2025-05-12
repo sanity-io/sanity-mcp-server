@@ -16,7 +16,7 @@ export const UpdateDocumentToolParams = z
       .array(z.string())
       .optional()
       .describe(
-        'Target field paths for the instruction. Specifies fields to update. Should always be set if you want to update specific fields. If not set, targets the whole document. ie: ["field", "array[_key==\"key\"]"]',
+        'Target field paths for the instruction. Specifies fields to update. Should always be set if you want to update specific fields. If not set, targets the whole document. ie: ["field", "array[_key==\"key\"]"] where "key" is a json match',
       ),
     releaseId: z
       .string()

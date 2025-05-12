@@ -36,7 +36,7 @@ export const TranslateDocumentToolParams = z
       .array(z.string())
       .optional()
       .describe(
-        'Optional target field paths for the translation. If not set, translates the whole document. ie: ["field", "array[_key==\"key\"]"]',
+        'Target field paths for the translation. Specifies fields to translate. Should always be set if you want to translate specific fields. If not set, targets the whole document. ie: ["field", "array[_key==\"key\"]"] where "key" is a json match',
       ),
     protectedPhrases: z
       .array(z.string())
@@ -67,6 +67,8 @@ async function tool(params: Params) {
     // Default to creating a new document unless specifically specified
     targetDocument: params.targetDocument || {operation: 'create'},
 
+    languageFieldPath: sourceDocument.language ? ['language'] : undefined,
+    fromLanguage: sourceDocument.language,
     toLanguage: params.language,
     schemaId: params.schemaId,
 
