@@ -1,26 +1,30 @@
 import {z} from 'zod'
-import {sanityClient} from '../../config/sanity.js'
 import {parseDateString} from '../../utils/dates.js'
-import {
-  createSuccessResponse,
-  createErrorResponse,
-  withErrorHandling,
-} from '../../utils/response.js'
+import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {ReleaseSchemas} from './common.js'
+import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
 
-export const ScheduleReleaseToolParams = z.object({
-  releaseId: ReleaseSchemas.releaseId,
-  publishAt: ReleaseSchemas.publishDate,
-})
+export const ScheduleReleaseToolParams = z
+  .object({
+    releaseId: ReleaseSchemas.releaseId,
+    publishAt: ReleaseSchemas.publishDate,
+  })
+  .merge(BaseToolSchema)
 
 type Params = z.infer<typeof ScheduleReleaseToolParams>
 
 async function tool(params: Params) {
   const {releaseId, publishAt} = params
   const parsedPublishAt = parseDateString(publishAt)
+  const client = createToolClient(params)
+  const dataset = client.config().dataset
 
-  const response = await sanityClient.request({
-    uri: `/data/actions/${sanityClient.config().dataset}`,
+  if (!dataset) {
+    throw new Error('A dataset resrouce is required')
+  }
+
+  const response = await client.request({
+    uri: `/data/actions/${dataset}`,
     method: 'POST',
     body: {
       actions: [
@@ -34,7 +38,7 @@ async function tool(params: Params) {
   })
 
   if (response.error) {
-    return createErrorResponse(response.error.description)
+    throw new Error(response.error.description)
   }
 
   return createSuccessResponse(

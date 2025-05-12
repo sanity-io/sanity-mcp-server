@@ -1,29 +1,28 @@
 import {z} from 'zod'
-import {sanityClient} from '../../config/sanity.js'
 import {parseDateString} from '../../utils/dates.js'
 import {generateSanityId} from '../../utils/id.js'
-import {
-  createSuccessResponse,
-  createErrorResponse,
-  withErrorHandling,
-} from '../../utils/response.js'
+import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {ReleaseSchemas} from './common.js'
+import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
 
-export const CreateReleaseToolParams = z.object({
-  title: ReleaseSchemas.title,
-  description: ReleaseSchemas.description.optional(),
-  releaseType: ReleaseSchemas.releaseType.optional(),
-  intendedPublishAt: ReleaseSchemas.publishDate.optional(),
-})
+export const CreateReleaseToolParams = z
+  .object({
+    title: ReleaseSchemas.title,
+    description: ReleaseSchemas.description.optional(),
+    releaseType: ReleaseSchemas.releaseType.optional(),
+    intendedPublishAt: ReleaseSchemas.publishDate.optional(),
+  })
+  .merge(BaseToolSchema)
 
 type Params = z.infer<typeof CreateReleaseToolParams>
 
 async function tool(params: Params) {
+  const client = createToolClient(params)
   const releaseId = generateSanityId(8, 'r')
   const intendedPublishAt = parseDateString(params.intendedPublishAt)
 
-  const response = await sanityClient.request({
-    uri: `/data/actions/${sanityClient.config().dataset}`,
+  const response = await client.request({
+    uri: `/data/actions/${client.config().dataset}`,
     method: 'POST',
     body: {
       actions: [
@@ -42,7 +41,7 @@ async function tool(params: Params) {
   })
 
   if (response.error) {
-    return createErrorResponse(response.error.description)
+    throw new Error(response.error.description)
   }
 
   return createSuccessResponse(`Created new release with ID "${releaseId}"`, {

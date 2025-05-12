@@ -1,16 +1,17 @@
 import {z} from 'zod'
-import {sanityClient} from '../../config/sanity.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import type {EmbeddingsIndex} from '../../types/sanity.js'
+import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
 
-export const ListEmbeddingsIndicesToolParams = z.object({})
+export const ListEmbeddingsIndicesToolParams = z.object({}).merge(BaseToolSchema)
 
 type Params = z.infer<typeof ListEmbeddingsIndicesToolParams>
 
-async function tool(_params?: Params) {
-  const config = sanityClient.config()
+async function tool(params: Params) {
+  const client = createToolClient(params)
+  const config = client.config()
 
-  const indices = await sanityClient.request<EmbeddingsIndex[]>({
+  const indices = await client.request<EmbeddingsIndex[]>({
     uri: `/embeddings-index/${config.dataset}?projectId=${config.projectId}`,
   })
   if (!indices.length) {

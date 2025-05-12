@@ -1,23 +1,17 @@
 import {z} from 'zod'
-import {sanityClient} from '../../config/sanity.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
+import {createToolClient} from '../../utils/tools.js'
 
 export const ListProjectsToolParams = z.object({})
 
 type Params = z.infer<typeof ListProjectsToolParams>
 
-async function tool(_params?: Params) {
-  const projects = await sanityClient.projects.list()
+async function tool(params?: Params) {
+  const client = createToolClient(params)
+  const projects = await client.projects.list()
 
   if (projects.length === 0) {
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: 'No Sanity projects found for your account.',
-        },
-      ],
-    }
+    throw new Error('No Sanity projects found for your account.')
   }
 
   const projectsByOrganizations: Record<string, typeof projects> = {}

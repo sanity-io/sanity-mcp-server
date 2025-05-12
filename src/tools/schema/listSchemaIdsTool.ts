@@ -1,23 +1,20 @@
 import {z} from 'zod'
-import {sanityClient} from '../../config/sanity.js'
-import {
-  createSuccessResponse,
-  createErrorResponse,
-  withErrorHandling,
-} from '../../utils/response.js'
-import {SCHEMA_DEPLOYMENT_INSTRUCTIONS, SCHEMA_TYPE} from './common.js'
+import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
+import {SCHEMA_DEPLOYMENT_INSTRUCTIONS} from './common.js'
+import {SCHEMA_TYPE, BaseToolSchema, createToolClient} from '../../utils/tools.js'
 
-export const ListSchemaIdsToolParams = z.object({})
+export const ListSchemaIdsToolParams = z.object({}).merge(BaseToolSchema)
 
 type Params = z.infer<typeof ListSchemaIdsToolParams>
 
-async function tool(_params?: Params) {
-  const schemas = await sanityClient.fetch<{_id: string}[]>('*[_type == $schemaType]{ _id }', {
+async function tool(params: Params) {
+  const client = createToolClient(params)
+  const schemas = await client.fetch<{_id: string}[]>('*[_type == $schemaType]{ _id }', {
     schemaType: SCHEMA_TYPE,
   })
 
   if (!schemas || schemas.length === 0) {
-    return createErrorResponse(SCHEMA_DEPLOYMENT_INSTRUCTIONS)
+    throw new Error(SCHEMA_DEPLOYMENT_INSTRUCTIONS)
   }
 
   return createSuccessResponse(`Found ${schemas.length} schema IDs.`, {

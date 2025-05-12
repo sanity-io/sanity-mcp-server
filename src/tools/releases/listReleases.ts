@@ -1,18 +1,21 @@
 import {z} from 'zod'
-import {sanityClient} from '../../config/sanity.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import type {Release} from '../../types/sanity.js'
 import {ReleaseSchemas} from './common.js'
+import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
 
-export const ListReleasesToolParams = z.object({
-  state: ReleaseSchemas.state.optional().default('active'),
-})
+export const ListReleasesToolParams = z
+  .object({
+    state: ReleaseSchemas.state.optional().default('active'),
+  })
+  .merge(BaseToolSchema)
 
 type Params = z.infer<typeof ListReleasesToolParams>
 
 async function tool(params: Params) {
+  const client = createToolClient(params)
   const query = params.state !== 'all' ? 'releases::all()[state == $state]' : 'releases::all()'
-  const releases = await sanityClient.fetch<Release[]>(query, {state: params.state})
+  const releases = await client.fetch<Release[]>(query, {state: params.state})
 
   if (!releases || releases.length === 0) {
     return {

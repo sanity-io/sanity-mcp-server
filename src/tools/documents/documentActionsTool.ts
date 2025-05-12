@@ -1,40 +1,44 @@
 import {z} from 'zod'
-import {sanityClient} from '../../config/sanity.js'
-import {
-  createSuccessResponse,
-  createErrorResponse,
-  withErrorHandling,
-} from '../../utils/response.js'
+import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
+import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
 
 /* Create and update are defined as separate tools */
 export const DocumentActionTypes = z.enum(['publish', 'unpublish', 'delete'])
 
-export const DocumentActionsToolParams = z.object({
-  actionType: DocumentActionTypes.describe('Type of document action to perform'),
+export const DocumentActionsToolParams = z
+  .object({
+    actionType: DocumentActionTypes.describe('Type of document action to perform'),
 
-  // Required for all actions
-  publishedId: z.string().describe('ID of the published document (without drafts. prefix)'),
+    // Required for all actions
+    publishedId: z.string().describe('ID of the published document (without drafts. prefix)'),
 
-  // For delete actions
-  includeDrafts: z
-    .array(z.string())
-    .optional()
-    .describe('Array of draft document IDs to include in deletion'),
+    // For delete actions
+    includeDrafts: z
+      .array(z.string())
+      .optional()
+      .describe('Array of draft document IDs to include in deletion'),
 
-  // For publish actions
-  versionId: z
-    .string()
-    .optional()
-    .describe('ID of the draft document to publish (with drafts. prefix)'),
-})
+    // For publish actions
+    versionId: z
+      .string()
+      .optional()
+      .describe('ID of the draft document to publish (with drafts. prefix)'),
+  })
+  .merge(BaseToolSchema)
 
 type Params = z.infer<typeof DocumentActionsToolParams>
 
 async function tool(params: Params) {
   const {actionType, ...rest} = params
+  const client = createToolClient(params)
+  const dataset = client.config().dataset
 
-  const response = await sanityClient.request({
-    uri: `/data/actions/${sanityClient.config().dataset}`,
+  if (!dataset) {
+    throw new Error('A dataset resrouce is required')
+  }
+
+  const response = await client.request({
+    uri: `/data/actions/${dataset}`,
     method: 'POST',
     body: {
       actions: [
@@ -47,7 +51,7 @@ async function tool(params: Params) {
   })
 
   if (response.error) {
-    return createErrorResponse(response.error.description)
+    throw new Error(response.error.description)
   }
 
   const actionDescriptionMap = {

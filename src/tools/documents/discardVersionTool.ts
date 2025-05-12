@@ -1,29 +1,33 @@
 import {z} from 'zod'
-import {isVersionId, VersionId, DraftId, type DocumentId} from '@sanity/id-utils'
-import {sanityClient} from '../../config/sanity.js'
-import {
-  createSuccessResponse,
-  createErrorResponse,
-  withErrorHandling,
-} from '../../utils/response.js'
+import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
+import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {type DocumentId, DraftId, isVersionId, VersionId} from '@sanity/id-utils'
 
-export const DiscardVersionToolParams = z.object({
-  versionId: z
-    .string()
-    .describe(
-      'ID of the version document to discard (with versions.releaseId prefix or a draft ID)',
-    ),
-})
+export const DiscardVersionToolParams = z
+  .object({
+    versionId: z
+      .string()
+      .describe(
+        'ID of the version document to discard (with versions.releaseId prefix or a draft ID)',
+      ),
+  })
+  .merge(BaseToolSchema)
 
 type Params = z.infer<typeof DiscardVersionToolParams>
 
 async function tool(params: Params) {
+  const client = createToolClient(params)
   const versionId = isVersionId(params.versionId as DocumentId)
     ? VersionId(params.versionId)
     : DraftId(params.versionId)
+  const dataset = client.config().dataset
 
-  const response = await sanityClient.request({
-    uri: `/data/actions/${sanityClient.config().dataset}`,
+  if (!dataset) {
+    throw new Error('A dataset resrouce is required')
+  }
+
+  const response = await client.request({
+    uri: `/data/actions/${dataset}`,
     method: 'POST',
     body: {
       actions: [
@@ -36,7 +40,7 @@ async function tool(params: Params) {
   })
 
   if (response.error) {
-    return createErrorResponse(response.error.description)
+    throw new Error(response.error.description)
   }
 
   return createSuccessResponse(`Successfully discarded version document '${versionId}'`)

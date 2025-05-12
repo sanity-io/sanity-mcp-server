@@ -7,13 +7,19 @@ if (!env.success) {
 }
 
 const clientConfig: ClientConfig = {
-  projectId: env.data.SANITY_PROJECT_ID,
-  dataset: env.data.SANITY_DATASET,
   apiHost: env.data.SANITY_API_HOST,
   token: env.data.SANITY_API_TOKEN,
   apiVersion: 'vX', // vX until generate API ships in GA
   perspective: 'raw',
   useCdn: false,
+}
+
+if ('SANITY_PROJECT_ID' in env.data) {
+  clientConfig.projectId = env.data?.SANITY_PROJECT_ID
+}
+
+if ('SANITY_DATASET' in env.data) {
+  clientConfig.dataset = env.data?.SANITY_DATASET
 }
 
 if (env.data.INTERNAL_REQUEST_TAG_PREFIX) {

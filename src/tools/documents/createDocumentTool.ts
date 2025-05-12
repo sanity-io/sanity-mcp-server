@@ -1,32 +1,35 @@
 import {z} from 'zod'
 import {randomUUID} from 'node:crypto'
-import {sanityClient} from '../../config/sanity.js'
+import {type DocumentId, getDraftId, getVersionId} from '@sanity/id-utils'
 import {truncateDocumentForLLMOutput} from '../../utils/formatters.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
-import {type DocumentId, getDraftId, getVersionId} from '@sanity/id-utils'
+import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
 
-export const CreateDocumentToolParams = z.object({
-  _type: z.string().describe('The document type'),
-  instruction: z.string().describe('Optional instruction for AI to create the document content'),
-  schemaId: z.string().describe('Schema ID to follow'),
-  releaseId: z
-    .string()
-    .optional()
-    .describe(
-      'Optional release ID for creating versioned documents. If provided, the document will be created under the specified release version instead of as a draft',
-    ),
-  async: z
-    .boolean()
-    .optional()
-    .default(false)
-    .describe(
-      'Set to true for background processing when creating multiple documents for better performance.',
-    ),
-})
+export const CreateDocumentToolParams = z
+  .object({
+    _type: z.string().describe('The document type'),
+    instruction: z.string().describe('Optional instruction for AI to create the document content'),
+    schemaId: z.string().describe('Schema ID to follow'),
+    releaseId: z
+      .string()
+      .optional()
+      .describe(
+        'Optional release ID for creating versioned documents. If provided, the document will be created under the specified release version instead of as a draft',
+      ),
+    async: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe(
+        'Set to true for background processing when creating multiple documents for better performance.',
+      ),
+  })
+  .merge(BaseToolSchema)
 
 type Params = z.infer<typeof CreateDocumentToolParams>
 
 async function tool(params: Params) {
+  const client = createToolClient(params)
   const publishedId = randomUUID() as DocumentId
   const documentId = params.releaseId
     ? getVersionId(publishedId, params.releaseId)
@@ -43,7 +46,7 @@ async function tool(params: Params) {
   } as const
 
   if (params.async === true) {
-    await sanityClient.agent.action.generate({
+    await client.agent.action.generate({
       ...generateOptions,
       async: true,
     })
@@ -54,7 +57,7 @@ async function tool(params: Params) {
     })
   }
 
-  const createdDocument = await sanityClient.agent.action.generate(generateOptions)
+  const createdDocument = await client.agent.action.generate(generateOptions)
 
   return createSuccessResponse('Document created successfully', {
     success: true,

@@ -1,19 +1,22 @@
 import {z} from 'zod'
-import {sanityClient} from '../../config/sanity.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import type {SanityApplication} from '../../types/sanity.js'
+import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
 
-export const GetProjectStudiosToolParams = z.object({
-  projectId: z.string().describe('Project id for the sanity project'),
-})
+export const GetProjectStudiosToolParams = z.object({}).merge(BaseToolSchema)
 
 type Params = z.infer<typeof GetProjectStudiosToolParams>
 
 async function tool(args: Params) {
-  const projectId = args.projectId
+  const client = createToolClient(args)
+  const projectId = client.config().projectId
 
-  const applications = await sanityClient.request<SanityApplication[]>({
-    uri: `/v2024-08-01/projects/${projectId}/user-applications`,
+  if (!projectId) {
+    throw new Error('A dataset resrouce is required')
+  }
+
+  const applications = await client.request<SanityApplication[]>({
+    uri: `/projects/${projectId}/user-applications`,
   })
 
   const studios = applications.filter((app) => app.type === 'studio')

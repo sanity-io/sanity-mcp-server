@@ -1,13 +1,8 @@
 import type {TransformDocument} from '@sanity/client'
 import {z} from 'zod'
-import {sanityClient} from '../../config/sanity.js'
 import {truncateDocumentForLLMOutput} from '../../utils/formatters.js'
-import {
-  createSuccessResponse,
-  createErrorResponse,
-  withErrorHandling,
-} from '../../utils/response.js'
-import {schemaIdSchema} from '../schema/common.js'
+import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
+import {SchemaIdSchema, BaseToolSchema, createToolClient} from '../../utils/tools.js'
 import {stringToPath} from '../../utils/path.js'
 
 const EditTargetSchema = z.object({
@@ -37,41 +32,44 @@ const TargetDocumentSchema = z.discriminatedUnion('operation', [
   CreateOrReplaceTargetSchema,
 ])
 
-export const TransformDocumentToolParams = z.object({
-  documentId: z.string().describe('The ID of the source document to transform'),
-  instruction: z.string().describe('Instructions for transforming the document content'),
-  schemaId: schemaIdSchema,
-  paths: z
-    .array(z.string())
-    .optional()
-    .describe(
-      'Optional target field paths for the transformation. If not set, transforms the whole document.',
+export const TransformDocumentToolParams = z
+  .object({
+    documentId: z.string().describe('The ID of the source document to transform'),
+    instruction: z.string().describe('Instructions for transforming the document content'),
+    schemaId: SchemaIdSchema,
+    paths: z
+      .array(z.string())
+      .optional()
+      .describe(
+        'Optional target field paths for the transformation. If not set, transforms the whole document.',
+      ),
+    targetDocument: TargetDocumentSchema.optional().describe(
+      'Optional target document configuration if you want to transform to a different document',
     ),
-  targetDocument: TargetDocumentSchema.optional().describe(
-    'Optional target document configuration if you want to transform to a different document',
-  ),
-  async: z
-    .boolean()
-    .optional()
-    .default(false)
-    .describe(
-      'Set to true for background processing when transforming multiple documents for better performance.',
-    ),
-  instructionParams: z
-    .record(z.any())
-    .optional()
-    .describe(
-      'Dynamic parameters that can be referenced in the instruction using $paramName syntax',
-    ),
-})
+    async: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe(
+        'Set to true for background processing when transforming multiple documents for better performance.',
+      ),
+    instructionParams: z
+      .record(z.any())
+      .optional()
+      .describe(
+        'Dynamic parameters that can be referenced in the instruction using $paramName syntax',
+      ),
+  })
+  .merge(BaseToolSchema)
 
 type Params = z.infer<typeof TransformDocumentToolParams>
 
 async function tool(params: Params) {
+  const client = createToolClient(params)
   // First check if source document exists
-  const sourceDocument = await sanityClient.getDocument(params.documentId)
+  const sourceDocument = await client.getDocument(params.documentId)
   if (!sourceDocument) {
-    return createErrorResponse(`Source document with ID '${params.documentId}' not found`)
+    throw new Error(`Source document with ID '${params.documentId}' not found`)
   }
 
   const transformOptions: TransformDocument = {
@@ -84,7 +82,7 @@ async function tool(params: Params) {
   }
 
   if (params.async === true) {
-    await sanityClient.agent.action.transform({
+    await client.agent.action.transform({
       ...transformOptions,
       async: true,
     })
@@ -95,7 +93,7 @@ async function tool(params: Params) {
     })
   }
 
-  const transformedDocument = await sanityClient.agent.action.transform(transformOptions)
+  const transformedDocument = await client.agent.action.transform(transformOptions)
 
   return createSuccessResponse('Document transformed successfully', {
     success: true,

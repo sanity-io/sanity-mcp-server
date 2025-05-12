@@ -1,14 +1,14 @@
 import {z} from 'zod'
 import {outdent} from 'outdent'
-import {getSanityConfigTool} from './getSanityConfigTool.js'
 import {listDatasetsTool} from '../datasets/listDatasets.js'
 import {listEmbeddingsIndicesTool} from '../embeddings/listEmbeddingsTool.js'
 import {listReleasesTool} from '../releases/listReleases.js'
 import {contextStore} from './store.js'
 import {withErrorHandling} from '../../utils/response.js'
 import {MCP_INSTRUCTIONS} from './instructions.js'
+import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
 
-export const GetInitialContextToolParams = z.object({})
+export const GetInitialContextToolParams = z.object({}).merge(BaseToolSchema)
 
 type Params = z.infer<typeof GetInitialContextToolParams>
 
@@ -16,12 +16,20 @@ export function hasInitialContext(): boolean {
   return contextStore.hasInitialContext()
 }
 
-async function tool(_params: Params) {
-  const [config, datasets, embeddings, releases] = await Promise.all([
-    getSanityConfigTool({}),
-    listDatasetsTool({}),
-    listEmbeddingsIndicesTool({}),
-    listReleasesTool({state: 'active'}),
+async function tool(params: Params) {
+  const client = createToolClient(params)
+  const config = client.config()
+  const configInfo = `Current Sanity Configuration:
+  - Project ID: ${config.projectId}
+  - Dataset: ${config.dataset}
+  - API Version: ${config.apiVersion}
+  - Using CDN: ${config.useCdn}
+  - Perspective: ${config.perspective || 'default'}`
+
+  const [datasets, embeddings, releases] = await Promise.all([
+    listDatasetsTool({resource: params?.resource}),
+    listEmbeddingsIndicesTool({resource: params?.resource}),
+    listReleasesTool({state: 'active', resource: params?.resource}),
   ])
 
   const todaysDate = new Date().toLocaleDateString('en-US')
@@ -32,7 +40,7 @@ async function tool(_params: Params) {
     This is the initial context for your Sanity instance:
 
     <context>
-      ${config.content[0].text}
+      ${configInfo}
       ${datasets.content[0].text}
       ${embeddings.content[0].text}
       ${releases.content[0].text}

@@ -1,25 +1,29 @@
 import {z} from 'zod'
-import {sanityClient} from '../../config/sanity.js'
-import {
-  createSuccessResponse,
-  createErrorResponse,
-  withErrorHandling,
-} from '../../utils/response.js'
+import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {type DocumentId, getPublishedId, getVersionId} from '@sanity/id-utils'
+import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
 
-export const MarkVersionForUnpublishParams = z.object({
-  documentId: z.string().describe('ID of the document to mark for unpublishing'),
-  releaseId: z.string().describe('ID of the release to associate with this unpublish action'),
-})
+export const MarkVersionForUnpublishParams = z
+  .object({
+    documentId: z.string().describe('ID of the document to mark for unpublishing'),
+    releaseId: z.string().describe('ID of the release to associate with this unpublish action'),
+  })
+  .merge(BaseToolSchema)
 
 type Params = z.infer<typeof MarkVersionForUnpublishParams>
 
 async function tool(params: Params) {
+  const client = createToolClient(params)
   const publishedId = getPublishedId(params.documentId as DocumentId)
   const versionId = getVersionId(publishedId, params.releaseId)
+  const dataset = client.config().dataset
 
-  const response = await sanityClient.request({
-    uri: `/data/actions/${sanityClient.config().dataset}`,
+  if (!dataset) {
+    throw new Error('A dataset resrouce is required')
+  }
+
+  const response = await client.request({
+    uri: `/data/actions/${dataset}`,
     method: 'POST',
     body: {
       actions: [
@@ -33,7 +37,7 @@ async function tool(params: Params) {
   })
 
   if (response.error) {
-    return createErrorResponse(response.error.description)
+    throw new Error(response.error.description)
   }
 
   return createSuccessResponse(

@@ -1,6 +1,6 @@
 import {z} from 'zod'
 import {outdent} from 'outdent'
-import {withErrorHandling} from '../../utils/response.js'
+import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 
 const SPECIFICATION = outdent`# GROQ Specification Guide
 
@@ -179,14 +179,7 @@ export const GetGroqSpecificationToolParams = z.object({})
 type Params = z.infer<typeof GetGroqSpecificationToolParams>
 
 async function tool(_params?: Params) {
-  return {
-    content: [
-      {
-        type: 'text' as const,
-        text: SPECIFICATION,
-      },
-    ],
-  }
+  return createSuccessResponse(SPECIFICATION)
 }
 
 export const getGroqSpecificationTool = withErrorHandling(

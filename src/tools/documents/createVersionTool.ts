@@ -1,43 +1,40 @@
 import {z} from 'zod'
-import {sanityClient} from '../../config/sanity.js'
 import {truncateDocumentForLLMOutput} from '../../utils/formatters.js'
-import {
-  createSuccessResponse,
-  createErrorResponse,
-  withErrorHandling,
-} from '../../utils/response.js'
+import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {type DocumentId, getDraftId, getPublishedId, getVersionId} from '@sanity/id-utils'
-import {schemaIdSchema} from '../schema/common.js'
+import {SchemaIdSchema, BaseToolSchema, createToolClient} from '../../utils/tools.js'
 
-export const CreateVersionToolParams = z.object({
-  documentId: z.string().describe('ID of the document to create a version for'),
-  releaseId: z.string().describe('ID of the release to associate this version with'),
-  instruction: z
-    .string()
-    .optional()
-    .describe('Optional instruction for AI to modify the document while creating the version'),
-  schemaId: schemaIdSchema,
-})
+export const CreateVersionToolParams = z
+  .object({
+    documentId: z.string().describe('ID of the document to create a version for'),
+    releaseId: z.string().describe('ID of the release to associate this version with'),
+    instruction: z
+      .string()
+      .optional()
+      .describe('Optional instruction for AI to modify the document while creating the version'),
+    schemaId: SchemaIdSchema,
+  })
+  .merge(BaseToolSchema)
 
 type Params = z.infer<typeof CreateVersionToolParams>
 
 async function tool(params: Params) {
+  const client = createToolClient(params)
   const publishedId = getPublishedId(params.documentId as DocumentId)
   const versionId = getVersionId(publishedId, params.releaseId)
 
   const [requestedDoc, draftDoc] = await Promise.all([
-    sanityClient.getDocument(params.documentId).catch(() => null),
-    sanityClient.getDocument(getDraftId(publishedId)).catch(() => null),
+    client.getDocument(params.documentId).catch(() => null),
+    client.getDocument(getDraftId(publishedId)).catch(() => null),
   ])
 
   const originalDocument = requestedDoc || draftDoc
-
   if (!originalDocument) {
-    return createErrorResponse(`Document with ID '${params.documentId}' not found`)
+    throw new Error(`Document with ID '${params.documentId}' not found`)
   }
 
-  let newDocument = await sanityClient.request({
-    uri: `/data/actions/${sanityClient.config().dataset}`,
+  let newDocument = await client.request({
+    uri: `/data/actions/${client.config().dataset}`,
     method: 'POST',
     body: {
       actions: [
@@ -54,7 +51,7 @@ async function tool(params: Params) {
   })
 
   if (params.instruction && params.schemaId) {
-    newDocument = await sanityClient.agent.action.generate({
+    newDocument = await client.agent.action.generate({
       documentId: versionId,
       schemaId: params.schemaId,
       instruction: params.instruction,

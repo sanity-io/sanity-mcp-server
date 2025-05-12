@@ -1,11 +1,7 @@
 import {z} from 'zod'
-import {sanityClient} from '../../config/sanity.js'
-import {
-  createSuccessResponse,
-  createErrorResponse,
-  withErrorHandling,
-} from '../../utils/response.js'
+import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {ReleaseSchemas} from './common.js'
+import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
 
 /* Create, edit and schedule are defined as separate tools */
 export const ReleaseActionTypes = z.enum([
@@ -16,18 +12,26 @@ export const ReleaseActionTypes = z.enum([
   'delete',
 ])
 
-export const ReleaseActionsToolParams = z.object({
-  actionType: ReleaseActionTypes.describe('Type of release action to perform'),
-  releaseId: ReleaseSchemas.releaseId,
-})
+export const ReleaseActionsToolParams = z
+  .object({
+    actionType: ReleaseActionTypes.describe('Type of release action to perform'),
+    releaseId: ReleaseSchemas.releaseId,
+  })
+  .merge(BaseToolSchema)
 
 type Params = z.infer<typeof ReleaseActionsToolParams>
 
 async function tool(params: Params) {
   const {actionType, releaseId} = params
+  const client = createToolClient(params)
+  const dataset = client.config().dataset
 
-  const response = await sanityClient.request({
-    uri: `/data/actions/${sanityClient.config().dataset}`,
+  if (!dataset) {
+    throw new Error('A dataset resrouce is required')
+  }
+
+  const response = await client.request({
+    uri: `/data/actions/${dataset}`,
     method: 'POST',
     body: {
       actions: [
@@ -40,7 +44,7 @@ async function tool(params: Params) {
   })
 
   if (response.error) {
-    return createErrorResponse(response.error.description)
+    throw new Error(response.error.description)
   }
 
   const actionDescriptionMap = {
