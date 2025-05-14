@@ -8,17 +8,12 @@ import {resolveSchemaId} from '../../utils/resolvers.js'
 
 export const GetSchemaToolParams = z
   .object({
+    workspaceName: WorkspaceNameSchema,
     type: z
       .string()
       .optional()
-      .describe('Optional: Specific type name to fetch. If not provided, returns the full schema'),
-    workspaceName: WorkspaceNameSchema,
-    lite: z
-      .boolean()
-      .optional()
-      .default(false)
       .describe(
-        'Get a simplified version of the schema without field details. Useful for quick overviews.',
+        'Optional: Specific type name to fetch. If not provided, returns the full schema without detailed field definitions. Full field definitions are only available when requesting a specific type.',
       ),
   })
   .merge(BaseToolSchema)
@@ -43,8 +38,8 @@ async function tool(params: Params) {
     }
     schema = typeSchema
   }
-
-  return createSuccessResponse(formatSchema(schema, schemaId, {lite: params.lite}))
+  const lite = Boolean(params.type) // Skip full field definitions if no type specified to avoid blowing up the context window
+  return createSuccessResponse(formatSchema(schema, schemaId, {lite}))
 }
 
 export const getSchemaTool = withErrorHandling(tool, 'Error fetching schema overview')

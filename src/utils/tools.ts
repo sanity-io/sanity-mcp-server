@@ -10,7 +10,6 @@ import {getDefaultClientConfig} from '../config/sanity.js'
  */
 export const WorkspaceNameSchema = z
   .string()
-  .optional()
   .describe(
     'Workspace name derived from the manifest, not document type. Derived from context or listSchemaWorkspacesTool',
   )
@@ -20,11 +19,11 @@ export const WorkspaceNameSchema = z
  */
 const DatasetBaseToolSchema = z
   .object({
-    target: z.literal('dataset').describe('Target identifier for dataset resources'),
+    target: z.literal('dataset').describe('Used when targeting studio resources'),
     projectId: z.string().describe('Unique identifier for the project'),
     dataset: z.string().describe('Name or identifier of the dataset'),
   })
-  .describe('Represents a dataset resource with its associated project and dataset identifiers')
+  .describe('Represents a studio resource with its associated project and dataset identifiers')
 
 const ResourceSchema = z
   .discriminatedUnion('target', [DatasetBaseToolSchema])
