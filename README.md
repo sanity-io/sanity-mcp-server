@@ -114,6 +114,8 @@ You don't get it to work? See the section on [Node.js configuration](#-nodejs-en
 - **create_document** – Create a new document with AI-generated content based on instructions
 - **update_document** – Update an existing document with AI-generated content based on instructions
 - **patch_document** - Apply direct patch operations to modify specific parts of a document without using AI generation
+- **transform_document** – Transform document content while preserving formatting and structure, ideal for text replacements and style corrections
+- **translate_document** – Translate document content to another language while preserving formatting and structure
 - **query_documents** – Execute GROQ queries to search for and retrieve content
 - **document_action** – Perform document actions like publishing, unpublishing, or deleting documents
 
@@ -140,7 +142,7 @@ You don't get it to work? See the section on [Node.js configuration](#-nodejs-en
 ### Schema Information <!-- omit in toc -->
 
 - **get_schema** – Get schema details, either full schema or for a specific type
-- **list_schema_ids** – List all available schema IDs
+- **list_workspace_schemas** – Get a list of all available workspace schema names
 
 ### GROQ Support <!-- omit in toc -->
 

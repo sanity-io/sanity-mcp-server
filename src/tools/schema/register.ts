@@ -11,7 +11,7 @@ export function registerSchemaTools(server: McpServer) {
   )
 
   server.tool(
-    'list_schema_ids',
+    'list_workspace_schemas',
     'Get a list of all available workspace schema names',
     ListWorkspaceSchemasTool.shape,
     listWorkspaceSchemasTool,
