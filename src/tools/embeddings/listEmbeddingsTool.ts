@@ -1,9 +1,9 @@
-import {z} from 'zod'
+import type {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import type {EmbeddingsIndex} from '../../types/sanity.js'
 import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
 
-export const ListEmbeddingsIndicesToolParams = z.object({}).merge(BaseToolSchema)
+export const ListEmbeddingsIndicesToolParams = BaseToolSchema.extend({})
 
 type Params = z.infer<typeof ListEmbeddingsIndicesToolParams>
 

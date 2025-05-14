@@ -1,4 +1,4 @@
-import {z} from 'zod'
+import type {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {SCHEMA_DEPLOYMENT_INSTRUCTIONS} from './common.js'
 import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
@@ -9,7 +9,7 @@ export const SCHEMA_TYPE = 'system.schema'
 export const SCHEMA_ID_PREFIX: SchemaId = '_.schemas.'
 export const DEFAULT_SCHEMA_ID: SchemaId = `${SCHEMA_ID_PREFIX}.default`
 
-export const ListWorkspaceSchemasTool = z.object({}).merge(BaseToolSchema)
+export const ListWorkspaceSchemasTool = BaseToolSchema.extend({})
 
 type Params = z.infer<typeof ListWorkspaceSchemasTool>
 

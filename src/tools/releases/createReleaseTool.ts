@@ -1,18 +1,16 @@
-import {z} from 'zod'
+import type {z} from 'zod'
 import {parseDateString} from '../../utils/dates.js'
 import {generateSanityId} from '../../utils/id.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {ReleaseSchemas} from './common.js'
 import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
 
-export const CreateReleaseToolParams = z
-  .object({
-    title: ReleaseSchemas.title,
-    description: ReleaseSchemas.description.optional(),
-    releaseType: ReleaseSchemas.releaseType.optional(),
-    intendedPublishAt: ReleaseSchemas.publishDate.optional(),
-  })
-  .merge(BaseToolSchema)
+export const CreateReleaseToolParams = BaseToolSchema.extend({
+  title: ReleaseSchemas.title,
+  description: ReleaseSchemas.description.optional(),
+  releaseType: ReleaseSchemas.releaseType.optional(),
+  intendedPublishAt: ReleaseSchemas.publishDate.optional(),
+})
 
 type Params = z.infer<typeof CreateReleaseToolParams>
 

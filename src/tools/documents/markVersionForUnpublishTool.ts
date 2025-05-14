@@ -3,12 +3,10 @@ import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {type DocumentId, getPublishedId, getVersionId} from '@sanity/id-utils'
 import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
 
-export const MarkVersionForUnpublishParams = z
-  .object({
-    documentId: z.string().describe('ID of the document to mark for unpublishing'),
-    releaseId: z.string().describe('ID of the release to associate with this unpublish action'),
-  })
-  .merge(BaseToolSchema)
+export const MarkVersionForUnpublishParams = BaseToolSchema.extend({
+  documentId: z.string().describe('ID of the document to mark for unpublishing'),
+  releaseId: z.string().describe('ID of the release to associate with this unpublish action'),
+})
 
 type Params = z.infer<typeof MarkVersionForUnpublishParams>
 

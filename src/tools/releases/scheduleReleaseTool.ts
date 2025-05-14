@@ -1,15 +1,13 @@
-import {z} from 'zod'
+import type {z} from 'zod'
 import {parseDateString} from '../../utils/dates.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {ReleaseSchemas} from './common.js'
 import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
 
-export const ScheduleReleaseToolParams = z
-  .object({
-    releaseId: ReleaseSchemas.releaseId,
-    publishAt: ReleaseSchemas.publishDate,
-  })
-  .merge(BaseToolSchema)
+export const ScheduleReleaseToolParams = BaseToolSchema.extend({
+  releaseId: ReleaseSchemas.releaseId,
+  publishAt: ReleaseSchemas.publishDate,
+})
 
 type Params = z.infer<typeof ScheduleReleaseToolParams>
 

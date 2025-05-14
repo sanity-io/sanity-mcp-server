@@ -5,17 +5,15 @@ import {type DocumentId, getDraftId, getPublishedId, getVersionId} from '@sanity
 import {BaseToolSchema, createToolClient, WorkspaceNameSchema} from '../../utils/tools.js'
 import {resolveSchemaId} from '../../utils/resolvers.js'
 
-export const CreateVersionToolParams = z
-  .object({
-    documentId: z.string().describe('ID of the document to create a version for'),
-    releaseId: z.string().describe('ID of the release to associate this version with'),
-    instruction: z
-      .string()
-      .optional()
-      .describe('Optional instruction for AI to modify the document while creating the version'),
-    workspaceName: WorkspaceNameSchema,
-  })
-  .merge(BaseToolSchema)
+export const CreateVersionToolParams = BaseToolSchema.extend({
+  documentId: z.string().describe('ID of the document to create a version for'),
+  releaseId: z.string().describe('ID of the release to associate this version with'),
+  instruction: z
+    .string()
+    .optional()
+    .describe('Optional instruction for AI to modify the document while creating the version'),
+  workspaceName: WorkspaceNameSchema,
+})
 
 type Params = z.infer<typeof CreateVersionToolParams>
 

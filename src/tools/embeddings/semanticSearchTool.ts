@@ -3,12 +3,10 @@ import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import type {EmbeddingsQueryResultItem} from '../../types/sanity.js'
 import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
 
-export const SemanticSearchToolParams = z
-  .object({
-    indexName: z.string().describe('The name of the embeddings index to search'),
-    query: z.string().describe('The search query to find semantically similar content'),
-  })
-  .merge(BaseToolSchema)
+export const SemanticSearchToolParams = BaseToolSchema.extend({
+  indexName: z.string().describe('The name of the embeddings index to search'),
+  query: z.string().describe('The search query to find semantically similar content'),
+})
 
 type Params = z.infer<typeof SemanticSearchToolParams>
 

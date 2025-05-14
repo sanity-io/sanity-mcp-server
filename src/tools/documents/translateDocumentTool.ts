@@ -25,33 +25,31 @@ const TargetDocumentSchema = z.discriminatedUnion('operation', [
   CreateTargetSchema,
 ])
 
-export const TranslateDocumentToolParams = z
-  .object({
-    sourceDocument: z.string().describe('The ID of the source document to translate'),
-    targetDocument: TargetDocumentSchema.optional().describe(
-      'Optional target document configuration if you want to translate to a different document',
+export const TranslateDocumentToolParams = BaseToolSchema.extend({
+  sourceDocument: z.string().describe('The ID of the source document to translate'),
+  targetDocument: TargetDocumentSchema.optional().describe(
+    'Optional target document configuration if you want to translate to a different document',
+  ),
+  language: LanguageSchema.describe('Target language to translate to'),
+  workspaceName: WorkspaceNameSchema,
+  paths: z
+    .array(z.string())
+    .optional()
+    .describe(
+      'Target field paths for the translation. Specifies fields to translate. Should always be set if you want to translate specific fields. If not set, targets the whole document. ie: ["field", "array[_key==\"key\"]"] where "key" is a json match',
     ),
-    language: LanguageSchema.describe('Target language to translate to'),
-    workspaceName: WorkspaceNameSchema,
-    paths: z
-      .array(z.string())
-      .optional()
-      .describe(
-        'Target field paths for the translation. Specifies fields to translate. Should always be set if you want to translate specific fields. If not set, targets the whole document. ie: ["field", "array[_key==\"key\"]"] where "key" is a json match',
-      ),
-    protectedPhrases: z
-      .array(z.string())
-      .optional()
-      .describe('List of phrases that should not be translated'),
-    async: z
-      .boolean()
-      .optional()
-      .default(false)
-      .describe(
-        'Set to true for background processing when translating multiple documents for better performance.',
-      ),
-  })
-  .merge(BaseToolSchema)
+  protectedPhrases: z
+    .array(z.string())
+    .optional()
+    .describe('List of phrases that should not be translated'),
+  async: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe(
+      'Set to true for background processing when translating multiple documents for better performance.',
+    ),
+})
 
 type Params = z.infer<typeof TranslateDocumentToolParams>
 

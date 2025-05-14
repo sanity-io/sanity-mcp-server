@@ -33,35 +33,33 @@ const TargetDocumentSchema = z.discriminatedUnion('operation', [
   CreateOrReplaceTargetSchema,
 ])
 
-export const TransformDocumentToolParams = z
-  .object({
-    documentId: z.string().describe('The ID of the source document to transform'),
-    instruction: z.string().describe('Instructions for transforming the document content'),
-    workspaceName: WorkspaceNameSchema,
-    paths: z
-      .array(z.string())
-      .optional()
-      .describe(
-        'Optional target field paths for the transformation. If not set, transforms the whole document.',
-      ),
-    targetDocument: TargetDocumentSchema.optional().describe(
-      'Optional target document configuration if you want to transform to a different document',
+export const TransformDocumentToolParams = BaseToolSchema.extend({
+  documentId: z.string().describe('The ID of the source document to transform'),
+  instruction: z.string().describe('Instructions for transforming the document content'),
+  workspaceName: WorkspaceNameSchema,
+  paths: z
+    .array(z.string())
+    .optional()
+    .describe(
+      'Optional target field paths for the transformation. If not set, transforms the whole document.',
     ),
-    async: z
-      .boolean()
-      .optional()
-      .default(false)
-      .describe(
-        'Set to true for background processing when transforming multiple documents for better performance.',
-      ),
-    instructionParams: z
-      .record(z.any())
-      .optional()
-      .describe(
-        'Dynamic parameters that can be referenced in the instruction using $paramName syntax',
-      ),
-  })
-  .merge(BaseToolSchema)
+  targetDocument: TargetDocumentSchema.optional().describe(
+    'Optional target document configuration if you want to transform to a different document',
+  ),
+  async: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe(
+      'Set to true for background processing when transforming multiple documents for better performance.',
+    ),
+  instructionParams: z
+    .record(z.any())
+    .optional()
+    .describe(
+      'Dynamic parameters that can be referenced in the instruction using $paramName syntax',
+    ),
+})
 
 type Params = z.infer<typeof TransformDocumentToolParams>
 

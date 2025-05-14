@@ -8,32 +8,30 @@ import type {GenerateInstruction} from '@sanity/client'
 import {stringToPath} from '../../utils/path.js'
 import {resolveSchemaId} from '../../utils/resolvers.js'
 
-export const UpdateDocumentToolParams = z
-  .object({
-    documentId: z.string().describe('The ID of the document to update'),
-    instruction: z.string().describe('Instruction for AI to update the document content'),
-    workspaceName: WorkspaceNameSchema,
-    paths: z
-      .array(z.string())
-      .optional()
-      .describe(
-        'Target field paths for the instruction. Specifies fields to update. Should always be set if you want to update specific fields. If not set, targets the whole document. ie: ["field", "array[_key==\"key\"]"] where "key" is a json match',
-      ),
-    releaseId: z
-      .string()
-      .optional()
-      .describe(
-        'Optional release ID for creating versioned documents. If provided, the document will be created under the specified release version instead of as a draft',
-      ),
-    async: z
-      .boolean()
-      .optional()
-      .default(false)
-      .describe(
-        'Set to true for background processing when updating multiple documents for better performance.',
-      ),
-  })
-  .merge(BaseToolSchema)
+export const UpdateDocumentToolParams = BaseToolSchema.extend({
+  documentId: z.string().describe('The ID of the document to update'),
+  instruction: z.string().describe('Instruction for AI to update the document content'),
+  workspaceName: WorkspaceNameSchema,
+  paths: z
+    .array(z.string())
+    .optional()
+    .describe(
+      'Target field paths for the instruction. Specifies fields to update. Should always be set if you want to update specific fields. If not set, targets the whole document. ie: ["field", "array[_key==\"key\"]"] where "key" is a json match',
+    ),
+  releaseId: z
+    .string()
+    .optional()
+    .describe(
+      'Optional release ID for creating versioned documents. If provided, the document will be created under the specified release version instead of as a draft',
+    ),
+  async: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe(
+      'Set to true for background processing when updating multiple documents for better performance.',
+    ),
+})
 
 type Params = z.infer<typeof UpdateDocumentToolParams>
 

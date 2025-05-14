@@ -5,26 +5,24 @@ import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
 /* Create and update are defined as separate tools */
 export const DocumentActionTypes = z.enum(['publish', 'unpublish', 'delete'])
 
-export const DocumentActionsToolParams = z
-  .object({
-    actionType: DocumentActionTypes.describe('Type of document action to perform'),
+export const DocumentActionsToolParams = BaseToolSchema.extend({
+  actionType: DocumentActionTypes.describe('Type of document action to perform'),
 
-    // Required for all actions
-    publishedId: z.string().describe('ID of the published document (without drafts. prefix)'),
+  // Required for all actions
+  publishedId: z.string().describe('ID of the published document (without drafts. prefix)'),
 
-    // For delete actions
-    includeDrafts: z
-      .array(z.string())
-      .optional()
-      .describe('Array of draft document IDs to include in deletion'),
+  // For delete actions
+  includeDrafts: z
+    .array(z.string())
+    .optional()
+    .describe('Array of draft document IDs to include in deletion'),
 
-    // For publish actions
-    versionId: z
-      .string()
-      .optional()
-      .describe('ID of the draft document to publish (with drafts. prefix)'),
-  })
-  .merge(BaseToolSchema)
+  // For publish actions
+  versionId: z
+    .string()
+    .optional()
+    .describe('ID of the draft document to publish (with drafts. prefix)'),
+})
 
 type Params = z.infer<typeof DocumentActionsToolParams>
 

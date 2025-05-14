@@ -2,14 +2,12 @@ import {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
 
-export const CreateDatasetToolParams = z
-  .object({
-    name: z
-      .string()
-      .describe('The name of the dataset (will be automatically formatted to match requirements)'),
-    aclMode: z.enum(['private', 'public']).optional().describe('The ACL mode for the dataset'),
-  })
-  .merge(BaseToolSchema)
+export const CreateDatasetToolParams = BaseToolSchema.extend({
+  name: z
+    .string()
+    .describe('The name of the dataset (will be automatically formatted to match requirements)'),
+  aclMode: z.enum(['private', 'public']).optional().describe('The ACL mode for the dataset'),
+})
 
 type Params = z.infer<typeof CreateDatasetToolParams>
 

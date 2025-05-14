@@ -5,26 +5,24 @@ import {truncateDocumentForLLMOutput} from '../../utils/formatters.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
 
-export const CreateDocumentToolParams = z
-  .object({
-    _type: z.string().describe('The document type'),
-    instruction: z.string().describe('Optional instruction for AI to create the document content'),
-    schemaId: z.string().describe('Schema ID to follow'),
-    releaseId: z
-      .string()
-      .optional()
-      .describe(
-        'Optional release ID for creating versioned documents. If provided, the document will be created under the specified release version instead of as a draft',
-      ),
-    async: z
-      .boolean()
-      .optional()
-      .default(false)
-      .describe(
-        'Set to true for background processing when creating multiple documents for better performance.',
-      ),
-  })
-  .merge(BaseToolSchema)
+export const CreateDocumentToolParams = BaseToolSchema.extend({
+  _type: z.string().describe('The document type'),
+  instruction: z.string().describe('Optional instruction for AI to create the document content'),
+  schemaId: z.string().describe('Schema ID to follow'),
+  releaseId: z
+    .string()
+    .optional()
+    .describe(
+      'Optional release ID for creating versioned documents. If provided, the document will be created under the specified release version instead of as a draft',
+    ),
+  async: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe(
+      'Set to true for background processing when creating multiple documents for better performance.',
+    ),
+})
 
 type Params = z.infer<typeof CreateDocumentToolParams>
 

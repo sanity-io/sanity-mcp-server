@@ -1,9 +1,9 @@
-import {z} from 'zod'
+import type {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import type {SanityApplication} from '../../types/sanity.js'
 import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
 
-export const GetProjectStudiosToolParams = z.object({}).merge(BaseToolSchema)
+export const GetProjectStudiosToolParams = BaseToolSchema.extend({})
 
 type Params = z.infer<typeof GetProjectStudiosToolParams>
 

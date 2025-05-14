@@ -57,18 +57,16 @@ const PatchOperation = z.discriminatedUnion('op', [
   SetIfMissingOperation,
 ])
 
-export const PatchDocumentToolParams = z
-  .object({
-    documentId: z.string().describe('The ID of the document to patch'),
-    operations: z.array(PatchOperation).describe('Array of patch operations to apply'),
-    releaseId: z
-      .string()
-      .optional()
-      .describe(
-        'Optional release ID for patching versioned documents. If provided, the document in the specified release will be patched.',
-      ),
-  })
-  .merge(BaseToolSchema)
+export const PatchDocumentToolParams = BaseToolSchema.extend({
+  documentId: z.string().describe('The ID of the document to patch'),
+  operations: z.array(PatchOperation).describe('Array of patch operations to apply'),
+  releaseId: z
+    .string()
+    .optional()
+    .describe(
+      'Optional release ID for patching versioned documents. If provided, the document in the specified release will be patched.',
+    ),
+})
 
 type Params = z.infer<typeof PatchDocumentToolParams>
 

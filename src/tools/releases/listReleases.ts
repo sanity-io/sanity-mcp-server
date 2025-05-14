@@ -1,14 +1,12 @@
-import {z} from 'zod'
+import type {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import type {Release} from '../../types/sanity.js'
 import {ReleaseSchemas} from './common.js'
 import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
 
-export const ListReleasesToolParams = z
-  .object({
-    state: ReleaseSchemas.state.optional().default('active'),
-  })
-  .merge(BaseToolSchema)
+export const ListReleasesToolParams = BaseToolSchema.extend({
+  state: ReleaseSchemas.state.optional().default('active'),
+})
 
 type Params = z.infer<typeof ListReleasesToolParams>
 

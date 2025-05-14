@@ -24,7 +24,7 @@ async function tool(_params: Params) {
   - Dataset: ${config.dataset}
   - API Version: ${config.apiVersion}
   - Using CDN: ${config.useCdn}
-  - Perspective: ${config.perspective || 'default'}`
+  - Perspective: ${config.perspective || 'drafts'}`
 
   if (!config.projectId || !config.dataset) {
     throw new Error('Project ID and Dataset must be set')

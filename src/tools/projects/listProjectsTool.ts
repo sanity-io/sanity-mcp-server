@@ -1,8 +1,8 @@
-import {z} from 'zod'
+import type {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
 
-export const ListProjectsToolParams = z.object({}).merge(BaseToolSchema)
+export const ListProjectsToolParams = BaseToolSchema.extend({})
 
 type Params = z.infer<typeof ListProjectsToolParams>
 

@@ -6,17 +6,15 @@ import {SCHEMA_DEPLOYMENT_INSTRUCTIONS} from './common.js'
 import {WorkspaceNameSchema, BaseToolSchema, createToolClient} from '../../utils/tools.js'
 import {resolveSchemaId} from '../../utils/resolvers.js'
 
-export const GetSchemaToolParams = z
-  .object({
-    workspaceName: WorkspaceNameSchema,
-    type: z
-      .string()
-      .optional()
-      .describe(
-        'Optional: Specific type name to fetch. If not provided, returns the full schema without detailed field definitions. Full field definitions are only available when requesting a specific type.',
-      ),
-  })
-  .merge(BaseToolSchema)
+export const GetSchemaToolParams = BaseToolSchema.extend({
+  workspaceName: WorkspaceNameSchema,
+  type: z
+    .string()
+    .optional()
+    .describe(
+      'Optional: Specific type name to fetch. If not provided, returns the full schema without detailed field definitions. Full field definitions are only available when requesting a specific type.',
+    ),
+})
 
 type Params = z.infer<typeof GetSchemaToolParams>
 

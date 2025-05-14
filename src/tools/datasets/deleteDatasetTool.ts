@@ -2,11 +2,9 @@ import {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
 
-export const DeleteDatasetToolParams = z
-  .object({
-    name: z.string().describe('The name of the dataset to delete'),
-  })
-  .merge(BaseToolSchema)
+export const DeleteDatasetToolParams = BaseToolSchema.extend({
+  name: z.string().describe('The name of the dataset to delete'),
+})
 
 type Params = z.infer<typeof DeleteDatasetToolParams>
 

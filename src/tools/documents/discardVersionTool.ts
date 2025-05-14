@@ -3,15 +3,13 @@ import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
 import {type DocumentId, DraftId, isVersionId, VersionId} from '@sanity/id-utils'
 
-export const DiscardVersionToolParams = z
-  .object({
-    versionId: z
-      .string()
-      .describe(
-        'ID of the version document to discard (with versions.releaseId prefix or a draft ID)',
-      ),
-  })
-  .merge(BaseToolSchema)
+export const DiscardVersionToolParams = BaseToolSchema.extend({
+  versionId: z
+    .string()
+    .describe(
+      'ID of the version document to discard (with versions.releaseId prefix or a draft ID)',
+    ),
+})
 
 type Params = z.infer<typeof DiscardVersionToolParams>
 

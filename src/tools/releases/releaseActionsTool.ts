@@ -12,12 +12,10 @@ export const ReleaseActionTypes = z.enum([
   'delete',
 ])
 
-export const ReleaseActionsToolParams = z
-  .object({
-    actionType: ReleaseActionTypes.describe('Type of release action to perform'),
-    releaseId: ReleaseSchemas.releaseId,
-  })
-  .merge(BaseToolSchema)
+export const ReleaseActionsToolParams = BaseToolSchema.extend({
+  actionType: ReleaseActionTypes.describe('Type of release action to perform'),
+  releaseId: ReleaseSchemas.releaseId,
+})
 
 type Params = z.infer<typeof ReleaseActionsToolParams>
 
