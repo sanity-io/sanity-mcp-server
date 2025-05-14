@@ -36,7 +36,7 @@ async function tool(params: Params) {
     }
     schema = typeSchema
   }
-  const lite = Boolean(params.type) // Skip full field definitions if no type specified to avoid blowing up the context window
+  const lite = Boolean(params.type === undefined) // Skip full field definitions if no type specified to avoid blowing up the context window
   return createSuccessResponse(formatSchema(schema, schemaId, {lite}))
 }
 
