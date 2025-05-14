@@ -17,7 +17,7 @@ async function tool(params: Params) {
   const dataset = client.config().dataset
 
   if (!dataset) {
-    throw new Error('A dataset resrouce is required')
+    throw new Error('A dataset resource is required')
   }
 
   const response = await client.request({

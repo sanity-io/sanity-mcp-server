@@ -13,7 +13,7 @@ async function tool(args: Params) {
   const projectId = client.config().projectId
 
   if (!projectId) {
-    throw new Error('A dataset resrouce is required')
+    throw new Error('A dataset resource is required')
   }
 
   const applications = await client.request<SanityApplication[]>({
