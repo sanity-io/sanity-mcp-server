@@ -3,6 +3,7 @@ import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {SCHEMA_DEPLOYMENT_INSTRUCTIONS} from './common.js'
 import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
 import type {SchemaId} from '../../types/sanity.js'
+import {pluralize} from '../../utils/formatters.js'
 
 export const SCHEMA_TYPE = 'system.schema'
 
@@ -23,7 +24,7 @@ async function tool(params: Params) {
     throw new Error(SCHEMA_DEPLOYMENT_INSTRUCTIONS)
   }
 
-  return createSuccessResponse(`Found ${schemas.length} schema IDs.`, {
+  return createSuccessResponse(`Found ${schemas.length} ${pluralize(schemas, 'workspace')}.`, {
     workspaceNames: schemas.map((schema) => {
       // Extract only the last part of id.
       return schema._id.substring(SCHEMA_ID_PREFIX.length)

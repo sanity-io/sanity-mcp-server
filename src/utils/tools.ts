@@ -23,13 +23,11 @@ const DatasetBaseToolSchema = z
     projectId: z.string().describe('Unique identifier for the project'),
     dataset: z.string().describe('Name or identifier of the dataset'),
   })
-  .describe('Represents a studio resource with its associated project and dataset identifiers')
+  .describe('Object that represents a studio resource with its associated project and dataset')
 
-const ResourceSchema = z
-  .discriminatedUnion('target', [DatasetBaseToolSchema])
-  .describe('Union type for different resource types, discriminated by the "target" field')
-
-export const BaseToolSchema = z.object({resource: ResourceSchema})
+export const BaseToolSchema = z.object({
+  resource: z.discriminatedUnion('target', [DatasetBaseToolSchema]),
+})
 
 /**
  * Creates a Sanity client with the correct configuration based on resource parameters

@@ -2,6 +2,7 @@ import type {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import type {EmbeddingsIndex} from '../../types/sanity.js'
 import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {pluralize} from '../../utils/formatters.js'
 
 export const ListEmbeddingsIndicesToolParams = BaseToolSchema.extend({})
 
@@ -33,9 +34,10 @@ async function tool(params: Params) {
     }
   }
 
-  return createSuccessResponse(`Found ${indices.length} embeddings indices`, {
-    indices: flattenedIndices,
-  })
+  return createSuccessResponse(
+    `Found ${indices.length} embeddings ${pluralize(indices, 'index', 'indices')}`,
+    {indices: flattenedIndices},
+  )
 }
 
 export const listEmbeddingsIndicesTool = withErrorHandling(

@@ -1,6 +1,7 @@
 import type {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {pluralize} from '../../utils/formatters.js'
 
 export const ListProjectsToolParams = BaseToolSchema.extend({})
 
@@ -39,7 +40,7 @@ async function tool(params: Params) {
   }
 
   return createSuccessResponse(
-    `Found ${projects.length} Sanity projects in ${Object.keys(projectsGroupedByOrganization.orgs).length} organizations`,
+    `Found ${projects.length} ${pluralize(projects, 'project')} in ${Object.keys(projectsGroupedByOrganization.orgs).length} ${pluralize(Object.keys(projectsGroupedByOrganization.orgs).length, 'organization')}`,
     projectsGroupedByOrganization,
   )
 }

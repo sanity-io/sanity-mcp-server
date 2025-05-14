@@ -2,6 +2,7 @@ import {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import type {EmbeddingsQueryResultItem} from '../../types/sanity.js'
 import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {pluralize} from '../../utils/formatters.js'
 
 export const SemanticSearchToolParams = BaseToolSchema.extend({
   indexName: z.string().describe('The name of the embeddings index to search'),
@@ -42,7 +43,7 @@ async function tool(params: Params) {
   }))
 
   return createSuccessResponse(
-    `Found ${results.length} semantic search results for "${params.query}"`,
+    `Found ${results.length} semantic search ${pluralize(results, 'result')} for "${params.query}"`,
     {results: formattedResults},
   )
 }

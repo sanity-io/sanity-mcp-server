@@ -1,6 +1,6 @@
 import {z} from 'zod'
 import {parse} from 'groq-js'
-import {ensureArray} from '../../utils/formatters.js'
+import {ensureArray, pluralize} from '../../utils/formatters.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
 
@@ -61,7 +61,7 @@ async function tool(params: Params) {
   const formattedDocuments = documents.map((doc) => JSON.stringify(doc, null, 2))
 
   return createSuccessResponse(
-    `Query executed successfully. Found ${documents.length} documents.`,
+    `Query executed successfully. Found ${documents.length} ${pluralize(documents, 'document')}.`,
     {
       documents: formattedDocuments,
       count: documents.length,

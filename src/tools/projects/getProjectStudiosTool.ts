@@ -2,6 +2,7 @@ import type {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import type {SanityApplication} from '../../types/sanity.js'
 import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {pluralize} from '../../utils/formatters.js'
 
 export const GetProjectStudiosToolParams = BaseToolSchema.extend({})
 
@@ -42,9 +43,12 @@ async function tool(args: Params) {
     }
   }
 
-  return createSuccessResponse(`Found ${studios.length} studios for project "${projectId}"`, {
-    studiosList,
-  })
+  return createSuccessResponse(
+    `Found ${studios.length} ${pluralize(studios, 'studio')} for project "${projectId}"`,
+    {
+      studiosList,
+    },
+  )
 }
 
 export const getProjectStudiosTool = withErrorHandling(tool, 'Error fetching studios')

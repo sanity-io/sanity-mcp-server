@@ -5,8 +5,9 @@ import {listEmbeddingsIndicesTool} from '../embeddings/listEmbeddingsTool.js'
 import {listReleasesTool} from '../releases/listReleases.js'
 import {contextStore} from './store.js'
 import {withErrorHandling} from '../../utils/response.js'
+import {listWorkspaceSchemasTool} from '../schema/listWorkspaceSchemasTool.js'
 import {MCP_INSTRUCTIONS} from './instructions.js'
-import {createToolClient} from '../../utils/tools.js'
+import {type BaseToolSchema, createToolClient} from '../../utils/tools.js'
 
 export const GetInitialContextToolParams = z.object({})
 
@@ -30,16 +31,16 @@ async function tool(_params: Params) {
     throw new Error('Project ID and Dataset must be set')
   }
 
-  const resource = {
+  const resource: z.infer<typeof BaseToolSchema.shape.resource> = {
     target: 'dataset',
     projectId: config.projectId,
     dataset: config.dataset,
-  } as const
+  }
 
-  const [datasets, embeddings, releases] = await Promise.all([
-    listDatasetsTool({resource}),
-    listEmbeddingsIndicesTool({resource}),
+  const [workspaceSchemas, releases, embeddings] = await Promise.all([
+    listWorkspaceSchemasTool({resource}),
     listReleasesTool({state: 'active', resource}),
+    listEmbeddingsIndicesTool({resource}),
   ])
 
   const todaysDate = new Date().toLocaleDateString('en-US')
@@ -51,7 +52,8 @@ async function tool(_params: Params) {
 
     <context>
       ${configInfo}
-      ${datasets.content[0].text}
+
+      ${workspaceSchemas.content[0].text}
       ${embeddings.content[0].text}
       ${releases.content[0].text}
     </content>
