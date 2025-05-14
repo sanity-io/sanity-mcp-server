@@ -1,6 +1,5 @@
 import {z} from 'zod'
 import {outdent} from 'outdent'
-import {listDatasetsTool} from '../datasets/listDatasets.js'
 import {listEmbeddingsIndicesTool} from '../embeddings/listEmbeddingsTool.js'
 import {listReleasesTool} from '../releases/listReleases.js'
 import {contextStore} from './store.js'

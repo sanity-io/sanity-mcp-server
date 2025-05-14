@@ -29,7 +29,7 @@ const DefaultSchema = z
 
 const AgentSchema = z
   .object({
-    MCP_USER_ROLE: z.literal('agent'),
+    MCP_USER_ROLE: z.literal('internal_agent_role'),
   })
   .merge(CommonEnvSchema)
 

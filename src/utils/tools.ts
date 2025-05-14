@@ -40,7 +40,7 @@ export function createToolClient<T extends z.infer<typeof BaseToolSchema>>(
 ): SanityClient {
   const clientConfig = getDefaultClientConfig()
   // TODO: Consider removing this clause when MCP oauth is in place
-  if (env.data?.MCP_USER_ROLE !== 'agent') {
+  if (env.data?.MCP_USER_ROLE !== 'internal_agent_role') {
     return createClient(clientConfig)
   }
 

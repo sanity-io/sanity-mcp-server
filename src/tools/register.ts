@@ -73,7 +73,7 @@ export function registerAllTools(server: McpServer, userRole: McpRole = 'develop
   const toolMap: Record<McpRole, (server: McpServer) => void> = {
     developer: developerTools,
     editor: editorTools,
-    agent: agentTools,
+    internal_agent_role: agentTools,
   }
   const registerTools = toolMap[userRole]
 
