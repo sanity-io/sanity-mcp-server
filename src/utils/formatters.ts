@@ -26,7 +26,7 @@ export function formatResponse(
 
   const contextString = builder.build(formattedObject)
 
-  return `${message}: \n${contextString}`.trim()
+  return `${message}: \n${contextString}\n`
 }
 
 /**
