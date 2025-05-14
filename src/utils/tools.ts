@@ -26,7 +26,7 @@ const DatasetBaseToolSchema = z
   .describe('Object that represents a studio resource with its associated project and dataset')
 
 export const BaseToolSchema = z.object({
-  resource: z.discriminatedUnion('target', [DatasetBaseToolSchema]),
+  resource: DatasetBaseToolSchema,
 })
 
 /**
