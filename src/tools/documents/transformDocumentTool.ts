@@ -2,8 +2,9 @@ import type {TransformDocument} from '@sanity/client'
 import {z} from 'zod'
 import {truncateDocumentForLLMOutput} from '../../utils/formatters.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
-import {SchemaIdSchema, BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {WorkspaceNameSchema, BaseToolSchema, createToolClient} from '../../utils/tools.js'
 import {stringToPath} from '../../utils/path.js'
+import {resolveSchemaId} from '../../utils/resolvers.js'
 
 const EditTargetSchema = z.object({
   operation: z.literal('edit'),
@@ -36,7 +37,7 @@ export const TransformDocumentToolParams = z
   .object({
     documentId: z.string().describe('The ID of the source document to transform'),
     instruction: z.string().describe('Instructions for transforming the document content'),
-    schemaId: SchemaIdSchema,
+    workspaceName: WorkspaceNameSchema,
     paths: z
       .array(z.string())
       .optional()
@@ -75,7 +76,7 @@ async function tool(params: Params) {
   const transformOptions: TransformDocument = {
     documentId: params.documentId,
     instruction: params.instruction,
-    schemaId: params.schemaId,
+    schemaId: resolveSchemaId(params.workspaceName),
     target: params.paths ? params.paths.map((path) => ({path: stringToPath(path)})) : undefined,
     targetDocument: params.targetDocument,
     instructionParams: params.instructionParams,

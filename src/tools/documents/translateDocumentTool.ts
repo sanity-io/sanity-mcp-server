@@ -2,8 +2,9 @@ import type {TranslateDocument} from '@sanity/client'
 import {z} from 'zod'
 import {truncateDocumentForLLMOutput} from '../../utils/formatters.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
-import {SchemaIdSchema, BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {WorkspaceNameSchema, BaseToolSchema, createToolClient} from '../../utils/tools.js'
 import {stringToPath} from '../../utils/path.js'
+import {resolveSchemaId} from '../../utils/resolvers.js'
 
 const LanguageSchema = z.object({
   id: z.string().describe('Language identifier (e.g., "en-US", "no", "fr")'),
@@ -31,7 +32,7 @@ export const TranslateDocumentToolParams = z
       'Optional target document configuration if you want to translate to a different document',
     ),
     language: LanguageSchema.describe('Target language to translate to'),
-    schemaId: SchemaIdSchema,
+    workspaceName: WorkspaceNameSchema,
     paths: z
       .array(z.string())
       .optional()
@@ -70,8 +71,7 @@ async function tool(params: Params) {
     languageFieldPath: sourceDocument.language ? ['language'] : undefined,
     fromLanguage: sourceDocument.language,
     toLanguage: params.language,
-    schemaId: params.schemaId,
-
+    schemaId: resolveSchemaId(params.workspaceName),
     target: params.paths ? params.paths.map((path) => ({path: stringToPath(path)})) : undefined,
     protectedPhrases: params.protectedPhrases,
   }

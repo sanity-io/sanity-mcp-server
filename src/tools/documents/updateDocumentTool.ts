@@ -3,15 +3,16 @@ import {truncateDocumentForLLMOutput} from '../../utils/formatters.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {type DocumentId, getPublishedId} from '@sanity/id-utils'
 import {getVersionId} from '@sanity/client/csm'
-import {SchemaIdSchema, BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {WorkspaceNameSchema, BaseToolSchema, createToolClient} from '../../utils/tools.js'
 import type {GenerateInstruction} from '@sanity/client'
 import {stringToPath} from '../../utils/path.js'
+import {resolveSchemaId} from '../../utils/resolvers.js'
 
 export const UpdateDocumentToolParams = z
   .object({
     documentId: z.string().describe('The ID of the document to update'),
     instruction: z.string().describe('Instruction for AI to update the document content'),
-    schemaId: SchemaIdSchema,
+    workspaceName: WorkspaceNameSchema,
     paths: z
       .array(z.string())
       .optional()
@@ -46,7 +47,7 @@ async function tool(params: Params) {
   const instructOptions: GenerateInstruction = {
     documentId,
     instruction: params.instruction,
-    schemaId: params.schemaId,
+    schemaId: resolveSchemaId(params.workspaceName),
     target: params.paths ? params.paths.map((path) => ({path: stringToPath(path)})) : undefined,
   } as const
 

@@ -1,23 +1,18 @@
 import {z} from 'zod'
-import type {SanityClient} from '@sanity/client'
-import type {SchemaId} from '../types/sanity.js'
-import {sanityClient} from '../config/sanity.js'
+import {createClient, type SanityClient} from '@sanity/client'
+import {requester as baseRequester} from '@sanity/client'
+import {headers as headersMiddleware} from 'get-it/middleware'
 import {env} from '../config/env.js'
+import {getDefaultClientConfig} from '../config/sanity.js'
 
 /**
  * Schema-related constants and schemas
  */
-export const SCHEMA_TYPE = 'system.schema'
-
-export const DEFAULT_SCHEMA_ID: SchemaId = '_.schemas.default'
-
-export const SchemaIdSchema = z
+export const WorkspaceNameSchema = z
   .string()
-  .regex(/^_\.schemas\..+$/, 'Schema ID must be in the format of `_.schemas.${string}`')
   .optional()
-  .default(DEFAULT_SCHEMA_ID)
   .describe(
-    'Schema manifest ID from dataset manifest, not document type. Get from context or listSchemaIdsTool',
+    'Workspace name derived from the manifest, not document type. Derived from context or listSchemaWorkspacesTool',
   )
 
 /**
@@ -50,21 +45,33 @@ export const BaseToolSchema = z.object({resource: ResourceSchema})
  * @param params - Tool parameters that may include a resource
  * @returns Configured Sanity client
  */
-export function createToolClient<T extends {resource?: {target: string}}>(
-  params?: T,
-): SanityClient {
-  if (!params?.resource || env.data?.MCP_USER_ROLE !== 'agent') {
-    return sanityClient
+export function createToolClient<T extends z.infer<typeof BaseToolSchema>>({
+  resource,
+}: T): SanityClient {
+  const clientConfig = getDefaultClientConfig()
+
+  if (env.data?.MCP_USER_ROLE !== 'agent') {
+    return createClient(clientConfig)
   }
 
-  const resource = params.resource
-  if (resource.target === 'dataset') {
-    const datasetResource = resource as z.infer<typeof DatasetBaseToolSchema>
-    return sanityClient.withConfig({
-      projectId: datasetResource.projectId,
-      dataset: datasetResource.dataset,
-    })
+  if (resource?.target === 'dataset') {
+    clientConfig.projectId = resource.projectId
+    clientConfig.dataset = resource.dataset
+
+    // Modify the Host header to be prefixed with the project ID for internal requests
+    if (env.data.INTERNAL_REQUESTER_HEADERS) {
+      const requester = baseRequester.clone()
+      const headerValues = {...env.data.INTERNAL_REQUESTER_HEADERS}
+      // If headers.Host exists and is not already prefixed with the project ID
+      if (headerValues.Host && !headerValues.Host.startsWith(`${resource.projectId}.`)) {
+        headerValues.Host = `${resource.projectId}.${headerValues.Host}`
+      }
+      requester.use(headersMiddleware(headerValues))
+      clientConfig.requester = requester
+    }
+
+    return createClient(clientConfig)
   }
 
-  return sanityClient
+  return createClient(clientConfig)
 }

@@ -1,12 +1,12 @@
 import {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
-import {createToolClient} from '../../utils/tools.js'
+import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
 
-export const ListProjectsToolParams = z.object({})
+export const ListProjectsToolParams = z.object({}).merge(BaseToolSchema)
 
 type Params = z.infer<typeof ListProjectsToolParams>
 
-async function tool(params?: Params) {
+async function tool(params: Params) {
   const client = createToolClient(params)
   const projects = await client.projects.list()
 

@@ -2,7 +2,8 @@ import {z} from 'zod'
 import {truncateDocumentForLLMOutput} from '../../utils/formatters.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {type DocumentId, getDraftId, getPublishedId, getVersionId} from '@sanity/id-utils'
-import {SchemaIdSchema, BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {BaseToolSchema, createToolClient, WorkspaceNameSchema} from '../../utils/tools.js'
+import {resolveSchemaId} from '../../utils/resolvers.js'
 
 export const CreateVersionToolParams = z
   .object({
@@ -12,7 +13,7 @@ export const CreateVersionToolParams = z
       .string()
       .optional()
       .describe('Optional instruction for AI to modify the document while creating the version'),
-    schemaId: SchemaIdSchema,
+    workspaceName: WorkspaceNameSchema,
   })
   .merge(BaseToolSchema)
 
@@ -50,10 +51,10 @@ async function tool(params: Params) {
     },
   })
 
-  if (params.instruction && params.schemaId) {
+  if (params.instruction) {
     newDocument = await client.agent.action.generate({
       documentId: versionId,
-      schemaId: params.schemaId,
+      schemaId: resolveSchemaId(params.workspaceName),
       instruction: params.instruction,
     })
   }

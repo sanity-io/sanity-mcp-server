@@ -3,13 +3,8 @@ import type {ManifestSchemaType} from '../../types/manifest.js'
 import {formatSchema} from '../../utils/schema.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {SCHEMA_DEPLOYMENT_INSTRUCTIONS} from './common.js'
-import {
-  DEFAULT_SCHEMA_ID,
-  SCHEMA_TYPE,
-  SchemaIdSchema,
-  BaseToolSchema,
-  createToolClient,
-} from '../../utils/tools.js'
+import {WorkspaceNameSchema, BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {resolveSchemaId} from '../../utils/resolvers.js'
 
 export const GetSchemaToolParams = z
   .object({
@@ -17,7 +12,7 @@ export const GetSchemaToolParams = z
       .string()
       .optional()
       .describe('Optional: Specific type name to fetch. If not provided, returns the full schema'),
-    schemaId: SchemaIdSchema,
+    workspaceName: WorkspaceNameSchema,
     lite: z
       .boolean()
       .optional()
@@ -32,11 +27,8 @@ type Params = z.infer<typeof GetSchemaToolParams>
 
 async function tool(params: Params) {
   const client = createToolClient(params)
-  const schemaId = params.schemaId ?? DEFAULT_SCHEMA_ID
-  const schemaDoc = await client.fetch('*[_id == $schemaId && _type == $schemaType][0]', {
-    schemaType: SCHEMA_TYPE,
-    schemaId,
-  })
+  const schemaId = resolveSchemaId(params.workspaceName)
+  const schemaDoc = await client.fetch('*[_id == $schemaId][0]', {schemaId})
 
   if (!schemaDoc?.schema) {
     throw new Error(SCHEMA_DEPLOYMENT_INSTRUCTIONS)
