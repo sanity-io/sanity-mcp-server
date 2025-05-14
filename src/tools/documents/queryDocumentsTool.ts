@@ -1,67 +1,71 @@
 import {z} from 'zod'
-import {sanityClient} from '../../config/sanity.js'
-import {ensureArray} from '../../utils/formatters.js'
+import {parse} from 'groq-js'
+import {ensureArray, pluralize} from '../../utils/formatters.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
+import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
 
-const DEFAULT_PERSPECTIVE = 'raw'
-const DEFAULT_PROJECTION = '...'
-const DEFAULT_PAGE_SIZE = 5
+const DOCUMENT_LIMIT = 10 // Limit the number of documents returned by the tool to avoid blowing up context window
 
-export const QueryDocumentsToolParams = z.object({
-  filter: z.string().describe('The GROQ filter condition to apply (e.g., "_type == \\"post\\"'),
-  projection: z
-    .string()
+export const QueryDocumentsToolParams = BaseToolSchema.extend({
+  single: z
+    .boolean()
     .optional()
-    .default(DEFAULT_PROJECTION)
-    .describe('The fields to include in the result'),
-  params: z.record(z.any()).optional().describe('Optional parameters for the GROQ query'),
-  page: z
+    .default(false)
+    .describe('Whether to return a single document or an array'),
+  limit: z
     .number()
-    .optional()
-    .default(1)
-    .describe('Page number for paginated results (starts at 1)'),
-  pageSize: z.number().optional().default(DEFAULT_PAGE_SIZE).describe('Number of results per page'),
+    .min(1)
+    .max(DOCUMENT_LIMIT)
+    .default(5)
+    .describe('Maximum number of documents to return'),
+  params: z.record(z.any()).optional().describe('Optional parameters for the GROQ query'),
+  query: z.string().describe('Complete GROQ query (e.g. "*[_type == \\"post\\"]{title, _id}")'),
   perspective: z
     .union([z.enum(['raw', 'drafts', 'published']), z.string()])
     .optional()
-    .default(DEFAULT_PERSPECTIVE)
-    .describe('Optional perspective to query from: "raw", "drafts", "published", or a release ID'),
+    .default('raw')
+    .describe(
+      'Optional perspective to query from: "raw", "drafts", "published", or a release ID. Models should examine available releases and perspectives in the dataset before selecting one to ensure they are querying from the most appropriate view of the content.',
+    ),
 })
 
 type Params = z.infer<typeof QueryDocumentsToolParams>
 
+async function validateGroqQuery(
+  query: string,
+): Promise<{isValid: boolean; error?: string; tree?: ReturnType<typeof parse>}> {
+  try {
+    const tree = parse(query)
+    return {isValid: true, tree}
+  } catch (error) {
+    return {
+      isValid: false,
+      error: error instanceof Error ? error.message : String(error),
+    }
+  }
+}
+
 async function tool(params: Params) {
-  const perspectiveClient = sanityClient.withConfig({
-    perspective: params.perspective ? [params.perspective] : DEFAULT_PERSPECTIVE,
+  const validation = await validateGroqQuery(params.query)
+  if (!validation.isValid) {
+    throw new Error(`Invalid GROQ query: ${validation.error}`)
+  }
+
+  const client = createToolClient(params)
+  const perspectiveClient = client.withConfig({
+    perspective: params.perspective ? [params.perspective] : ['raw'],
   })
 
-  // Filter
-  let query = `*[${params.filter}]`
-
-  // Pagination
-  const start = (params.page - 1) * params.pageSize
-  const end = start + params.pageSize
-  query += `[${start}...${end}]`
-
-  // Projection
-  query += `{${params.projection}}`
-
-  const result = await perspectiveClient.fetch(query, params.params)
-  const documents = ensureArray(result).map((doc) => JSON.stringify(doc, null, 2))
-
-  const totalCount = await perspectiveClient.fetch(`count(*[${params.filter}])`, params.params)
-  const totalPages = Math.ceil(totalCount / params.pageSize)
+  const result = await perspectiveClient.fetch(params.query, params.params)
+  const documents = ensureArray(result).slice(0, DOCUMENT_LIMIT)
+  const formattedDocuments = documents.map((doc) => JSON.stringify(doc, null, 2))
 
   return createSuccessResponse(
-    `Found ${documents.length} documents (page ${params.page} of ${totalPages})`,
+    `Query executed successfully. Found ${documents.length} ${pluralize(documents, 'document')}`,
     {
-      documents,
-      pagination: {
-        page: params.page,
-        pageSize: params.pageSize,
-        totalPages,
-        totalCount,
-      },
+      documents: formattedDocuments,
+      count: documents.length,
+      rawResults: documents,
     },
   )
 }

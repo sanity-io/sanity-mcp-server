@@ -1,16 +1,18 @@
-import {z} from 'zod'
-import {sanityClient} from '../../config/sanity.js'
+import type {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import type {EmbeddingsIndex} from '../../types/sanity.js'
+import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {pluralize} from '../../utils/formatters.js'
 
-export const ListEmbeddingsIndicesToolParams = z.object({})
+export const ListEmbeddingsIndicesToolParams = BaseToolSchema.extend({})
 
 type Params = z.infer<typeof ListEmbeddingsIndicesToolParams>
 
-async function tool(_params?: Params) {
-  const config = sanityClient.config()
+async function tool(params: Params) {
+  const client = createToolClient(params)
+  const config = client.config()
 
-  const indices = await sanityClient.request<EmbeddingsIndex[]>({
+  const indices = await client.request<EmbeddingsIndex[]>({
     uri: `/embeddings-index/${config.dataset}?projectId=${config.projectId}`,
   })
   if (!indices.length) {
@@ -32,9 +34,10 @@ async function tool(_params?: Params) {
     }
   }
 
-  return createSuccessResponse(`Found ${indices.length} embeddings indices`, {
-    indices: flattenedIndices,
-  })
+  return createSuccessResponse(
+    `Found ${indices.length} embeddings ${pluralize(indices, 'index', 'indices')}`,
+    {indices: flattenedIndices},
+  )
 }
 
 export const listEmbeddingsIndicesTool = withErrorHandling(

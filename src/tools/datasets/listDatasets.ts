@@ -1,37 +1,19 @@
-import {z} from 'zod'
-import {sanityClient} from '../../config/sanity.js'
+import type {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
+import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
 
-export const ListDatasetsToolParams = z.object({})
+export const ListDatasetsToolParams = BaseToolSchema.extend({})
 
 type Params = z.infer<typeof ListDatasetsToolParams>
 
-async function tool(_params?: Params) {
-  const datasets = await sanityClient.datasets.list()
-
-  if (datasets.length === 0) {
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: 'No datasets found',
-        },
-      ],
-    }
-  }
+async function tool(params: Params) {
+  const client = createToolClient(params)
+  const datasets = await client.datasets.list()
 
   // Filter out datasets with the 'comments' profile
-  const filteredDatasets = datasets.filter((dataset) => dataset.datasetProfile !== 'comments')
-
+  const filteredDatasets = datasets?.filter((dataset) => dataset.datasetProfile !== 'comments')
   if (filteredDatasets.length === 0) {
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: 'No datasets found',
-        },
-      ],
-    }
+    throw new Error('No datasets found')
   }
 
   const flattenedDatasets: Record<string, object> = {}

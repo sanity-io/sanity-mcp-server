@@ -26,7 +26,7 @@ export function formatResponse(
 
   const contextString = builder.build(formattedObject)
 
-  return `${contextString}\n${message}`.trim()
+  return `${message}: \n${contextString}\n`
 }
 
 /**
@@ -64,4 +64,13 @@ export function ensureArray<T>(value: T | T[] | null | undefined): T[] {
     return []
   }
   return Array.isArray(value) ? value : [value]
+}
+
+/**
+ * Pluralizes a string based on a count.
+ * Returns singular form for count of 1, plural form otherwise.
+ */
+export function pluralize(n: number | unknown[], singular: string, plural?: string): string {
+  const num = Array.isArray(n) ? n.length : n
+  return num === 1 ? singular : plural || `${singular}s`
 }

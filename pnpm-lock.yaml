@@ -29,6 +29,9 @@ importers:
       get-it:
         specifier: ^8.3.2
         version: 8.6.7
+      groq-js:
+        specifier: ^1.16.1
+        version: 1.16.1
       outdent:
         specifier: ^0.8.0
         version: 0.8.0
@@ -627,6 +630,10 @@ packages:
 
   graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
+
+  groq-js@1.16.1:
+    resolution: {integrity: sha512-n22UJPBYE8CLAlTOwXTZVjFH1a5+x2hORDv13zi1gwbR23CpvSLPioNtzVovotuAciLLH/pVJe9PyKOR5MykGg==}
+    engines: {node: '>= 14'}
 
   has-flag@3.0.0:
     resolution: {integrity: sha512-sKJf1+ceQBr4SMkvQnBDNDtf4TXpVhVGateu0t918bl30FnbE2m4vNLX+VWe/dpjlb+HugGYzW7uQXH98HPEYw==}
@@ -1778,6 +1785,12 @@ snapshots:
 
   graphemer@1.4.0: {}
 
+  groq-js@1.16.1:
+    dependencies:
+      debug: 4.4.0(supports-color@5.5.0)
+    transitivePeerDependencies:
+      - supports-color
+
   has-flag@3.0.0: {}
 
   has-flag@4.0.0: {}
@@ -2059,7 +2072,7 @@ snapshots:
 
   send@1.2.0:
     dependencies:
-      debug: 4.3.6
+      debug: 4.4.0(supports-color@5.5.0)
       encodeurl: 2.0.0
       escape-html: 1.0.3
       etag: 1.8.1

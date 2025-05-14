@@ -1,12 +1,12 @@
 import {z} from 'zod'
 import {outdent} from 'outdent'
-import {getSanityConfigTool} from './getSanityConfigTool.js'
-import {listDatasetsTool} from '../datasets/listDatasets.js'
 import {listEmbeddingsIndicesTool} from '../embeddings/listEmbeddingsTool.js'
 import {listReleasesTool} from '../releases/listReleases.js'
 import {contextStore} from './store.js'
 import {withErrorHandling} from '../../utils/response.js'
+import {listWorkspaceSchemasTool} from '../schema/listWorkspaceSchemasTool.js'
 import {MCP_INSTRUCTIONS} from './instructions.js'
+import {type BaseToolSchema, createToolClient} from '../../utils/tools.js'
 
 export const GetInitialContextToolParams = z.object({})
 
@@ -17,11 +17,29 @@ export function hasInitialContext(): boolean {
 }
 
 async function tool(_params: Params) {
-  const [config, datasets, embeddings, releases] = await Promise.all([
-    getSanityConfigTool({}),
-    listDatasetsTool({}),
-    listEmbeddingsIndicesTool({}),
-    listReleasesTool({state: 'active'}),
+  const client = createToolClient()
+  const config = client.config()
+  const configInfo = `Current Sanity Configuration:
+  - Project ID: ${config.projectId}
+  - Dataset: ${config.dataset}
+  - API Version: ${config.apiVersion}
+  - Using CDN: ${config.useCdn}
+  - Perspective: ${config.perspective || 'drafts'}`
+
+  if (!config.projectId || !config.dataset) {
+    throw new Error('Project ID and Dataset must be set')
+  }
+
+  const resource: z.infer<typeof BaseToolSchema.shape.resource> = {
+    target: 'dataset',
+    projectId: config.projectId,
+    dataset: config.dataset,
+  }
+
+  const [workspaceSchemas, releases, embeddings] = await Promise.all([
+    listWorkspaceSchemasTool({resource}),
+    listReleasesTool({state: 'active', resource}),
+    listEmbeddingsIndicesTool({resource}),
   ])
 
   const todaysDate = new Date().toLocaleDateString('en-US')
@@ -32,8 +50,9 @@ async function tool(_params: Params) {
     This is the initial context for your Sanity instance:
 
     <context>
-      ${config.content[0].text}
-      ${datasets.content[0].text}
+      ${configInfo}
+
+      ${workspaceSchemas.content[0].text}
       ${embeddings.content[0].text}
       ${releases.content[0].text}
     </content>

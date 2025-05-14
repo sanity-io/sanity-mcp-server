@@ -10,16 +10,17 @@ import {registerProjectsTools} from './projects/register.js'
 import {registerReleasesTools} from './releases/register.js'
 import {registerSchemaTools} from './schema/register.js'
 import type {McpRole} from '../types/mcp.js'
+import type {THIS_IS_FINE} from '../types/any.js'
 
 function createContextCheckingServer(server: McpServer): McpServer {
   const originalTool = server.tool
   return new Proxy(server, {
     get(target, prop) {
       if (prop === 'tool') {
-        return function (this: any, ...args: any) {
+        return function (this: THIS_IS_FINE, ...args: THIS_IS_FINE) {
           const [name, description, schema, handler] = args
 
-          const wrappedHandler = async (args: any, extra: RequestHandlerExtra) => {
+          const wrappedHandler = async (args: THIS_IS_FINE, extra: RequestHandlerExtra) => {
             enforceInitialContextMiddleware(name)
             return handler(args, extra)
           }
@@ -27,7 +28,7 @@ function createContextCheckingServer(server: McpServer): McpServer {
           return originalTool.call(this, name, description, schema, wrappedHandler)
         }
       }
-      return (target as any)[prop]
+      return (target as THIS_IS_FINE)[prop]
     },
   })
 }
@@ -65,13 +66,14 @@ function agentTools(server: McpServer) {
   registerSchemaTools(server)
   registerReleasesTools(server)
   registerEmbeddingsTools(server)
+  registerProjectsTools(server)
 }
 
 export function registerAllTools(server: McpServer, userRole: McpRole = 'developer') {
   const toolMap: Record<McpRole, (server: McpServer) => void> = {
     developer: developerTools,
     editor: editorTools,
-    agent: agentTools,
+    internal_agent_role: agentTools,
   }
   const registerTools = toolMap[userRole]
 

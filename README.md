@@ -114,6 +114,8 @@ You don't get it to work? See the section on [Node.js configuration](#-nodejs-en
 - **create_document** – Create a new document with AI-generated content based on instructions
 - **update_document** – Update an existing document with AI-generated content based on instructions
 - **patch_document** - Apply direct patch operations to modify specific parts of a document without using AI generation
+- **transform_document** – Transform document content while preserving formatting and structure, ideal for text replacements and style corrections
+- **translate_document** – Translate document content to another language while preserving formatting and structure
 - **query_documents** – Execute GROQ queries to search for and retrieve content
 - **document_action** – Perform document actions like publishing, unpublishing, or deleting documents
 
@@ -140,7 +142,7 @@ You don't get it to work? See the section on [Node.js configuration](#-nodejs-en
 ### Schema Information <!-- omit in toc -->
 
 - **get_schema** – Get schema details, either full schema or for a specific type
-- **list_schema_ids** – List all available schema IDs
+- **list_workspace_schemas** – Get a list of all available workspace schema names
 
 ### GROQ Support <!-- omit in toc -->
 
@@ -165,8 +167,8 @@ The server takes the following environment variables:
 | `SANITY_API_TOKEN`  | Your Sanity API token                              | ✅       |
 | `SANITY_PROJECT_ID` | Your Sanity project ID                             | ✅       |
 | `SANITY_DATASET`    | The dataset to use                                 | ✅       |
+| `MCP_USER_ROLE`     | Determines tool access level (developer or editor) | ✅       |
 | `SANITY_API_HOST`   | API host (defaults to https://api.sanity.io)       | ❌       |
-| `MCP_USER_ROLE`     | Determines tool access level (developer or editor) | ❌       |
 
 > [!WARNING] > **Using AI with Production Datasets**
 > When configuring the MCP server with a token that has write access to a production dataset, please be aware that the AI can perform destructive actions like creating, updating, or deleting content. This is not a concern if you're using a read-only token. While we are actively developing guardrails, you should exercise caution and consider using a development/staging dataset for testing AI operations that require write access.

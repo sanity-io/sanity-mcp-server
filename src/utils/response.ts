@@ -1,3 +1,4 @@
+import type {THIS_IS_FINE} from '../types/any.js'
 import {formatResponse} from './formatters.js'
 import type {RequestHandlerExtra} from '@modelcontextprotocol/sdk/shared/protocol.js'
 
@@ -16,28 +17,12 @@ export function createSuccessResponse(message: string, data?: Record<string, unk
 }
 
 /**
- * Creates a standardized error response
- */
-export function createErrorResponse(error: unknown) {
-  const errorMessage = error instanceof Error ? error.message : String(error)
-  return {
-    isError: true,
-    content: [
-      {
-        type: 'text',
-        text: `Error: ${errorMessage}`,
-      },
-    ],
-  }
-}
-
-/**
  * Higher-order function that wraps tool handlers with standardized error handling
  */
 export function withErrorHandling<T extends Record<string, unknown>>(
-  handler: (params: T, extra?: RequestHandlerExtra) => Promise<any>,
+  handler: (params: T, extra?: RequestHandlerExtra) => Promise<THIS_IS_FINE>,
   errorPrefix = 'Error',
-): (params: T, extra?: RequestHandlerExtra) => Promise<any> {
+): (params: T, extra?: RequestHandlerExtra) => Promise<THIS_IS_FINE> {
   return async (params: T, extra?: RequestHandlerExtra) => {
     try {
       return await handler(params, extra)
