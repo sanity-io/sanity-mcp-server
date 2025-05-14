@@ -61,7 +61,7 @@ async function tool(params: Params) {
   const formattedDocuments = documents.map((doc) => JSON.stringify(doc, null, 2))
 
   return createSuccessResponse(
-    `Query executed successfully. Found ${documents.length} ${pluralize(documents, 'document')}.`,
+    `Query executed successfully. Found ${documents.length} ${pluralize(documents, 'document')}`,
     {
       documents: formattedDocuments,
       count: documents.length,

@@ -24,7 +24,7 @@ async function tool(params: Params) {
     throw new Error(SCHEMA_DEPLOYMENT_INSTRUCTIONS)
   }
 
-  return createSuccessResponse(`Found ${schemas.length} ${pluralize(schemas, 'workspace')}.`, {
+  return createSuccessResponse(`Found ${schemas.length} ${pluralize(schemas, 'workspace')}`, {
     workspaceNames: schemas.map((schema) => {
       // Extract only the last part of id.
       return schema._id.substring(SCHEMA_ID_PREFIX.length)
