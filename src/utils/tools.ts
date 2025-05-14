@@ -31,24 +31,17 @@ const ResourceSchema = z
 
 export const BaseToolSchema = z.object({resource: ResourceSchema})
 
-// export const BaseToolSchema =
-//   env.data?.MCP_USER_ROLE === 'agent'
-//     ? z.object({
-//         resource: ResourceSchema,
-//       })
-//     : z.object({})
-
 /**
  * Creates a Sanity client with the correct configuration based on resource parameters
  *
  * @param params - Tool parameters that may include a resource
  * @returns Configured Sanity client
  */
-export function createToolClient<T extends z.infer<typeof BaseToolSchema>>({
-  resource,
-}: T): SanityClient {
+export function createToolClient<T extends z.infer<typeof BaseToolSchema>>(
+  {resource}: T = {} as T,
+): SanityClient {
   const clientConfig = getDefaultClientConfig()
-
+  // TODO: Consider removing this clause when MCP oauth is in place
   if (env.data?.MCP_USER_ROLE !== 'agent') {
     return createClient(clientConfig)
   }

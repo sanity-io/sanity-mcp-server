@@ -6,9 +6,9 @@ import {listReleasesTool} from '../releases/listReleases.js'
 import {contextStore} from './store.js'
 import {withErrorHandling} from '../../utils/response.js'
 import {MCP_INSTRUCTIONS} from './instructions.js'
-import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {createToolClient} from '../../utils/tools.js'
 
-export const GetInitialContextToolParams = z.object({}).merge(BaseToolSchema)
+export const GetInitialContextToolParams = z.object({})
 
 type Params = z.infer<typeof GetInitialContextToolParams>
 
@@ -16,8 +16,8 @@ export function hasInitialContext(): boolean {
   return contextStore.hasInitialContext()
 }
 
-async function tool(params: Params) {
-  const client = createToolClient(params)
+async function tool(_params: Params) {
+  const client = createToolClient()
   const config = client.config()
   const configInfo = `Current Sanity Configuration:
   - Project ID: ${config.projectId}
@@ -26,10 +26,20 @@ async function tool(params: Params) {
   - Using CDN: ${config.useCdn}
   - Perspective: ${config.perspective || 'default'}`
 
+  if (!config.projectId || !config.dataset) {
+    throw new Error('Project ID and Dataset must be set')
+  }
+
+  const resource = {
+    target: 'dataset',
+    projectId: config.projectId,
+    dataset: config.dataset,
+  } as const
+
   const [datasets, embeddings, releases] = await Promise.all([
-    listDatasetsTool({resource: params?.resource}),
-    listEmbeddingsIndicesTool({resource: params?.resource}),
-    listReleasesTool({state: 'active', resource: params?.resource}),
+    listDatasetsTool({resource}),
+    listEmbeddingsIndicesTool({resource}),
+    listReleasesTool({state: 'active', resource}),
   ])
 
   const todaysDate = new Date().toLocaleDateString('en-US')

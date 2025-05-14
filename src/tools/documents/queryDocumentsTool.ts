@@ -4,13 +4,20 @@ import {ensureArray} from '../../utils/formatters.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
 
+const DOCUMENT_LIMIT = 10 // Limit the number of documents returned by the tool to avoid blowing up context window
+
 export const QueryDocumentsToolParams = BaseToolSchema.extend({
   single: z
     .boolean()
     .optional()
     .default(false)
     .describe('Whether to return a single document or an array'),
-  limit: z.number().min(1).max(10).default(5).describe('Maximum number of documents to return'),
+  limit: z
+    .number()
+    .min(1)
+    .max(DOCUMENT_LIMIT)
+    .default(5)
+    .describe('Maximum number of documents to return'),
   params: z.record(z.any()).optional().describe('Optional parameters for the GROQ query'),
   query: z.string().describe('Complete GROQ query (e.g. "*[_type == \\"post\\"]{title, _id}")'),
   perspective: z
@@ -50,7 +57,7 @@ async function tool(params: Params) {
   })
 
   const result = await perspectiveClient.fetch(params.query, params.params)
-  const documents = ensureArray(result)
+  const documents = ensureArray(result).slice(0, DOCUMENT_LIMIT)
   const formattedDocuments = documents.map((doc) => JSON.stringify(doc, null, 2))
 
   return createSuccessResponse(
