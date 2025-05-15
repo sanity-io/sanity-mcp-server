@@ -92,6 +92,8 @@ To use the Sanity MCP server, add the following configuration to your applicatio
 }
 ```
 
+For a complete list of all required and optional environment variables, see the [Configuration section](#️-configuration).
+
 The exact location of this configuration will depend on your application:
 
 | Application    | Configuration Location                            |
