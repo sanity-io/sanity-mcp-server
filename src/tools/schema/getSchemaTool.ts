@@ -37,9 +37,7 @@ async function tool(params: Params) {
     schema = typeSchema
   }
   const hasType = Boolean(params.type) // Skip full field definitions if no type specified to avoid blowing up the context window
-  return createSuccessResponse(formatSchema(schema, schemaId), {
-    lite: hasType === false,
-  })
+  return createSuccessResponse(formatSchema(schema, schemaId, {lite: hasType === false}))
 }
 
 export const getSchemaTool = withErrorHandling(tool, 'Error fetching schema overview')
