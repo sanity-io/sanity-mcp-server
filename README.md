@@ -84,12 +84,15 @@ To use the Sanity MCP server, add the following configuration to your applicatio
       "env": {
         "SANITY_PROJECT_ID": "your-project-id",
         "SANITY_DATASET": "production",
-        "SANITY_API_TOKEN": "your-sanity-api-token"
+        "SANITY_API_TOKEN": "your-sanity-api-token",
+        "MCP_USER_ROLE": "developer"
       }
     }
   }
 }
 ```
+
+For a complete list of all required and optional environment variables, see the [Configuration section](#️-configuration).
 
 The exact location of this configuration will depend on your application:
 
