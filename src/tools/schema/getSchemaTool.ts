@@ -29,15 +29,17 @@ async function tool(params: Params) {
 
   let schema = JSON.parse(schemaDoc.schema) as ManifestSchemaType[]
 
-  if (params.type) {
+  if (params.type && params.type.trim() !== '') {
     const typeSchema = schema.filter((type) => type.name === params.type)
     if (typeSchema.length === 0) {
       throw new Error(`Type "${params.type}" not found in schema`)
     }
     schema = typeSchema
   }
-  const lite = Boolean(params.type === undefined) // Skip full field definitions if no type specified to avoid blowing up the context window
-  return createSuccessResponse(formatSchema(schema, schemaId, {lite}))
+  const hasType = Boolean(params.type) // Skip full field definitions if no type specified to avoid blowing up the context window
+  return createSuccessResponse(formatSchema(schema, schemaId), {
+    lite: hasType === false,
+  })
 }
 
 export const getSchemaTool = withErrorHandling(tool, 'Error fetching schema overview')
