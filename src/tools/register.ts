@@ -11,6 +11,7 @@ import {registerReleasesTools} from './releases/register.js'
 import {registerSchemaTools} from './schema/register.js'
 import type {McpRole} from '../types/mcp.js'
 import type {THIS_IS_FINE} from '../types/any.js'
+import { ServerNotification, ServerRequest } from '@modelcontextprotocol/sdk/types.js'
 
 function createContextCheckingServer(server: McpServer): McpServer {
   const originalTool = server.tool
@@ -20,7 +21,7 @@ function createContextCheckingServer(server: McpServer): McpServer {
         return function (this: THIS_IS_FINE, ...args: THIS_IS_FINE) {
           const [name, description, schema, handler] = args
 
-          const wrappedHandler = async (args: THIS_IS_FINE, extra: RequestHandlerExtra) => {
+          const wrappedHandler = async (args: THIS_IS_FINE, extra: RequestHandlerExtra<ServerRequest, ServerNotification>) => {
             enforceInitialContextMiddleware(name)
             return handler(args, extra)
           }
