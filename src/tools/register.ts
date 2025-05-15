@@ -19,14 +19,14 @@ function createContextCheckingServer(server: McpServer): McpServer {
     get(target, prop) {
       if (prop === 'tool') {
         return function (this: THIS_IS_FINE, ...args: THIS_IS_FINE) {
-          const [name, description, schema, handler] = args
+          const [name, description, schema, annotations, handler] = args
 
           const wrappedHandler = async (args: THIS_IS_FINE, extra: RequestHandlerExtra<ServerRequest, ServerNotification>) => {
             enforceInitialContextMiddleware(name)
             return handler(args, extra)
           }
 
-          return originalTool.call(this, name, description, schema, wrappedHandler)
+          return originalTool.call(this, name, description, schema, annotations, wrappedHandler)
         }
       }
       return (target as THIS_IS_FINE)[prop]
