@@ -34,7 +34,8 @@
     "get-it": "^8.3.2",
     "groq-js": "^1.16.1",
     "outdent": "^0.8.0",
-    "zod": "^3.24.2"
+    "zod": "^3.24.2",
+    "mcp-evals": "^1.0.18"
   },
   "devDependencies": {
     "@sanity/prettier-config": "^1.0.3",
