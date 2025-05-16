@@ -1,3 +1,4 @@
+import { ServerNotification, ServerRequest } from '@modelcontextprotocol/sdk/types.js'
 import type {THIS_IS_FINE} from '../types/any.js'
 import {formatResponse} from './formatters.js'
 import type {RequestHandlerExtra} from '@modelcontextprotocol/sdk/shared/protocol.js'
@@ -20,10 +21,10 @@ export function createSuccessResponse(message: string, data?: Record<string, unk
  * Higher-order function that wraps tool handlers with standardized error handling
  */
 export function withErrorHandling<T extends Record<string, unknown>>(
-  handler: (params: T, extra?: RequestHandlerExtra) => Promise<THIS_IS_FINE>,
+  handler: (params: T, extra?: RequestHandlerExtra<ServerRequest, ServerNotification>) => Promise<THIS_IS_FINE>,
   errorPrefix = 'Error',
-): (params: T, extra?: RequestHandlerExtra) => Promise<THIS_IS_FINE> {
-  return async (params: T, extra?: RequestHandlerExtra) => {
+): (params: T, extra?: RequestHandlerExtra<ServerRequest, ServerNotification>) => Promise<THIS_IS_FINE> {
+  return async (params: T, extra?: RequestHandlerExtra<ServerRequest, ServerNotification>) => {
     try {
       return await handler(params, extra)
     } catch (error: unknown) {
