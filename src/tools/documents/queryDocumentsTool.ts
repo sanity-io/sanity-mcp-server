@@ -4,7 +4,7 @@ import {ensureArray, pluralize} from '../../utils/formatters.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
 
-const DOCUMENT_LIMIT = 10 // Limit the number of documents returned by the tool to avoid blowing up context window
+const DOCUMENT_LIMIT = 5 // Limit the number of documents returned by the tool to avoid blowing up context window
 
 export const QueryDocumentsToolParams = BaseToolSchema.extend({
   single: z
