@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@modelcontextprotocol/sdk':
-        specifier: ^1.11.3
-        version: 1.11.3
+        specifier: ^1.12.0
+        version: 1.12.0
       '@sanity/client':
         specifier: 7.1.0
         version: 7.1.0
@@ -29,6 +29,9 @@ importers:
       get-it:
         specifier: ^8.3.2
         version: 8.6.7
+      gpt-tokenizer:
+        specifier: ^2.9.0
+        version: 2.9.0
       groq-js:
         specifier: ^1.17.0
         version: 1.17.0
@@ -137,8 +140,8 @@ packages:
     resolution: {integrity: sha512-bV0Tgo9K4hfPCek+aMAn81RppFKv2ySDQeMoSZuvTASywNTnVJCArCZE2FWqpvIatKu7VMRLWlR1EazvVhDyhQ==}
     engines: {node: '>=18.18'}
 
-  '@modelcontextprotocol/sdk@1.11.3':
-    resolution: {integrity: sha512-rmOWVRUbUJD7iSvJugjUbFZshTAuJ48MXoZ80Osx1GM0K/H1w7rSEvmw8m6vdWxNASgtaHIhAgre4H/E9GJiYQ==}
+  '@modelcontextprotocol/sdk@1.12.0':
+    resolution: {integrity: sha512-m//7RlINx1F3sz3KqwY1WWzVgTcYX52HYk4bJ1hkBXV3zccAEth+jRvG8DBRrdaQuRsPAJOx2MH3zaHNCKL7Zg==}
     engines: {node: '>=18'}
 
   '@nodelib/fs.scandir@2.1.5':
@@ -642,6 +645,9 @@ packages:
   gopd@1.2.0:
     resolution: {integrity: sha512-ZUKRh6/kUFoAiTAtTYPZJ3hw9wNxx+BIBOijnlG9PnrJsCcSjs1wyyD6vJpaYtgnzDrKYRSqf3OO6Rfa93xsRg==}
     engines: {node: '>= 0.4'}
+
+  gpt-tokenizer@2.9.0:
+    resolution: {integrity: sha512-YSpexBL/k4bfliAzMrRqn3M6+it02LutVyhVpDeMKrC/O9+pCe/5s8U2hYKa2vFLD5/vHhsKc8sOn/qGqII8Kg==}
 
   graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
@@ -1224,8 +1230,9 @@ snapshots:
 
   '@humanwhocodes/retry@0.4.3': {}
 
-  '@modelcontextprotocol/sdk@1.11.3':
+  '@modelcontextprotocol/sdk@1.12.0':
     dependencies:
+      ajv: 6.12.6
       content-type: 1.0.5
       cors: 2.8.5
       cross-spawn: 7.0.6
@@ -1806,6 +1813,8 @@ snapshots:
   globals@14.0.0: {}
 
   gopd@1.2.0: {}
+
+  gpt-tokenizer@2.9.0: {}
 
   graphemer@1.4.0: {}
 
