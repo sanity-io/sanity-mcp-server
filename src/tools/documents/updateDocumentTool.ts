@@ -5,7 +5,7 @@ import {type DocumentId, getPublishedId} from '@sanity/id-utils'
 import {getVersionId} from '@sanity/client/csm'
 import {WorkspaceNameSchema, BaseToolSchema, createToolClient} from '../../utils/tools.js'
 import type {GenerateInstruction} from '@sanity/client'
-import {stringToPath} from '../../utils/path.js'
+import {stringToAgentPath} from '../../utils/path.js'
 import {resolveSchemaId} from '../../utils/resolvers.js'
 
 export const UpdateDocumentToolParams = BaseToolSchema.extend({
@@ -38,15 +38,15 @@ type Params = z.infer<typeof UpdateDocumentToolParams>
 async function tool(params: Params) {
   const client = createToolClient(params)
   const publishedId = getPublishedId(params.documentId as DocumentId)
-  const documentId = params.releaseId
-    ? getVersionId(publishedId, params.releaseId)
-    : params.documentId
+  const documentId = params.releaseId ? getVersionId(publishedId, params.releaseId) : publishedId
 
   const instructOptions: GenerateInstruction = {
     documentId,
     instruction: params.instruction,
     schemaId: resolveSchemaId(params.workspaceName),
-    target: params.paths ? params.paths.map((path) => ({path: stringToPath(path)})) : undefined,
+    target: params.paths
+      ? params.paths.map((path) => ({path: stringToAgentPath(path)}))
+      : undefined,
   } as const
 
   if (params.async === true) {

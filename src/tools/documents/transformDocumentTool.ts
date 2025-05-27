@@ -3,7 +3,7 @@ import {z} from 'zod'
 import {truncateDocumentForLLMOutput} from '../../utils/formatters.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {WorkspaceNameSchema, BaseToolSchema, createToolClient} from '../../utils/tools.js'
-import {stringToPath} from '../../utils/path.js'
+import {stringToAgentPath} from '../../utils/path.js'
 import {resolveSchemaId} from '../../utils/resolvers.js'
 
 const EditTargetSchema = z.object({
@@ -75,7 +75,9 @@ async function tool(params: Params) {
     documentId: params.documentId,
     instruction: params.instruction,
     schemaId: resolveSchemaId(params.workspaceName),
-    target: params.paths ? params.paths.map((path) => ({path: stringToPath(path)})) : undefined,
+    target: params.paths
+      ? params.paths.map((path) => ({path: stringToAgentPath(path)}))
+      : undefined,
     targetDocument: params.targetDocument,
     instructionParams: params.instructionParams,
   }
