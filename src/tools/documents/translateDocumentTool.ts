@@ -1,6 +1,5 @@
 import type {TranslateDocument} from '@sanity/client'
 import {z} from 'zod'
-import {truncateDocumentForLLMOutput} from '../../utils/formatters.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {WorkspaceNameSchema, BaseToolSchema, createToolClient} from '../../utils/tools.js'
 import {stringToAgentPath} from '../../utils/path.js'
@@ -41,7 +40,9 @@ export const TranslateDocumentToolParams = BaseToolSchema.extend({
   protectedPhrases: z
     .array(z.string())
     .optional()
-    .describe('List of phrases that should not be translated (e.g., brand names like "Nike", company names like "Microsoft", product names, proper nouns, technical terms, etc.)'),
+    .describe(
+      'List of phrases that should not be translated (e.g., brand names like "Nike", company names like "Microsoft", product names, proper nouns, technical terms, etc.)',
+    ),
   async: z
     .boolean()
     .optional()
@@ -92,7 +93,7 @@ async function tool(params: Params) {
 
   return createSuccessResponse('Document translated successfully', {
     success: true,
-    document: truncateDocumentForLLMOutput(translatedDocument),
+    document: translatedDocument,
   })
 }
 

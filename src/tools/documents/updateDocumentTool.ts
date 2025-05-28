@@ -1,12 +1,10 @@
 import {z} from 'zod'
-import {truncateDocumentForLLMOutput} from '../../utils/formatters.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
-import {type DocumentId, getPublishedId} from '@sanity/id-utils'
-import {getVersionId} from '@sanity/client/csm'
+
 import {WorkspaceNameSchema, BaseToolSchema, createToolClient} from '../../utils/tools.js'
 import type {GenerateInstruction} from '@sanity/client'
 import {stringToAgentPath} from '../../utils/path.js'
-import {resolveSchemaId} from '../../utils/resolvers.js'
+import {resolveDocumentId, resolveSchemaId} from '../../utils/resolvers.js'
 
 export const UpdateDocumentToolParams = BaseToolSchema.extend({
   documentId: z.string().describe('The ID of the document to update'),
@@ -37,8 +35,7 @@ type Params = z.infer<typeof UpdateDocumentToolParams>
 
 async function tool(params: Params) {
   const client = createToolClient(params)
-  const publishedId = getPublishedId(params.documentId as DocumentId)
-  const documentId = params.releaseId ? getVersionId(publishedId, params.releaseId) : publishedId
+  const documentId = resolveDocumentId(params.documentId, params.releaseId)
 
   const instructOptions: GenerateInstruction = {
     documentId,
@@ -65,7 +62,7 @@ async function tool(params: Params) {
 
   return createSuccessResponse('Document updated successfully', {
     success: true,
-    document: truncateDocumentForLLMOutput(updatedDocument),
+    document: updatedDocument,
   })
 }
 

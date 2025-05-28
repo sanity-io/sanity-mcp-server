@@ -38,15 +38,18 @@ async function tool(params: Params) {
     ? {path: imagePath, include: ['asset', 'alt']}
     : {path: [...imagePath, 'asset']}
 
-  const action =
-    params.operation === 'generate' ? client.agent.action.generate : client.agent.action.transform
-
-  await action({
+  const actionOptions = {
     documentId: params.documentId,
     instruction: params.instruction,
     schemaId: resolveSchemaId(params.workspaceName),
     target,
-  })
+  }
+
+  if (params.operation === 'generate') {
+    await client.agent.action.generate(actionOptions)
+  } else {
+    await client.agent.action.transform(actionOptions)
+  }
 
   return createSuccessResponse(`Image ${params.operation}ed successfully`, {
     success: true,

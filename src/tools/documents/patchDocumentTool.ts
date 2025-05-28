@@ -1,10 +1,8 @@
 import {z} from 'zod'
-import {truncateDocumentForLLMOutput} from '../../utils/formatters.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
-import {type DocumentId, getDraftId, getPublishedId, getVersionId} from '@sanity/id-utils'
 import {BaseToolSchema, createToolClient, WorkspaceNameSchema} from '../../utils/tools.js'
 import {stringToAgentPath} from '../../utils/path.js'
-import {resolveSchemaId} from '../../utils/resolvers.js'
+import {resolveDocumentId, resolveSchemaId} from '../../utils/resolvers.js'
 
 const SetOperation = z.object({
   op: z.literal('set'),
@@ -71,9 +69,8 @@ type Params = z.infer<typeof PatchDocumentToolParams>
 
 async function tool(params: Params) {
   const client = createToolClient(params)
-  const publishedId = getPublishedId(params.documentId as DocumentId)
-  const documentId = params.releaseId ? getVersionId(publishedId, params.releaseId) : publishedId
 
+  const documentId = resolveDocumentId(params.documentId, params.releaseId)
   const document = await client.getDocument(documentId)
   if (!document) {
     throw new Error(`Document with ID '${documentId}' not found`)
@@ -115,7 +112,7 @@ async function tool(params: Params) {
 
   return createSuccessResponse('Document patched successfully', {
     success: true,
-    document: truncateDocumentForLLMOutput(result.document),
+    document: result.document,
   })
 }
 

@@ -1,6 +1,5 @@
 import type {TransformDocument} from '@sanity/client'
 import {z} from 'zod'
-import {truncateDocumentForLLMOutput} from '../../utils/formatters.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {WorkspaceNameSchema, BaseToolSchema, createToolClient} from '../../utils/tools.js'
 import {stringToAgentPath} from '../../utils/path.js'
@@ -98,7 +97,7 @@ async function tool(params: Params) {
 
   return createSuccessResponse('Document transformed successfully', {
     success: true,
-    document: truncateDocumentForLLMOutput(transformedDocument),
+    document: transformedDocument,
   })
 }
 

@@ -1,9 +1,7 @@
 import {z} from 'zod'
-import {truncateDocumentForLLMOutput} from '../../utils/formatters.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
-import {type DocumentId, getDraftId, getPublishedId, getVersionId} from '@sanity/id-utils'
 import {BaseToolSchema, createToolClient, WorkspaceNameSchema} from '../../utils/tools.js'
-import {resolveSchemaId} from '../../utils/resolvers.js'
+import {resolveDocumentId, resolveSchemaId} from '../../utils/resolvers.js'
 
 export const CreateVersionToolParams = BaseToolSchema.extend({
   documentId: z.string().describe('ID of the document to create a version for'),
@@ -19,47 +17,33 @@ type Params = z.infer<typeof CreateVersionToolParams>
 
 async function tool(params: Params) {
   const client = createToolClient(params)
-  const publishedId = getPublishedId(params.documentId as DocumentId)
-  const versionId = getVersionId(publishedId, params.releaseId)
 
-  const [requestedDoc, draftDoc] = await Promise.all([
-    client.getDocument(params.documentId).catch(() => null),
-    client.getDocument(getDraftId(publishedId)).catch(() => null),
-  ])
-
-  const originalDocument = requestedDoc || draftDoc
+  const publishedId = resolveDocumentId(params.documentId)
+  const originalDocument = await client.getDocument(publishedId)
   if (!originalDocument) {
     throw new Error(`Document with ID '${params.documentId}' not found`)
   }
 
-  let newDocument = await client.request({
-    uri: `/data/actions/${client.config().dataset}`,
-    method: 'POST',
-    body: {
-      actions: [
-        {
-          actionType: 'sanity.action.document.version.create',
-          publishedId,
-          document: {
-            ...originalDocument,
-            _id: versionId,
-          },
+  const versionedId = resolveDocumentId(params.documentId, params.releaseId)
+
+  const newDocument = params.instruction
+    ? await client.agent.action.generate({
+        documentId: versionedId,
+        schemaId: resolveSchemaId(params.workspaceName),
+        instruction: params.instruction,
+      })
+    : await client.createVersion({
+        document: {
+          ...originalDocument,
+          _id: versionedId,
         },
-      ],
-    },
-  })
+        releaseId: params.releaseId,
+        publishedId,
+      })
 
-  if (params.instruction) {
-    newDocument = await client.agent.action.generate({
-      documentId: versionId,
-      schemaId: resolveSchemaId(params.workspaceName),
-      instruction: params.instruction,
-    })
-  }
-
-  return createSuccessResponse('Version created and modified with AI successfully', {
+  return createSuccessResponse('Versioned document created successfully', {
     success: true,
-    document: truncateDocumentForLLMOutput(newDocument),
+    document: newDocument,
   })
 }
 
