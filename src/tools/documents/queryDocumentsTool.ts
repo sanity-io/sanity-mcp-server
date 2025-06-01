@@ -1,10 +1,9 @@
 import {z} from 'zod'
-import {countTokens} from 'gpt-tokenizer'
 import {ensureArray, pluralize} from '../../utils/formatters.js'
 import {validateGroqQuery} from '../../utils/groq.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
-import {tokenLimit} from '../../utils/tokens.js'
+import {tokenLimit, limitByTokens} from '../../utils/tokens.js'
 
 export const QueryDocumentsToolParams = BaseToolSchema.extend({
   single: z
@@ -47,30 +46,12 @@ async function tool(params: Params) {
   const result = await perspectiveClient.fetch(params.query, params.params)
   const allDocuments = ensureArray(result)
 
-  // Get token limit from environment or use default
-  let runningTokens = 0
-  const selectedDocuments: unknown[] = []
-  const formattedDocuments: string[] = []
-
-  // Process documents until we hit token limit or requested limit
-  for (let i = 0; i < Math.min(allDocuments.length, params.limit); i++) {
-    const doc: unknown = allDocuments[i]
-    const formattedDoc = JSON.stringify(doc, null, 2)
-    const docTokens = countTokens(formattedDoc)
-
-    // Add separator tokens if not the first document
-    const separatorTokens = selectedDocuments.length > 0 ? countTokens('\n') : 0
-
-    if (runningTokens + docTokens + separatorTokens > tokenLimit && selectedDocuments.length > 0) {
-      break
-    }
-
-    selectedDocuments.push(doc)
-    formattedDocuments.push(formattedDoc)
-    runningTokens += docTokens + separatorTokens
-  }
-
-  const totalTokens = runningTokens
+  const {selectedItems: selectedDocuments, formattedItems: formattedDocuments, tokensUsed: totalTokens} = limitByTokens(
+    allDocuments,
+    (doc) => JSON.stringify(doc, null, 2),
+    tokenLimit,
+    params.limit
+  )
 
   return createSuccessResponse(
     `Query executed successfully. Found ${allDocuments.length} total ${pluralize(allDocuments, 'document')}, returning ${selectedDocuments.length} (${totalTokens} tokens)`,
