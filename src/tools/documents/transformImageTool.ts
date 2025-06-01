@@ -16,11 +16,6 @@ export const TransformImageToolParams = BaseToolSchema.extend({
     .enum(['transform', 'generate'])
     .describe('Operation type: "transform" for existing images, "generate" for new images'),
   workspaceName: WorkspaceNameSchema,
-  generateAltText: z
-    .boolean()
-    .optional()
-    .default(false)
-    .describe('Whether to also include alt text field in the transformation'),
 })
 
 type Params = z.infer<typeof TransformImageToolParams>
@@ -33,16 +28,11 @@ async function tool(params: Params) {
     throw new Error(`Document with ID '${params.documentId}' not found`)
   }
 
-  const imagePath = stringToAgentPath(params.imagePath)
-  const target = params.generateAltText
-    ? {path: imagePath, include: ['asset', 'alt']}
-    : {path: [...imagePath, 'asset']}
-
   const actionOptions = {
     documentId: params.documentId,
     instruction: params.instruction,
     schemaId: resolveSchemaId(params.workspaceName),
-    target,
+    target: {path: [...stringToAgentPath(params.imagePath), 'asset']},
   }
 
   if (params.operation === 'generate') {
