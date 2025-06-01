@@ -18,6 +18,11 @@ type Params = z.infer<typeof CreateVersionToolParams>
 async function tool(params: Params) {
   const client = createToolClient(params)
 
+  const release = await client.releases.get({releaseId: params.releaseId})
+  if (!release) {
+    throw new Error(`Release with ID '${params.releaseId}' not found`)
+  }
+
   const publishedId = resolveDocumentId(params.documentId)
   const originalDocument = await client.getDocument(publishedId)
   if (!originalDocument) {
@@ -26,20 +31,22 @@ async function tool(params: Params) {
 
   const versionedId = resolveDocumentId(params.documentId, params.releaseId)
 
-  const newDocument = params.instruction
-    ? await client.agent.action.generate({
-        documentId: versionedId,
-        schemaId: resolveSchemaId(params.workspaceName),
-        instruction: params.instruction,
-      })
-    : await client.createVersion({
-        document: {
-          ...originalDocument,
-          _id: versionedId,
-        },
-        releaseId: params.releaseId,
-        publishedId,
-      })
+  let newDocument = await client.createVersion({
+    document: {
+      ...originalDocument,
+      _id: versionedId,
+    },
+    releaseId: params.releaseId,
+    publishedId,
+  })
+
+  if (params.instruction) {
+    newDocument = await client.agent.action.transform({
+      schemaId: resolveSchemaId(params.workspaceName),
+      instruction: params.instruction,
+      documentId: versionedId,
+    })
+  }
 
   return createSuccessResponse('Versioned document created successfully', {
     success: true,

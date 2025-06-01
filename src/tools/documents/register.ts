@@ -8,11 +8,6 @@ import {transformImageTool, TransformImageToolParams} from './transformImageTool
 import {translateDocumentTool, TranslateDocumentToolParams} from './translateDocumentTool.js'
 import {documentActionsTool, DocumentActionsToolParams} from './documentActionsTool.js'
 import {createVersionTool, CreateVersionToolParams} from './createVersionTool.js'
-import {discardVersionTool, DiscardVersionToolParams} from './discardVersionTool.js'
-import {
-  markVersionForUnpublishTool,
-  MarkVersionForUnpublishParams,
-} from './markVersionForUnpublishTool.js'
 
 export function registerDocumentsTools(server: McpServer) {
   server.tool(
@@ -66,7 +61,7 @@ export function registerDocumentsTools(server: McpServer) {
 
   server.tool(
     'document_action',
-    'Perform document actions like publishing, unpublishing, or deleting documents',
+    'Perform document actions like publishing, unpublishing, deleting, or discarding documents',
     DocumentActionsToolParams.shape,
     documentActionsTool,
   )
@@ -76,19 +71,5 @@ export function registerDocumentsTools(server: McpServer) {
     'Create a version of an existing document for a specific release, with optional AI-generated modifications',
     CreateVersionToolParams.shape,
     createVersionTool,
-  )
-
-  server.tool(
-    'discard_version',
-    'Discard a draft or delete a specific version document from a release',
-    DiscardVersionToolParams.shape,
-    discardVersionTool,
-  )
-
-  server.tool(
-    'mark_for_unpublish',
-    'Mark a document to be unpublished when a specific release is published',
-    MarkVersionForUnpublishParams.shape,
-    markVersionForUnpublishTool,
   )
 }

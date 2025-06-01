@@ -19,28 +19,16 @@ async function tool(params: Params) {
   const releaseId = generateSanityId(8, 'r')
   const intendedPublishAt = parseDateString(params.intendedPublishAt)
 
-  const response = await client.request({
-    uri: `/data/actions/${client.config().dataset}`,
-    method: 'POST',
-    body: {
-      actions: [
-        {
-          actionType: 'sanity.action.release.create',
-          releaseId,
-          metadata: {
-            title: params.title,
-            description: params.description,
-            releaseType: params.releaseType,
-            intendedPublishAt,
-          },
-        },
-      ],
+  await client.action({
+    actionType: 'sanity.action.release.create',
+    releaseId,
+    metadata: {
+      title: params.title,
+      description: params.description,
+      releaseType: params.releaseType,
+      ...(intendedPublishAt && { intendedPublishAt }),
     },
   })
-
-  if (response.error) {
-    throw new Error(response.error.description)
-  }
 
   return createSuccessResponse(`Created new release with ID "${releaseId}"`, {
     release: {

@@ -16,14 +16,9 @@ async function tool(params: Params) {
   const releases = await client.fetch<Release[]>(query, {state: params.state})
 
   if (!releases || releases.length === 0) {
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: `No releases found${params.state !== 'all' ? ` with state '${params.state}'` : ''}`,
-        },
-      ],
-    }
+    throw new Error(
+      `No releases found${params.state !== 'all' ? ` with state '${params.state}'` : ''}`,
+    )
   }
 
   const formattedReleases: Record<string, object> = {}

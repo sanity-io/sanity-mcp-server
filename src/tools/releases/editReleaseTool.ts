@@ -26,39 +26,19 @@ async function tool(params: Params) {
     metadataChanges.intendedPublishAt = parseDateString(params.intendedPublishAt)
   }
 
-  // Only proceed if there are changes to make
   if (Object.keys(metadataChanges).length === 0) {
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: 'No changes provided for the release metadata.',
-        },
-      ],
-    }
+    throw new Error('No changes provided for the release metadata.')
   }
 
-  const response = await client.request({
-    uri: `/data/actions/${client.config().dataset}`,
-    method: 'POST',
-    body: {
-      actions: [
-        {
-          actionType: 'sanity.action.release.edit',
-          releaseId: params.releaseId,
-          patch: {
-            set: {
-              metadata: metadataChanges,
-            },
-          },
-        },
-      ],
+  await client.action({
+    actionType: 'sanity.action.release.edit',
+    releaseId: params.releaseId,
+    patch: {
+      set: {
+        metadata: metadataChanges,
+      },
     },
   })
-
-  if (response.error) {
-    throw new Error(response.error.description)
-  }
 
   return createSuccessResponse(`Updated metadata for release '${params.releaseId}'`, {
     updated: {

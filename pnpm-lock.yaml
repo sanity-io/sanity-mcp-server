@@ -9,11 +9,11 @@ importers:
   .:
     dependencies:
       '@modelcontextprotocol/sdk':
-        specifier: 1.11.3
-        version: 1.11.3
+        specifier: ^1.12.0
+        version: 1.12.1
       '@sanity/client':
-        specifier: 7.2.1-agent-actions.3
-        version: 7.2.1-agent-actions.3
+        specifier: 7.4.0
+        version: 7.4.0
       '@sanity/id-utils':
         specifier: ^1.0.0
         version: 1.0.0
@@ -21,8 +21,8 @@ importers:
         specifier: ^3.89.0
         version: 3.89.0(@types/react@19.1.6)
       chrono-node:
-        specifier: ^2.8.0
-        version: 2.8.0
+        specifier: ^2.8.2
+        version: 2.8.2
       dotenv:
         specifier: ^16.4.7
         version: 16.4.7
@@ -299,8 +299,8 @@ packages:
   '@jridgewell/sourcemap-codec@1.5.0':
     resolution: {integrity: sha512-gv3ZRaISU3fjPAgNsriBRqGWQL6quFx04YMPW/zD8XMLsU32mhCCbfbO6KZFLjvYpCZ8zyDEgqsgf+PwPaM7GQ==}
 
-  '@modelcontextprotocol/sdk@1.11.3':
-    resolution: {integrity: sha512-rmOWVRUbUJD7iSvJugjUbFZshTAuJ48MXoZ80Osx1GM0K/H1w7rSEvmw8m6vdWxNASgtaHIhAgre4H/E9GJiYQ==}
+  '@modelcontextprotocol/sdk@1.12.1':
+    resolution: {integrity: sha512-KG1CZhZfWg+u8pxeM/mByJDScJSrjjxLc8fwQqbsS8xCjBmQfMNEBTotYdNanKekepnfRI85GtgQlctLFpcYPw==}
     engines: {node: '>=18'}
 
   '@nodelib/fs.scandir@2.1.5':
@@ -419,12 +419,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@sanity/client@7.2.1-agent-actions.3':
-    resolution: {integrity: sha512-gAJYI90FyOzg6fPegYwu5OtDd8YtnpI0EZLxPXglo8rnpA3jZCxCvnVn7oirw0woMYerRL9Mf69UL6jwIccLJw==}
-    engines: {node: '>=20'}
-
-  '@sanity/client@7.3.0':
-    resolution: {integrity: sha512-VmzlvGwvWRNxEqAYHNDdvB6u0460C38fPJSHUaIcdBCTBWKMeCgIE8QI1w4PxO0PiYuWgERexRS2OrF+OYh3tQ==}
+  '@sanity/client@7.4.0':
+    resolution: {integrity: sha512-GGvt6NJq203or4h4sjKLPmGhyppIIRCsd6JuSrk3dUzD02YZRDOI+J2JgR6Rl/WwtFzXaYQk1MaqZ9fs1Ddc4Q==}
     engines: {node: '>=20'}
 
   '@sanity/eventsource@5.0.2':
@@ -642,8 +638,8 @@ packages:
     resolution: {integrity: sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw==}
     engines: {node: '>= 8.10.0'}
 
-  chrono-node@2.8.0:
-    resolution: {integrity: sha512-//a/HhnCQ4zFHxRfi1m+jQwr8o0Gxsg0GUjZ39O6ud9lkhrnuLGX1oOKjGsivm9AVMS79cn0PmTa6JCRlzgfWA==}
+  chrono-node@2.8.2:
+    resolution: {integrity: sha512-7BJ6TRHs4sFtOSsTISWXGKjg7C70wD+NU+44uA6euGnbvZnECvgzUv+5TS9sICta2sBQWej4UYy8XAg4W9E7rQ==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
   color-convert@2.0.1:
@@ -1807,8 +1803,9 @@ snapshots:
 
   '@jridgewell/sourcemap-codec@1.5.0': {}
 
-  '@modelcontextprotocol/sdk@1.11.3':
+  '@modelcontextprotocol/sdk@1.12.1':
     dependencies:
+      ajv: 6.12.6
       content-type: 1.0.5
       cors: 2.8.5
       cross-spawn: 7.0.6
@@ -1896,16 +1893,7 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.41.1':
     optional: true
 
-  '@sanity/client@7.2.1-agent-actions.3':
-    dependencies:
-      '@sanity/eventsource': 5.0.2
-      get-it: 8.6.9
-      nanoid: 3.3.11
-      rxjs: 7.8.2
-    transitivePeerDependencies:
-      - debug
-
-  '@sanity/client@7.3.0':
+  '@sanity/client@7.4.0':
     dependencies:
       '@sanity/eventsource': 5.0.2
       get-it: 8.6.9
@@ -1934,7 +1922,7 @@ snapshots:
 
   '@sanity/types@3.89.0(@types/react@19.1.6)':
     dependencies:
-      '@sanity/client': 7.3.0
+      '@sanity/client': 7.4.0
       '@types/react': 19.1.6
     transitivePeerDependencies:
       - debug
@@ -2194,7 +2182,7 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.3
 
-  chrono-node@2.8.0:
+  chrono-node@2.8.2:
     dependencies:
       dayjs: 1.11.13
 

@@ -22,28 +22,11 @@ type Params = z.infer<typeof ReleaseActionsToolParams>
 async function tool(params: Params) {
   const {actionType, releaseId} = params
   const client = createToolClient(params)
-  const dataset = client.config().dataset
 
-  if (!dataset) {
-    throw new Error('A dataset resource is required')
-  }
-
-  const response = await client.request({
-    uri: `/data/actions/${dataset}`,
-    method: 'POST',
-    body: {
-      actions: [
-        {
-          actionType: `sanity.action.release.${actionType}`,
-          releaseId,
-        },
-      ],
-    },
+  await client.action({
+    actionType: `sanity.action.release.${actionType}`,
+    releaseId,
   })
-
-  if (response.error) {
-    throw new Error(response.error.description)
-  }
 
   const actionDescriptionMap = {
     publish: `Published all documents in release '${releaseId}'`,
