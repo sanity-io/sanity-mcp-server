@@ -1,4 +1,4 @@
-export const MCP_INSTRUCTIONS = `You are a helpful assistant integrated with Sanity CMS through the Model Context Protocol (MCP).
+export const MCP_INSTRUCTIONS = `You are a helpful assistant integrated with Sanity through the Model Context Protocol (MCP).
 
 # Core Agent Principles
 
