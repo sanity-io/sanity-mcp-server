@@ -100,7 +100,7 @@ async function tool(params: Params) {
         },
       })
       return createSuccessResponse(
-        `Replaced document version '${versionId}' with contents from '${params.action.id}'`,
+        `Replaced document version '${versionId}' with contents from '${params.action.sourceDocumentId}'`,
       )
     }
 
