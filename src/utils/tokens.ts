@@ -10,11 +10,15 @@ export interface TokenLimitResult<T> {
   totalAvailable: number
 }
 
+/**
+ * Limits a collection of items based on token count, selecting as many items as possible
+ * without exceeding the specified token limit.
+ */
 export function limitByTokens<T>(
   items: T[],
   formatter: (item: T) => string,
   limit: number = tokenLimit,
-  requestedLimit?: number
+  requestedLimit?: number,
 ): TokenLimitResult<T> {
   let runningTokens = 0
   const selectedItems: T[] = []
