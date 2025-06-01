@@ -1,5 +1,5 @@
 import {z} from 'zod'
-import {isWithinTokenLimit, countTokens} from 'gpt-tokenizer'
+import {countTokens} from 'gpt-tokenizer'
 import {ensureArray, pluralize} from '../../utils/formatters.js'
 import {validateGroqQuery} from '../../utils/groq.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
@@ -48,31 +48,29 @@ async function tool(params: Params) {
   const allDocuments = ensureArray(result)
 
   // Get token limit from environment or use default
-  const selectedDocuments: unknown[] = [] // Raw document objects for rawResults field
-  const formattedDocuments: string[] = [] // JSON-stringified documents for token counting and main response
+  let runningTokens = 0
+  const selectedDocuments: unknown[] = []
+  const formattedDocuments: string[] = []
 
   // Process documents until we hit token limit or requested limit
   for (let i = 0; i < Math.min(allDocuments.length, params.limit); i++) {
     const doc: unknown = allDocuments[i]
     const formattedDoc = JSON.stringify(doc, null, 2)
+    const docTokens = countTokens(formattedDoc)
 
-    // Try adding this document to the current batch
-    const potentialFormattedDocs = [...formattedDocuments, formattedDoc]
-    const combinedText = potentialFormattedDocs.join('\n')
+    // Add separator tokens if not the first document
+    const separatorTokens = selectedDocuments.length > 0 ? countTokens('\n') : 0
 
-    // Check if adding this document would exceed the token limit
-    const withinLimit = isWithinTokenLimit(combinedText, tokenLimit)
-    if (withinLimit === false && selectedDocuments.length > 0) {
+    if (runningTokens + docTokens + separatorTokens > tokenLimit && selectedDocuments.length > 0) {
       break
     }
 
     selectedDocuments.push(doc)
     formattedDocuments.push(formattedDoc)
+    runningTokens += docTokens + separatorTokens
   }
 
-  // Get final token count
-  const finalText = formattedDocuments.join('\n')
-  const totalTokens = countTokens(finalText)
+  const totalTokens = runningTokens
 
   return createSuccessResponse(
     `Query executed successfully. Found ${allDocuments.length} total ${pluralize(allDocuments, 'document')}, returning ${selectedDocuments.length} (${totalTokens} tokens)`,
