@@ -25,14 +25,7 @@ async function tool(params: Params) {
   })
 
   if (!results || results.length === 0) {
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: 'No search results found',
-        },
-      ],
-    }
+    throw new Error('No search results found')
   }
 
   const formattedResults = results.map((item, index) => ({
