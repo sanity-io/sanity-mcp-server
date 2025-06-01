@@ -13,7 +13,12 @@ const UnpublishActionSchema = z.object({
 })
 
 const DiscardVersionActionSchema = z.object({
-  type: z.literal('discard'),
+  type: z.literal('version.discard'),
+  releaseId: z.string().describe('ID of the release that contains this document version'),
+})
+
+const UnpublishVersionActionSchema = z.object({
+  type: z.literal('version.unpublish'),
   releaseId: z.string().describe('ID of the release that contains this document version'),
 })
 
@@ -27,6 +32,7 @@ export const DocumentActionsToolParams = BaseToolSchema.extend({
     PublishActionSchema,
     UnpublishActionSchema,
     DiscardVersionActionSchema,
+    UnpublishVersionActionSchema,
     DeleteActionSchema,
   ]),
 })
@@ -57,13 +63,25 @@ async function tool(params: Params) {
       return createSuccessResponse(`Unpublished document '${params.id}' (moved to drafts)`)
     }
 
-    case 'discard': {
+    case 'version.discard': {
       const versionId = resolveDocumentId(publishedId, params.action.releaseId)
       await client.action({
         actionType: 'sanity.action.document.version.discard',
         versionId,
       })
       return createSuccessResponse(`Discarded document '${versionId}'`)
+    }
+
+    case 'version.unpublish': {
+      const versionId = resolveDocumentId(publishedId, params.action.releaseId)
+      await client.action({
+        actionType: 'sanity.action.document.version.unpublish',
+        publishedId,
+        versionId,
+      })
+      return createSuccessResponse(
+        `Document '${publishedId}' will be unpublished when release '${params.action.releaseId}' is run`,
+      )
     }
 
     case 'delete': {
