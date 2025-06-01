@@ -3,7 +3,6 @@ import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {BaseToolSchema, createToolClient, WorkspaceNameSchema} from '../../utils/tools.js'
 import {stringToAgentPath} from '../../utils/path.js'
 import {resolveDocumentId, resolveSchemaId} from '../../utils/resolvers.js'
-import fs from 'node:fs'
 
 const SetOperation = z.object({
   op: z.literal('set'),
