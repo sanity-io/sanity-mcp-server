@@ -32,17 +32,17 @@ export function registerDocumentsTools(server: McpServer) {
   )
 
   server.tool(
-    'update_document',
-    'Update existing document content using AI to rewrite, expand, or modify based on natural language instructions. Best for general content updates, rewrites, and improvements where you want AI to interpret and generate new content.',
-    UpdateDocumentToolParams.shape,
-    updateDocumentTool,
-  )
-
-  server.tool(
     'patch_document',
     'Apply precise, direct modifications to document fields without AI generation. Use for exact value changes, adding/removing specific items, or when you know exactly what needs to be changed. No content interpretation or generation. Performs one operation at a time.',
     PatchDocumentToolParams.shape,
     patchDocumentTool,
+  )
+
+  server.tool(
+    'update_document',
+    'Update existing document content using AI to rewrite, expand, or modify based on natural language instructions. Best for general content updates, rewrites, and improvements where you want AI to interpret and generate new content.',
+    UpdateDocumentToolParams.shape,
+    updateDocumentTool,
   )
 
   server.tool(
