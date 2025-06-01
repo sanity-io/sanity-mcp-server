@@ -40,7 +40,7 @@ export const TransformDocumentToolParams = BaseToolSchema.extend({
     .array(z.string())
     .optional()
     .describe(
-      'Optional target field paths for the transformation. If not set, transforms the whole document.',
+      'Optional target field paths for the transformation. If not set, transforms the whole document. Supports: simple fields ("title"), nested objects ("author.name"), array items by key ("items[_key==\"item-1\"]"), and nested properties in arrays ("items[_key==\"item-1\"].title"). ie: ["field", "array[_key==\"key\"]"] where "key" is a json match',
     ),
   targetDocument: TargetDocumentSchema.optional().describe(
     'Optional target document configuration if you want to transform to a different document',

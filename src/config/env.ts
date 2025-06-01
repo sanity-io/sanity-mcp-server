@@ -18,6 +18,7 @@ const CommonEnvSchema = z.object({
   INTERNAL_USE_PROJECT_HOSTNAME: z
     .union([z.literal('true').transform(() => true), z.literal('false').transform(() => false)])
     .optional(),
+
   MAX_TOOL_TOKEN_OUTPUT: z.coerce
     .number()
     .optional()

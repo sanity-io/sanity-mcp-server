@@ -21,7 +21,9 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "prepublishOnly": "npm run build",
-    "start": "node build/index.js"
+    "start": "node build/index.js",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "prettier": "@sanity/prettier-config",
   "dependencies": {
@@ -47,6 +49,7 @@
     "eslint-plugin-unused-imports": "^4.1.4",
     "nodemon": "^3.1.0",
     "prettier": "^3.5.3",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "vitest": "^3.1.4"
   }
 }

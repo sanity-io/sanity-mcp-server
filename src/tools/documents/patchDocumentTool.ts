@@ -3,10 +3,15 @@ import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {BaseToolSchema, createToolClient, WorkspaceNameSchema} from '../../utils/tools.js'
 import {stringToAgentPath} from '../../utils/path.js'
 import {resolveDocumentId, resolveSchemaId} from '../../utils/resolvers.js'
+import fs from 'node:fs'
 
 const SetOperation = z.object({
   op: z.literal('set'),
-  path: z.string().describe('The path to set, e.g. "title" or "author.name"'),
+  path: z
+    .string()
+    .describe(
+      'The path to set. Supports: simple fields ("title"), nested objects ("author.name"), array items by key ("items[_key==\\"item-1\\"]"), and nested properties in arrays ("items[_key==\\"item-1\\"].title")',
+    ),
   value: z
     .any()
     .describe(
@@ -16,7 +21,11 @@ const SetOperation = z.object({
 
 const UnsetOperation = z.object({
   op: z.literal('unset'),
-  path: z.string().describe('The path to unset, e.g. "description" or "metadata.keywords"'),
+  path: z
+    .string()
+    .describe(
+      'The path to unset. Supports: simple fields ("description"), nested objects ("metadata.keywords"), array items by key ("tags[_key==\\"tag-1\\"]"), and nested properties in arrays ("gallery[_key==\\"img-1\\"].alt")',
+    ),
 })
 
 const AppendOperation = z.object({
@@ -24,7 +33,7 @@ const AppendOperation = z.object({
   path: z
     .string()
     .describe(
-      'The path to append to, e.g. "categories" or "items". Can target arrays, strings, text, or numbers.',
+      'The path to append to. Supports: simple fields ("categories"), nested arrays ("metadata.tags"), and arrays within keyed items ("sections[_key==\\"sec-1\\"].items"). Can target arrays, strings, text, or numbers.',
     ),
   value: z
     .array(z.any())
@@ -33,30 +42,28 @@ const AppendOperation = z.object({
     ),
 })
 
-const MixedOperation = z.object({
-  op: z.literal('mixed'),
-  value: z
-    .record(z.any())
-    .describe(
-      'Object with mixed operations (default behavior). Sets non-array fields and appends to array fields. Use this when you want to update multiple fields with different behaviors in one operation.',
-    ),
-})
+// const MixedOperation = z.object({
+//   op: z.literal('mixed'),
+//   value: z
+//     .record(z.any())
+//     .describe(
+//       'Object with mixed operations (default behavior). Sets non-array fields and appends to array fields. Use this when you want to update multiple fields with different behaviors in one operation.',
+//     ),
+// })
 
 const PatchOperation = z.discriminatedUnion('op', [
   SetOperation,
   UnsetOperation,
   AppendOperation,
-  MixedOperation,
+  // MixedOperation,
 ])
 
 export const PatchDocumentToolParams = BaseToolSchema.extend({
   documentId: z.string().describe('The ID of the document to patch'),
   workspaceName: WorkspaceNameSchema,
-  operations: z
-    .array(PatchOperation)
-    .describe(
-      'Array of patch operations to apply. Operations are schema-validated and merge with existing data rather than replacing it entirely.',
-    ),
+  operation: PatchOperation.describe(
+    'Patch operation to apply. Operation is schema-validated and merges with existing data rather than replacing it entirely.',
+  ),
   releaseId: z
     .string()
     .optional()
@@ -76,38 +83,38 @@ async function tool(params: Params) {
     throw new Error(`Document with ID '${documentId}' not found`)
   }
 
-  const targets = params.operations.map((operation) => {
-    switch (operation.op) {
+  const target = (() => {
+    switch (params.operation.op) {
       case 'set':
         return {
-          path: stringToAgentPath(operation.path),
+          path: stringToAgentPath(params.operation.path),
           operation: 'set' as const,
-          value: operation.value,
+          value: params.operation.value,
         }
       case 'unset':
         return {
-          path: stringToAgentPath(operation.path),
+          path: stringToAgentPath(params.operation.path),
           operation: 'unset' as const,
         }
       case 'append':
         return {
-          path: stringToAgentPath(operation.path),
+          path: stringToAgentPath(params.operation.path),
           operation: 'append' as const,
-          value: operation.value,
+          value: params.operation.value,
         }
-      case 'mixed':
-        return {
-          path: [],
-          operation: 'mixed' as const,
-          value: operation.value,
-        }
+      // case 'mixed':
+      //   return {
+      //     path: [],
+      //     operation: 'mixed' as const,
+      //     value: operation.value,
+      //   }
     }
-  })
+  })()
 
   const result = await client.agent.action.patch({
     documentId,
     schemaId: resolveSchemaId(params.workspaceName),
-    target: targets.length === 1 ? targets[0] : targets,
+    target,
   })
 
   return createSuccessResponse('Document patched successfully', {

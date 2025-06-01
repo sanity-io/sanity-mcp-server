@@ -15,7 +15,6 @@ import {
 } from './markVersionForUnpublishTool.js'
 
 export function registerDocumentsTools(server: McpServer) {
-  // Document tools
   server.tool(
     'create_document',
     "Create a completely new document from scratch with AI-generated content. Use when you need to create new content that doesn't exist yet.",
@@ -39,7 +38,7 @@ export function registerDocumentsTools(server: McpServer) {
 
   server.tool(
     'patch_document',
-    'Apply precise, direct modifications to document fields without AI generation. Use for exact value changes, adding/removing specific items, or when you know exactly what needs to be changed. No content interpretation or generation.',
+    'Apply precise, direct modifications to document fields without AI generation. Use for exact value changes, adding/removing specific items, or when you know exactly what needs to be changed. No content interpretation or generation. Performs one operation at a time.',
     PatchDocumentToolParams.shape,
     patchDocumentTool,
   )
@@ -72,7 +71,6 @@ export function registerDocumentsTools(server: McpServer) {
     documentActionsTool,
   )
 
-  // Versioning tools
   server.tool(
     'create_version',
     'Create a version of an existing document for a specific release, with optional AI-generated modifications',
