@@ -18,6 +18,13 @@ export function registerDocumentsTools(server: McpServer) {
   )
 
   server.tool(
+    'create_version',
+    'Create a version of an existing document for a specific release, with optional AI-generated modifications',
+    CreateVersionToolParams.shape,
+    createVersionTool,
+  )
+
+  server.tool(
     'transform_image',
     'Transform or generate images in documents using AI. Automatically targets the image asset for transformation or generation. Use "transform" for modifying existing images or "generate" for creating new images.',
     TransformImageToolParams.shape,
@@ -64,12 +71,5 @@ export function registerDocumentsTools(server: McpServer) {
     'Perform document actions like publishing, unpublishing, deleting, or discarding documents',
     DocumentActionsToolParams.shape,
     documentActionsTool,
-  )
-
-  server.tool(
-    'create_version',
-    'Create a version of an existing document for a specific release, with optional AI-generated modifications',
-    CreateVersionToolParams.shape,
-    createVersionTool,
   )
 }
