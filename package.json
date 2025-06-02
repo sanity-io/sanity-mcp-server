@@ -1,6 +1,6 @@
 {
   "name": "@sanity/mcp-server",
-  "version": "0.10.1-canary.4",
+  "version": "0.10.1",
   "repository": {
     "type": "git",
     "url": "https://github.com/sanity-io/sanity-mcp-server"
