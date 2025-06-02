@@ -41,20 +41,25 @@ const AppendOperation = z.object({
     ),
 })
 
-const MixedOperation = z.object({
-  op: z.literal('mixed'),
-  value: z
-    .record(z.unknown())
-    .describe(
-      'Object with mixed operations (default behavior). Sets non-array fields and appends to array fields. Use this when you want to update multiple fields with different behaviors in one operation.',
-    ),
-})
+// const MixedOperation = z.object({
+//   op: z.literal('mixed'),
+//   value: z
+//     .record(z.unknown())
+//     .describe(
+//       'Object with mixed operations (default behavior). Sets non-array fields and appends to array fields. Use this when you want to update multiple fields with different behaviors in one operation.',
+//     ),
+// })
 
 export const PatchDocumentToolParams = BaseToolSchema.extend({
   documentId: z.string().describe('The ID of the document to patch'),
   workspaceName: WorkspaceNameSchema,
   operation: z
-    .discriminatedUnion('op', [SetOperation, UnsetOperation, AppendOperation, MixedOperation])
+    .discriminatedUnion('op', [
+      SetOperation,
+      UnsetOperation,
+      AppendOperation,
+      // MixedOperation,
+    ])
     .describe(
       'Patch operation to apply. Operation is schema-validated and merges with existing data rather than replacing it entirely.',
     ),
@@ -96,12 +101,12 @@ async function tool(params: Params) {
           operation: 'append' as const,
           value: params.operation.value,
         }
-      case 'mixed':
-        return {
-          path: [],
-          operation: 'mixed' as const,
-          value: params.operation.value,
-        }
+      // case 'mixed':
+      //   return {
+      //     path: [],
+      //     operation: 'mixed' as const,
+      //     value: params.operation.value,
+      //   }
     }
   })()
 
