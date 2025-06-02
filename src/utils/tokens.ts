@@ -16,7 +16,7 @@ export interface TokenLimitResult<T> {
  */
 export function limitByTokens<T>(
   items: T[],
-  formatter: (item: T) => string,
+  formatter: (item: T, index: number) => string,
   limit: number = tokenLimit,
   requestedLimit?: number,
 ): TokenLimitResult<T> {
@@ -28,7 +28,7 @@ export function limitByTokens<T>(
 
   for (let i = 0; i < maxItems; i++) {
     const item = items[i]
-    const formattedItem = formatter(item)
+    const formattedItem = formatter(item, i)
     const itemTokens = countTokens(formattedItem)
 
     // Add separator tokens if not the first item

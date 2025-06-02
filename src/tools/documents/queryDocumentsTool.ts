@@ -46,21 +46,20 @@ async function tool(params: Params) {
   const result = await perspectiveClient.fetch(params.query, params.params)
   const allDocuments = ensureArray(result)
 
-  const {selectedItems: selectedDocuments, formattedItems: formattedDocuments, tokensUsed: totalTokens} = limitByTokens(
+  const {selectedItems, formattedItems, tokensUsed} = limitByTokens(
     allDocuments,
     (doc) => JSON.stringify(doc, null, 2),
     tokenLimit,
-    params.limit
+    params.limit,
   )
 
   return createSuccessResponse(
-    `Query executed successfully. Found ${allDocuments.length} total ${pluralize(allDocuments, 'document')}, returning ${selectedDocuments.length} (${totalTokens} tokens)`,
+    `Query executed successfully. Found ${allDocuments.length} total ${pluralize(allDocuments, 'document')}, returning ${selectedItems.length} (${tokensUsed} tokens)`,
     {
-      documents: formattedDocuments,
-      count: selectedDocuments.length,
+      documents: {document: formattedItems},
+      count: selectedItems.length,
       totalAvailable: allDocuments.length,
-      tokensUsed: totalTokens,
-      rawResults: selectedDocuments,
+      tokensUsed,
     },
   )
 }
