@@ -62,7 +62,7 @@ type Params = z.infer<typeof DocumentActionsToolParams>
 
 async function tool(params: Params) {
   const client = createToolClient(params)
-  const publishedId = resolveDocumentId(params.id)
+  const publishedId = resolveDocumentId(params.id, false)
   const draftId = getDraftId(publishedId)
 
   switch (params.action.type) {

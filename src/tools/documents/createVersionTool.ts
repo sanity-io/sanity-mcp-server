@@ -23,7 +23,7 @@ async function tool(params: Params) {
     throw new Error(`Release with ID '${params.releaseId}' not found`)
   }
 
-  const publishedId = resolveDocumentId(params.documentId)
+  const publishedId = resolveDocumentId(params.documentId, false)
   const originalDocument = await client.getDocument(publishedId)
   if (!originalDocument) {
     throw new Error(`Document with ID '${params.documentId}' not found`)
