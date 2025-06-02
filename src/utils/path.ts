@@ -1,91 +1,96 @@
-import {z} from 'zod'
+import {isIndexSegment, isIndexTuple, isKeySegment, type Path} from '@sanity/types'
 
-/**
- * Converts a string path to an array of path segments
- *
- * @param path - The string path to convert
- * @returns An array of path segments
- */
-export function stringToPath(path: string): Array<string | {_key: string}> {
-  if (!path) {
-    throw new Error('Path is required')
-  }
+export declare type IndexTuple = [number | '', number | '']
 
-  const segments: Array<string | {_key: string}> = []
-  let current = ''
-  let i = 0
-
-  while (i < path.length) {
-    // Handle square bracket notation
-    if (path[i] === '[') {
-      // If we have collected characters, add them as a segment
-      if (current) {
-        segments.push(current)
-        current = ''
-      }
-
-      i++ // Skip opening bracket
-
-      // Handle _key lookup
-      if (path.slice(i, i + 5) === '_key==' && path[i + 5] === '"') {
-        i += 6 // Skip '_key=="'
-        let key = ''
-        while (i < path.length && path[i] !== '"') {
-          key += path[i++]
-        }
-        i += 2 // Skip closing quote and bracket
-
-        segments.push({_key: key})
-      } else {
-        // Skip to end of bracket
-        while (i < path.length && path[i] !== ']') {
-          i++
-        }
-        i++ // Skip closing bracket
-      }
-    }
-    // Handle dot notation
-    else if (path[i] === '.') {
-      if (current) {
-        segments.push(current)
-        current = ''
-      }
-      i++
-    }
-    // Handle quoted property names
-    else if (path[i] === "'" || path[i] === '"') {
-      const quote = path[i++]
-      let prop = ''
-      while (i < path.length && path[i] !== quote) {
-        prop += path[i++]
-      }
-      i++ // Skip closing quote
-      segments.push(prop)
-
-      // Skip closing bracket if it exists (for ['prop'] notation)
-      if (i < path.length && path[i] === ']') {
-        i++
-      }
-    }
-    // Collect regular characters
-    else {
-      current += path[i++]
-    }
-  }
-
-  // Add the final segment if any
-  if (current) {
-    segments.push(current)
-  }
-
-  // Validate result
-  if (segments.length === 0) {
-    throw new Error(`Invalid path: ${path}`)
-  }
-
-  return segments
+export declare type KeyedSegment = {
+  _key: string
 }
 
-export const pathSchema = z
-  .array(z.union([z.string().min(1), z.object({_key: z.string().min(1)})]))
-  .min(1)
+export declare type PathSegment = string | number | KeyedSegment | IndexTuple
+
+export declare type AgentActionPathSegment = string | KeyedSegment
+
+export declare type AgentActionPath = AgentActionPathSegment[]
+
+const rePropName =
+  /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]|(?=(?:\.|\[\])(?:\.|\[\]|$))/g
+const reAgentPropName =
+  /[^.[\]]+|\[(?:(["'])((?:(?!\1)[^\\]|\\.)*?)\1)\]|(?=(?:\.|\[\])(?:\.|\[\]|$))/g
+const reKeySegment = /_key\s*==\s*['"](.*)['"]/
+
+export function stringToPath(path: string): Path {
+  const segments = path.match(rePropName)
+  if (!segments || segments.some((s) => !s)) {
+    throw new Error(`Invalid path string: "${path}"`)
+  }
+
+  return segments.map(normalizePathSegment)
+}
+
+export function stringToAgentPath(path: string): AgentActionPath {
+  const segments = path.match(reAgentPropName)
+  if (!segments || segments.some((s) => !s)) {
+    throw new Error(`Invalid path string: "${path}"`)
+  }
+
+  return segments.filter((segment) => !isIndexSegment(segment)).map(normalizeAgentPathSegment)
+}
+
+export function normalizePathSegment(segment: string): PathSegment {
+  if (isIndexSegment(segment)) {
+    return normalizeIndexSegment(segment)
+  }
+
+  if (isKeySegment(segment)) {
+    return normalizeKeySegment(segment)
+  }
+
+  if (isIndexTuple(segment)) {
+    return normalizeIndexTupleSegment(segment)
+  }
+
+  return segment
+}
+
+export function normalizeAgentPathSegment(segment: string): AgentActionPathSegment {
+  if (isKeySegment(segment)) {
+    return normalizeKeySegment(segment)
+  }
+
+  return segment
+}
+
+export function normalizeIndexSegment(segment: string): PathSegment {
+  return Number(segment.replace(/[^\d]/g, ''))
+}
+
+/** @internal */
+export function normalizeKeySegment(segment: string): KeyedSegment {
+  const segments = segment.match(reKeySegment)
+  if (!segments) {
+    throw new Error(`Invalid key segment: ${segment}`)
+  }
+
+  return {_key: segments[1]}
+}
+
+/** @internal */
+export function normalizeIndexTupleSegment(segment: string): IndexTuple {
+  const [from, to] = segment.split(':').map((seg) => (seg === '' ? seg : Number(seg)))
+  return [from, to]
+}
+
+export function pathToString(fieldPath: Path) {
+  let stringPath = ''
+  for (let i = 0; i < fieldPath.length; i++) {
+    const segment = fieldPath[i]
+    if (isKeySegment(segment)) {
+      stringPath += `[_key=="${segment._key}"]`
+    } else if (typeof segment === 'number') {
+      stringPath += `[${segment}]`
+    } else {
+      stringPath += (stringPath.length ? '.' : '') + segment
+    }
+  }
+  return stringPath
+}

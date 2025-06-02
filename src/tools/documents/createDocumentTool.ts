@@ -1,14 +1,13 @@
 import {z} from 'zod'
 import {randomUUID} from 'node:crypto'
-import {type DocumentId, getDraftId, getVersionId} from '@sanity/id-utils'
-import {truncateDocumentForLLMOutput} from '../../utils/formatters.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
-import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {BaseToolSchema, createToolClient, WorkspaceNameSchema} from '../../utils/tools.js'
+import {resolveDocumentId, resolveSchemaId} from '../../utils/resolvers.js'
 
 export const CreateDocumentToolParams = BaseToolSchema.extend({
   _type: z.string().describe('The document type'),
   instruction: z.string().describe('Optional instruction for AI to create the document content'),
-  schemaId: z.string().describe('Schema ID to follow'),
+  workspaceName: WorkspaceNameSchema,
   releaseId: z
     .string()
     .optional()
@@ -28,11 +27,8 @@ type Params = z.infer<typeof CreateDocumentToolParams>
 
 async function tool(params: Params) {
   const client = createToolClient(params)
-  const publishedId = randomUUID() as DocumentId
-  const documentId = params.releaseId
-    ? getVersionId(publishedId, params.releaseId)
-    : getDraftId(publishedId)
 
+  const documentId = resolveDocumentId(randomUUID(), params.releaseId)
   const generateOptions = {
     targetDocument: {
       operation: 'create',
@@ -40,7 +36,7 @@ async function tool(params: Params) {
       _type: params._type,
     },
     instruction: params.instruction,
-    schemaId: params.schemaId,
+    schemaId: resolveSchemaId(params.workspaceName),
   } as const
 
   if (params.async === true) {
@@ -59,7 +55,7 @@ async function tool(params: Params) {
 
   return createSuccessResponse('Document created successfully', {
     success: true,
-    document: truncateDocumentForLLMOutput(createdDocument),
+    document: createdDocument,
   })
 }
 

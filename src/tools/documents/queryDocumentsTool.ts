@@ -1,25 +1,26 @@
 import {z} from 'zod'
-import {parse} from 'groq-js'
 import {ensureArray, pluralize} from '../../utils/formatters.js'
+import {validateGroqQuery} from '../../utils/groq.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
-
-const DOCUMENT_LIMIT = 5 // Limit the number of documents returned by the tool to avoid blowing up context window
+import {tokenLimit, limitByTokens} from '../../utils/tokens.js'
 
 export const QueryDocumentsToolParams = BaseToolSchema.extend({
   single: z
     .boolean()
     .optional()
     .default(false)
-    .describe('Whether to return a single document or an array'),
+    .describe('Whether to return a single document or a list'),
   limit: z
     .number()
     .min(1)
-    .max(DOCUMENT_LIMIT)
-    .default(5)
-    .describe('Maximum number of documents to return'),
+    .max(100)
+    .default(10)
+    .describe('Maximum number of documents to return (subject to token limits)'),
   params: z.record(z.any()).optional().describe('Optional parameters for the GROQ query'),
-  query: z.string().describe('Complete GROQ query (e.g. "*[_type == \\"post\\"]{title, _id}")'),
+  query: z
+    .string()
+    .describe('Complete GROQ query (e.g. "*[_type == \\"post\\"][0...10]{title, _id}")'),
   perspective: z
     .union([z.enum(['raw', 'drafts', 'published']), z.string()])
     .optional()
@@ -30,20 +31,6 @@ export const QueryDocumentsToolParams = BaseToolSchema.extend({
 })
 
 type Params = z.infer<typeof QueryDocumentsToolParams>
-
-async function validateGroqQuery(
-  query: string,
-): Promise<{isValid: boolean; error?: string; tree?: ReturnType<typeof parse>}> {
-  try {
-    const tree = parse(query)
-    return {isValid: true, tree}
-  } catch (error) {
-    return {
-      isValid: false,
-      error: error instanceof Error ? error.message : String(error),
-    }
-  }
-}
 
 async function tool(params: Params) {
   const validation = await validateGroqQuery(params.query)
@@ -57,15 +44,22 @@ async function tool(params: Params) {
   })
 
   const result = await perspectiveClient.fetch(params.query, params.params)
-  const documents = ensureArray(result).slice(0, DOCUMENT_LIMIT)
-  const formattedDocuments = documents.map((doc) => JSON.stringify(doc, null, 2))
+  const allDocuments = ensureArray(result)
+
+  const {selectedItems, formattedItems, tokensUsed} = limitByTokens(
+    allDocuments,
+    (doc) => JSON.stringify(doc, null, 2),
+    tokenLimit,
+    params.limit,
+  )
 
   return createSuccessResponse(
-    `Query executed successfully. Found ${documents.length} ${pluralize(documents, 'document')}`,
+    `Query executed successfully. Found ${allDocuments.length} total ${pluralize(allDocuments, 'document')}, returning ${selectedItems.length} (${tokensUsed} tokens)`,
     {
-      documents: formattedDocuments,
-      count: documents.length,
-      rawResults: documents,
+      documents: {document: formattedItems},
+      count: selectedItems.length,
+      totalAvailable: allDocuments.length,
+      tokensUsed,
     },
   )
 }

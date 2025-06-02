@@ -15,29 +15,16 @@ async function tool(params: Params) {
   const {releaseId, publishAt} = params
   const parsedPublishAt = parseDateString(publishAt)
   const client = createToolClient(params)
-  const dataset = client.config().dataset
 
-  if (!dataset) {
-    throw new Error('A dataset resource is required')
+  if (!parsedPublishAt) {
+    throw new Error('Invalid publishAt date provided')
   }
 
-  const response = await client.request({
-    uri: `/data/actions/${dataset}`,
-    method: 'POST',
-    body: {
-      actions: [
-        {
-          actionType: 'sanity.action.release.schedule',
-          releaseId,
-          publishAt: parsedPublishAt,
-        },
-      ],
-    },
+  await client.action({
+    actionType: 'sanity.action.release.schedule',
+    releaseId,
+    publishAt: parsedPublishAt,
   })
-
-  if (response.error) {
-    throw new Error(response.error.description)
-  }
 
   return createSuccessResponse(
     `Scheduled release '${releaseId}' for publishing at ${parsedPublishAt}`,

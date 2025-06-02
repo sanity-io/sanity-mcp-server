@@ -15,15 +15,9 @@ async function tool(params: Params) {
   const indices = await client.request<EmbeddingsIndex[]>({
     uri: `/embeddings-index/${config.dataset}?projectId=${config.projectId}`,
   })
+
   if (!indices.length) {
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: 'No embeddings indices found',
-        },
-      ],
-    }
+    throw new Error('No embeddings indices found')
   }
 
   const flattenedIndices: Record<string, object> = {}

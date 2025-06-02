@@ -1,2 +1,2 @@
 // Generated file - do not edit
-export const VERSION = '0.9.4';
+export const VERSION = '0.10.1';

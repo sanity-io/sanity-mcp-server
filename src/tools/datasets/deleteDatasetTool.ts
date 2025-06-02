@@ -10,12 +10,17 @@ type Params = z.infer<typeof DeleteDatasetToolParams>
 
 async function tool(args: Params) {
   const client = createToolClient(args)
-  // Only lowercase letters and numbers are allowed
-  const datasetToDelete = args.name.toLowerCase().replace(/[^a-z0-9]/g, '')
-  await client.datasets.delete(datasetToDelete)
+
+  const datasets = await client.datasets.list()
+  const datasetExists = datasets.some((dataset) => dataset.name === args.name)
+  if (!datasetExists) {
+    throw new Error(`Dataset '${args.name}' not found. The name has to be exact.`)
+  }
+
+  await client.datasets.delete(args.name)
 
   return createSuccessResponse('Dataset deleted successfully', {
-    deletedDataset: datasetToDelete,
+    deletedDataset: args.name,
   })
 }
 

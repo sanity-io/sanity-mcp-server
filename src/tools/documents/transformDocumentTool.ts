@@ -1,9 +1,8 @@
 import type {TransformDocument} from '@sanity/client'
 import {z} from 'zod'
-import {truncateDocumentForLLMOutput} from '../../utils/formatters.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {WorkspaceNameSchema, BaseToolSchema, createToolClient} from '../../utils/tools.js'
-import {stringToPath} from '../../utils/path.js'
+import {stringToAgentPath} from '../../utils/path.js'
 import {resolveSchemaId} from '../../utils/resolvers.js'
 
 const EditTargetSchema = z.object({
@@ -41,7 +40,7 @@ export const TransformDocumentToolParams = BaseToolSchema.extend({
     .array(z.string())
     .optional()
     .describe(
-      'Optional target field paths for the transformation. If not set, transforms the whole document.',
+      'Optional target field paths for the transformation. If not set, transforms the whole document. Supports: simple fields ("title"), nested objects ("author.name"), array items by key ("items[_key==\"item-1\"]"), and nested properties in arrays ("items[_key==\"item-1\"].title"). ie: ["field", "array[_key==\"key\"]"] where "key" is a json match',
     ),
   targetDocument: TargetDocumentSchema.optional().describe(
     'Optional target document configuration if you want to transform to a different document',
@@ -75,7 +74,9 @@ async function tool(params: Params) {
     documentId: params.documentId,
     instruction: params.instruction,
     schemaId: resolveSchemaId(params.workspaceName),
-    target: params.paths ? params.paths.map((path) => ({path: stringToPath(path)})) : undefined,
+    target: params.paths
+      ? params.paths.map((path) => ({path: stringToAgentPath(path)}))
+      : undefined,
     targetDocument: params.targetDocument,
     instructionParams: params.instructionParams,
   }
@@ -96,7 +97,7 @@ async function tool(params: Params) {
 
   return createSuccessResponse('Document transformed successfully', {
     success: true,
-    document: truncateDocumentForLLMOutput(transformedDocument),
+    document: transformedDocument,
   })
 }
 

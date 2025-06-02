@@ -1,65 +1,68 @@
 import {z} from 'zod'
-import {truncateDocumentForLLMOutput} from '../../utils/formatters.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
-import {type DocumentId, getDraftId, getPublishedId, getVersionId} from '@sanity/id-utils'
-import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {BaseToolSchema, createToolClient, WorkspaceNameSchema} from '../../utils/tools.js'
+import {stringToAgentPath} from '../../utils/path.js'
+import {resolveDocumentId, resolveSchemaId} from '../../utils/resolvers.js'
 
 const SetOperation = z.object({
   op: z.literal('set'),
-  path: z.string().describe('The path to set, e.g. "title" or "author.name"'),
-  value: z.any().describe('The value to set at the specified path'),
+  path: z
+    .string()
+    .describe(
+      'The path to set. Supports: simple fields ("title"), nested objects ("author.name"), array items by key ("items[_key==\\"item-1\\"]"), and nested properties in arrays ("items[_key==\\"item-1\\"].title")',
+    ),
+  value: z
+    .any()
+    .describe(
+      'The value to set at the specified path. This is an overwriting operation that replaces the full field value.',
+    ),
 })
 
 const UnsetOperation = z.object({
   op: z.literal('unset'),
-  path: z.string().describe('The path to unset, e.g. "description" or "metadata.keywords"'),
-})
-
-const InsertValueSchema = z.union([z.string(), z.number(), z.boolean(), z.record(z.unknown())])
-
-const InsertOperation = z.object({
-  op: z.literal('insert'),
-  position: z.enum(['before', 'after', 'replace']),
   path: z
     .string()
-    .describe('The path to the array or element, e.g. "categories" or "categories[0]"'),
-  items: z
-    .array(InsertValueSchema)
     .describe(
-      'The items to insert. Array items must be either all primitives or all objects, they can never be mixed in one array.',
+      'The path to unset. Supports: simple fields ("description"), nested objects ("metadata.keywords"), array items by key ("tags[_key==\\"tag-1\\"]"), and nested properties in arrays ("gallery[_key==\\"img-1\\"].alt")',
     ),
 })
 
-const IncOperation = z.object({
-  op: z.literal('inc'),
-  path: z.string().describe('The path to increment, e.g. "views" or "stats.visits"'),
-  amount: z.number().describe('The amount to increment by'),
+const AppendOperation = z.object({
+  op: z.literal('append'),
+  path: z
+    .string()
+    .describe(
+      'The path to append to. Supports: simple fields ("categories"), nested arrays ("metadata.tags"), and arrays within keyed items ("sections[_key==\\"sec-1\\"].items"). Can target arrays, strings, text, or numbers.',
+    ),
+  value: z
+    .array(z.unknown())
+    .describe(
+      'The items to append. Behavior varies by field type: arrays get new items appended, strings get space-separated concatenation, text fields get newline-separated concatenation, numbers get added together.',
+    ),
 })
 
-const DecOperation = z.object({
-  op: z.literal('dec'),
-  path: z.string().describe('The path to decrement, e.g. "stock" or "inventory.count"'),
-  amount: z.number().describe('The amount to decrement by'),
-})
-
-const SetIfMissingOperation = z.object({
-  op: z.literal('setIfMissing'),
-  path: z.string().describe('The path to set if missing, e.g. "metadata" or "settings.defaults"'),
-  value: z.any().describe('The value to set if the path is missing'),
-})
-
-const PatchOperation = z.discriminatedUnion('op', [
-  SetOperation,
-  UnsetOperation,
-  InsertOperation,
-  IncOperation,
-  DecOperation,
-  SetIfMissingOperation,
-])
+// const MixedOperation = z.object({
+//   op: z.literal('mixed'),
+//   value: z
+//     .record(z.unknown())
+//     .describe(
+//       'Object with mixed operations (default behavior). Sets non-array fields and appends to array fields. Use this when you want to update multiple fields with different behaviors in one operation.',
+//     ),
+// })
 
 export const PatchDocumentToolParams = BaseToolSchema.extend({
   documentId: z.string().describe('The ID of the document to patch'),
-  operations: z.array(PatchOperation).describe('Array of patch operations to apply'),
+  workspaceName: WorkspaceNameSchema,
+  operation: z
+    .discriminatedUnion('op', [
+      SetOperation,
+      UnsetOperation,
+      AppendOperation,
+      // MixedOperation,
+    ])
+    .describe(
+      'Patch operation to apply. Operation is schema-validated and merges with existing data rather than replacing it entirely.',
+    ),
   releaseId: z
     .string()
     .optional()
@@ -72,46 +75,50 @@ type Params = z.infer<typeof PatchDocumentToolParams>
 
 async function tool(params: Params) {
   const client = createToolClient(params)
-  const publishedId = getPublishedId(params.documentId as DocumentId)
-  const documentId = params.releaseId
-    ? getVersionId(publishedId, params.releaseId)
-    : getDraftId(publishedId)
 
+  const documentId = resolveDocumentId(params.documentId, params.releaseId)
   const document = await client.getDocument(documentId)
   if (!document) {
     throw new Error(`Document with ID '${documentId}' not found`)
   }
 
-  let patch = client.patch(documentId)
-
-  for (const operation of params.operations) {
-    switch (operation.op) {
+  const target = (() => {
+    switch (params.operation.op) {
       case 'set':
-        patch = patch.set({[operation.path]: operation.value})
-        break
+        return {
+          path: stringToAgentPath(params.operation.path),
+          operation: 'set' as const,
+          value: params.operation.value,
+        }
       case 'unset':
-        patch = patch.unset([operation.path])
-        break
-      case 'insert':
-        patch = patch.insert(operation.position, operation.path, operation.items)
-        break
-      case 'inc':
-        patch = patch.inc({[operation.path]: operation.amount})
-        break
-      case 'dec':
-        patch = patch.dec({[operation.path]: operation.amount})
-        break
-      case 'setIfMissing':
-        patch = patch.setIfMissing({[operation.path]: operation.value})
-        break
+        return {
+          path: stringToAgentPath(params.operation.path),
+          operation: 'unset' as const,
+        }
+      case 'append':
+        return {
+          path: stringToAgentPath(params.operation.path),
+          operation: 'append' as const,
+          value: params.operation.value,
+        }
+      // case 'mixed':
+      //   return {
+      //     path: [],
+      //     operation: 'mixed' as const,
+      //     value: params.operation.value,
+      //   }
     }
-  }
+  })()
 
-  const updatedDocument = await patch.commit({autoGenerateArrayKeys: true})
+  const result = await client.agent.action.patch({
+    documentId,
+    schemaId: resolveSchemaId(params.workspaceName),
+    target,
+  })
 
   return createSuccessResponse('Document patched successfully', {
     success: true,
-    document: truncateDocumentForLLMOutput(updatedDocument),
+    document: result.document,
   })
 }
 

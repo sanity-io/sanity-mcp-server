@@ -6,7 +6,7 @@ import {updateDatasetTool, UpdateDatasetToolParams} from './updateDatasetTool.js
 
 export function registerDatasetsTools(server: McpServer) {
   server.tool(
-    'get_datasets',
+    'list_datasets',
     'Lists all datasets in your Sanity project',
     ListDatasetsToolParams.shape,
     listDatasetsTool,

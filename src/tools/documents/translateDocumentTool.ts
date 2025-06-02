@@ -1,9 +1,8 @@
 import type {TranslateDocument} from '@sanity/client'
 import {z} from 'zod'
-import {truncateDocumentForLLMOutput} from '../../utils/formatters.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {WorkspaceNameSchema, BaseToolSchema, createToolClient} from '../../utils/tools.js'
-import {stringToPath} from '../../utils/path.js'
+import {stringToAgentPath} from '../../utils/path.js'
 import {resolveSchemaId} from '../../utils/resolvers.js'
 
 const LanguageSchema = z.object({
@@ -41,7 +40,9 @@ export const TranslateDocumentToolParams = BaseToolSchema.extend({
   protectedPhrases: z
     .array(z.string())
     .optional()
-    .describe('List of phrases that should not be translated'),
+    .describe(
+      'List of phrases that should not be translated (e.g., brand names like "Nike", company names like "Microsoft", product names, proper nouns, technical terms, etc.)',
+    ),
   async: z
     .boolean()
     .optional()
@@ -70,7 +71,9 @@ async function tool(params: Params) {
     fromLanguage: sourceDocument.language,
     toLanguage: params.language,
     schemaId: resolveSchemaId(params.workspaceName),
-    target: params.paths ? params.paths.map((path) => ({path: stringToPath(path)})) : undefined,
+    target: params.paths
+      ? params.paths.map((path) => ({path: stringToAgentPath(path)}))
+      : undefined,
     protectedPhrases: params.protectedPhrases,
   }
 
@@ -90,7 +93,7 @@ async function tool(params: Params) {
 
   return createSuccessResponse('Document translated successfully', {
     success: true,
-    document: truncateDocumentForLLMOutput(translatedDocument),
+    document: translatedDocument,
   })
 }
 

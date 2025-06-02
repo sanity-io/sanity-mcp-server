@@ -10,20 +10,18 @@ export const ListReleasesToolParams = BaseToolSchema.extend({
 
 type Params = z.infer<typeof ListReleasesToolParams>
 
+const ALL_RELEASES_QUERY = 'releases::all()'
+const FILTERED_RELEASES_QUERY = `${ALL_RELEASES_QUERY}[state == $state]`
+
 async function tool(params: Params) {
   const client = createToolClient(params)
-  const query = params.state !== 'all' ? 'releases::all()[state == $state]' : 'releases::all()'
+  const query = params.state === 'all' ? ALL_RELEASES_QUERY : FILTERED_RELEASES_QUERY
   const releases = await client.fetch<Release[]>(query, {state: params.state})
 
   if (!releases || releases.length === 0) {
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: `No releases found${params.state !== 'all' ? ` with state '${params.state}'` : ''}`,
-        },
-      ],
-    }
+    throw new Error(
+      `No releases found${params.state !== 'all' ? ` with state '${params.state}'` : ''}`,
+    )
   }
 
   const formattedReleases: Record<string, object> = {}

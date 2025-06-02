@@ -1,12 +1,10 @@
 import {z} from 'zod'
-import {truncateDocumentForLLMOutput} from '../../utils/formatters.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
-import {type DocumentId, getPublishedId} from '@sanity/id-utils'
-import {getVersionId} from '@sanity/client/csm'
+
 import {WorkspaceNameSchema, BaseToolSchema, createToolClient} from '../../utils/tools.js'
 import type {GenerateInstruction} from '@sanity/client'
-import {stringToPath} from '../../utils/path.js'
-import {resolveSchemaId} from '../../utils/resolvers.js'
+import {stringToAgentPath} from '../../utils/path.js'
+import {resolveDocumentId, resolveSchemaId} from '../../utils/resolvers.js'
 
 export const UpdateDocumentToolParams = BaseToolSchema.extend({
   documentId: z.string().describe('The ID of the document to update'),
@@ -16,7 +14,7 @@ export const UpdateDocumentToolParams = BaseToolSchema.extend({
     .array(z.string())
     .optional()
     .describe(
-      'Target field paths for the instruction. Specifies fields to update. Should always be set if you want to update specific fields. If not set, targets the whole document. ie: ["field", "array[_key==\"key\"]"] where "key" is a json match',
+      'Target field paths for the instruction. Specifies fields to update. Should always be set if you want to update specific fields. If not set, targets the whole document. Supports: simple fields ("title"), nested objects ("author.name"), array items by key ("items[_key==\"item-1\"]"), and nested properties in arrays ("items[_key==\"item-1\"].title"). ie: ["field", "array[_key==\"key\"]"] where "key" is a json match',
     ),
   releaseId: z
     .string()
@@ -37,16 +35,15 @@ type Params = z.infer<typeof UpdateDocumentToolParams>
 
 async function tool(params: Params) {
   const client = createToolClient(params)
-  const publishedId = getPublishedId(params.documentId as DocumentId)
-  const documentId = params.releaseId
-    ? getVersionId(publishedId, params.releaseId)
-    : params.documentId
+  const documentId = resolveDocumentId(params.documentId, params.releaseId)
 
   const instructOptions: GenerateInstruction = {
     documentId,
     instruction: params.instruction,
     schemaId: resolveSchemaId(params.workspaceName),
-    target: params.paths ? params.paths.map((path) => ({path: stringToPath(path)})) : undefined,
+    target: params.paths
+      ? params.paths.map((path) => ({path: stringToAgentPath(path)}))
+      : undefined,
   } as const
 
   if (params.async === true) {
@@ -65,7 +62,7 @@ async function tool(params: Params) {
 
   return createSuccessResponse('Document updated successfully', {
     success: true,
-    document: truncateDocumentForLLMOutput(updatedDocument),
+    document: updatedDocument,
   })
 }
 

@@ -1,6 +1,6 @@
 {
   "name": "@sanity/mcp-server",
-  "version": "0.9.4",
+  "version": "0.10.1",
   "repository": {
     "type": "git",
     "url": "https://github.com/sanity-io/sanity-mcp-server"
@@ -21,17 +21,21 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "prepublishOnly": "npm run build",
-    "start": "node build/index.js"
+    "start": "node build/index.js",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "prettier": "@sanity/prettier-config",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.11.3",
-    "@sanity/client": "7.1.0",
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "@sanity/client": "7.4.0",
     "@sanity/id-utils": "^1.0.0",
-    "chrono-node": "^2.8.0",
+    "@sanity/types": "^3.89.0",
+    "chrono-node": "^2.8.2",
     "dotenv": "^16.4.7",
     "fast-xml-parser": "^5.2.0",
     "get-it": "^8.3.2",
+    "gpt-tokenizer": "^2.9.0",
     "groq-js": "^1.17.0",
     "outdent": "^0.8.0",
     "zod": "^3.24.2"
