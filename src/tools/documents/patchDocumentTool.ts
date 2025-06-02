@@ -35,34 +35,29 @@ const AppendOperation = z.object({
       'The path to append to. Supports: simple fields ("categories"), nested arrays ("metadata.tags"), and arrays within keyed items ("sections[_key==\\"sec-1\\"].items"). Can target arrays, strings, text, or numbers.',
     ),
   value: z
-    .array(z.any())
+    .array(z.unknown())
     .describe(
       'The items to append. Behavior varies by field type: arrays get new items appended, strings get space-separated concatenation, text fields get newline-separated concatenation, numbers get added together.',
     ),
 })
 
-// const MixedOperation = z.object({
-//   op: z.literal('mixed'),
-//   value: z
-//     .record(z.any())
-//     .describe(
-//       'Object with mixed operations (default behavior). Sets non-array fields and appends to array fields. Use this when you want to update multiple fields with different behaviors in one operation.',
-//     ),
-// })
-
-const PatchOperation = z.discriminatedUnion('op', [
-  SetOperation,
-  UnsetOperation,
-  AppendOperation,
-  // MixedOperation,
-])
+const MixedOperation = z.object({
+  op: z.literal('mixed'),
+  value: z
+    .record(z.unknown())
+    .describe(
+      'Object with mixed operations (default behavior). Sets non-array fields and appends to array fields. Use this when you want to update multiple fields with different behaviors in one operation.',
+    ),
+})
 
 export const PatchDocumentToolParams = BaseToolSchema.extend({
   documentId: z.string().describe('The ID of the document to patch'),
   workspaceName: WorkspaceNameSchema,
-  operation: PatchOperation.describe(
-    'Patch operation to apply. Operation is schema-validated and merges with existing data rather than replacing it entirely.',
-  ),
+  operation: z
+    .discriminatedUnion('op', [SetOperation, UnsetOperation, AppendOperation, MixedOperation])
+    .describe(
+      'Patch operation to apply. Operation is schema-validated and merges with existing data rather than replacing it entirely.',
+    ),
   releaseId: z
     .string()
     .optional()
@@ -101,12 +96,12 @@ async function tool(params: Params) {
           operation: 'append' as const,
           value: params.operation.value,
         }
-      // case 'mixed':
-      //   return {
-      //     path: [],
-      //     operation: 'mixed' as const,
-      //     value: operation.value,
-      //   }
+      case 'mixed':
+        return {
+          path: [],
+          operation: 'mixed' as const,
+          value: params.operation.value,
+        }
     }
   })()
 

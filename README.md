@@ -138,7 +138,7 @@ You don't get it to work? See the section on [Node.js configuration](#-nodejs-en
 
 ### Dataset Management <!-- omit in toc -->
 
-- **get_datasets** – List all datasets in the project
+- **list_datasets** – List all datasets in the project
 - **create_dataset** – Create a new dataset
 - **update_dataset** – Modify dataset settings
 
@@ -165,14 +165,14 @@ You don't get it to work? See the section on [Node.js configuration](#-nodejs-en
 
 The server takes the following environment variables:
 
-| Variable                | Description                                                                                              | Required |
-| ----------------------- | -------------------------------------------------------------------------------------------------------- | -------- |
-| `SANITY_API_TOKEN`      | Your Sanity API token                                                                                    | ✅       |
-| `SANITY_PROJECT_ID`     | Your Sanity project ID                                                                                   | ✅       |
-| `SANITY_DATASET`        | The dataset to use                                                                                       | ✅       |
-| `MCP_USER_ROLE`         | Determines tool access level (developer or editor)                                                       | ✅       |
-| `SANITY_API_HOST`       | API host (defaults to https://api.sanity.io)                                                             | ❌       |
-| `MAX_TOOL_TOKEN_OUTPUT`  | Maximum token output for tool responses (defaults to 50000). Adjust based on your model's context limits. Higher limits may pollute the conversation context with excessive data | ❌       |
+| Variable                | Description                                                                                                                                                                      | Required |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| `SANITY_API_TOKEN`      | Your Sanity API token                                                                                                                                                            | ✅       |
+| `SANITY_PROJECT_ID`     | Your Sanity project ID                                                                                                                                                           | ✅       |
+| `SANITY_DATASET`        | The dataset to use                                                                                                                                                               | ✅       |
+| `MCP_USER_ROLE`         | Determines tool access level (developer or editor)                                                                                                                               | ✅       |
+| `SANITY_API_HOST`       | API host (defaults to https://api.sanity.io)                                                                                                                                     | ❌       |
+| `MAX_TOOL_TOKEN_OUTPUT` | Maximum token output for tool responses (defaults to 50000). Adjust based on your model's context limits. Higher limits may pollute the conversation context with excessive data | ❌       |
 
 > [!WARNING] > **Using AI with Production Datasets**
 > When configuring the MCP server with a token that has write access to a production dataset, please be aware that the AI can perform destructive actions like creating, updating, or deleting content. This is not a concern if you're using a read-only token. While we are actively developing guardrails, you should exercise caution and consider using a development/staging dataset for testing AI operations that require write access.

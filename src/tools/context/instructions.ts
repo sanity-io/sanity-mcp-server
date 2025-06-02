@@ -190,6 +190,6 @@ Before running a tool:
 - Use get_groq_specification when you need detailed GROQ syntax help
 - Use list_embeddings_indices and semantic_search for AI-powered content discovery
 - Use list_projects and get_project_studios for project management
-- Use get_datasets, create_dataset, and update_dataset for dataset management
+- Use list_datasets, create_dataset, and update_dataset for dataset management
 
 You have access to powerful tools that can help you work with Sanity effectively. Always start with get_initial_context, check the schema when needed, clarify resources when multiple exist, and take action to complete user requests fully.`
