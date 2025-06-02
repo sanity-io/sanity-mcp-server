@@ -7,7 +7,7 @@ import {registerAllTools} from './tools/register.js'
 import {env} from './config/env.js'
 import {VERSION} from './config/version.js'
 
-const MCP_SERVER_NAME = '@sanity/mcp'
+const MCP_SERVER_NAME = '@sanity/mcp-server'
 
 async function initializeServer() {
   const server = new McpServer({
@@ -27,7 +27,6 @@ async function main() {
     const server = await initializeServer()
     const transport = new StdioServerTransport()
     await server.connect(transport)
-    console.error('Sanity MCP Server running on stdio')
   } catch (error) {
     console.error('Fatal error:', error)
     process.exit(1)
