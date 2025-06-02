@@ -13,8 +13,13 @@ type Params = z.infer<typeof UpdateDatasetToolParams>
 
 async function tool(args: Params) {
   const client = createToolClient(args)
-  const datasetName = args.name.toLowerCase().replace(/[^a-z0-9]/g, '')
-  const newDataset = await client.datasets.edit(datasetName, {
+  const datasets = await client.datasets.list()
+  const datasetExists = datasets.some((dataset) => dataset.name === args.name)
+  if (!datasetExists) {
+    throw new Error(`Dataset '${args.name}' not found. The name has to be exact.`)
+  }
+
+  const newDataset = await client.datasets.edit(args.name, {
     aclMode: args.aclMode,
   })
 
