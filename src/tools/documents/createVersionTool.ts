@@ -1,10 +1,18 @@
 import {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {BaseToolSchema, createToolClient, WorkspaceNameSchema} from '../../utils/tools.js'
-import {resolveDocumentId, resolveSchemaId} from '../../utils/resolvers.js'
+import {
+  resolveAiActionInstruction,
+  resolveDocumentId,
+  resolveSchemaId,
+} from '../../utils/resolvers.js'
 
 export const CreateVersionToolParams = BaseToolSchema.extend({
-  documentId: z.string().describe('ID of the document to create a version for'),
+  documentIds: z
+    .array(z.string())
+    .min(1)
+    .max(10)
+    .describe('Array of document IDs to create versions for (min 1, max 10)'),
   releaseId: z.string().describe('ID of the release to associate this version with'),
   instruction: z
     .string()
@@ -23,35 +31,65 @@ async function tool(params: Params) {
     throw new Error(`Release with ID '${params.releaseId}' not found`)
   }
 
-  const publishedId = resolveDocumentId(params.documentId, false)
-  const originalDocument = await client.getDocument(publishedId)
-  if (!originalDocument) {
-    throw new Error(`Document with ID '${params.documentId}' not found`)
-  }
+  const process = async (documentId: string) => {
+    const publishedId = resolveDocumentId(documentId, false)
+    const originalDocument = await client.getDocument(publishedId)
+    if (!originalDocument) {
+      throw new Error(`Document with ID '${documentId}' not found`)
+    }
 
-  const versionedId = resolveDocumentId(params.documentId, params.releaseId)
-
-  let newDocument = await client.createVersion({
-    document: {
-      ...originalDocument,
-      _id: versionedId,
-    },
-    releaseId: params.releaseId,
-    publishedId,
-  })
-
-  if (params.instruction) {
-    newDocument = await client.agent.action.transform({
-      schemaId: resolveSchemaId(params.workspaceName),
-      instruction: params.instruction,
-      documentId: versionedId,
+    let newDocument = await client.createVersion({
+      document: {
+        ...originalDocument,
+        _id: resolveDocumentId(documentId, params.releaseId),
+      },
+      releaseId: params.releaseId,
+      publishedId,
     })
+
+    if (params.instruction) {
+      newDocument = await client.agent.action.transform({
+        schemaId: resolveSchemaId(params.workspaceName),
+        instruction: resolveAiActionInstruction(params.instruction),
+        documentId: resolveDocumentId(documentId, params.releaseId),
+      })
+    }
+
+    return {
+      documentId,
+      document: newDocument,
+      success: true,
+    }
   }
 
-  return createSuccessResponse('Versioned document created successfully', {
-    success: true,
-    document: newDocument,
-  })
+  const results = await Promise.all(
+    params.documentIds.map(async (documentId) => {
+      try {
+        return await process(documentId)
+      } catch (error) {
+        return {
+          documentId,
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        }
+      }
+    }),
+  )
+
+  const successCount = results.filter((r) => r.success).length
+  const failureCount = results.length - successCount
+
+  return createSuccessResponse(
+    `Processed ${params.documentIds.length} documents: ${successCount} successful, ${failureCount} failed`,
+    {
+      results,
+      summary: {
+        total: params.documentIds.length,
+        successful: successCount,
+        failed: failureCount,
+      },
+    },
+  )
 }
 
 export const createVersionTool = withErrorHandling(tool, 'Error creating document version')

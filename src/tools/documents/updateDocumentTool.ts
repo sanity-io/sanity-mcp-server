@@ -6,9 +6,17 @@ import type {GenerateInstruction} from '@sanity/client'
 import {stringToAgentPath} from '../../utils/path.js'
 import {resolveDocumentId, resolveSchemaId} from '../../utils/resolvers.js'
 
-export const UpdateDocumentToolParams = BaseToolSchema.extend({
+const UpdateOperationSchema = z.object({
   documentId: z.string().describe('The ID of the document to update'),
   instruction: z.string().describe('Instruction for AI to update the document content'),
+})
+
+export const UpdateDocumentToolParams = BaseToolSchema.extend({
+  operations: z
+    .array(UpdateOperationSchema)
+    .min(1)
+    .max(10)
+    .describe('Array of update operations, each with documentId and instruction (min 1, max 10)'),
   workspaceName: WorkspaceNameSchema,
   paths: z
     .array(z.string())
@@ -20,14 +28,7 @@ export const UpdateDocumentToolParams = BaseToolSchema.extend({
     .string()
     .optional()
     .describe(
-      'Optional release ID for creating versioned documents. If provided, the document will be created under the specified release version instead of as a draft',
-    ),
-  async: z
-    .boolean()
-    .optional()
-    .default(false)
-    .describe(
-      'Set to true for background processing when updating multiple documents for better performance.',
+      'Optional release ID for updating versioned documents. If provided, the document will be updated under the specified release version instead of as a draft',
     ),
 })
 
@@ -35,34 +36,63 @@ type Params = z.infer<typeof UpdateDocumentToolParams>
 
 async function tool(params: Params) {
   const client = createToolClient(params)
-  const documentId = resolveDocumentId(params.documentId, params.releaseId)
 
-  const instructOptions: GenerateInstruction = {
-    documentId,
-    instruction: params.instruction,
-    schemaId: resolveSchemaId(params.workspaceName),
-    target: params.paths
-      ? params.paths.map((path) => ({path: stringToAgentPath(path)}))
-      : undefined,
-  } as const
+  const runAsync = params.operations?.length > 1
 
-  if (params.async === true) {
-    await client.agent.action.generate({
+  const process = async (operation: {documentId: string; instruction: string}) => {
+    const documentId = resolveDocumentId(operation.documentId, params.releaseId)
+
+    const instructOptions: GenerateInstruction = {
+      documentId,
+      instruction: operation.instruction,
+      schemaId: resolveSchemaId(params.workspaceName),
+      target: params.paths
+        ? params.paths.map((path) => ({path: stringToAgentPath(path)}))
+        : undefined,
+    } as const
+
+    const updatedDocument = await client.agent.action.generate({
       ...instructOptions,
-      async: true,
+      async: runAsync,
     })
 
-    return createSuccessResponse('Document update initiated in background', {
+    return {
+      documentId: operation.documentId,
+      instruction: operation.instruction,
+      document: updatedDocument,
       success: true,
-      document: {_id: params.documentId},
-    })
+      async: runAsync,
+    }
   }
 
-  const updatedDocument = await client.agent.action.generate(instructOptions)
+  const results = await Promise.all(
+    params.operations.map(async (operation) => {
+      try {
+        return await process(operation)
+      } catch (error) {
+        return {
+          documentId: operation.documentId,
+          instruction: operation.instruction,
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        }
+      }
+    }),
+  )
 
-  return createSuccessResponse('Document updated successfully', {
-    success: true,
-    document: updatedDocument,
+  const successCount = results.filter((r) => r.success).length
+  const failureCount = results.length - successCount
+  const message = runAsync
+    ? `Initiated updates for ${params.operations.length} documents in background: ${successCount} successful, ${failureCount} failed`
+    : `Updated ${params.operations.length} documents: ${successCount} successful, ${failureCount} failed`
+
+  return createSuccessResponse(message, {
+    results,
+    summary: {
+      total: params.operations.length,
+      successful: successCount,
+      failed: failureCount,
+    },
   })
 }
 

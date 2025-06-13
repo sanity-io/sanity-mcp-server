@@ -37,3 +37,10 @@ export function resolveDocumentId(documentId: string, releaseId?: string | false
 export function resolveSchemaId(workspaceName = 'default'): string {
   return `_.schemas.${workspaceName}`
 }
+
+/**
+ * Resolves an AI action instruction
+ */
+export function resolveAiActionInstruction(instruction: string): string {
+  return instruction.replace(/\$/g, '\\$')
+}

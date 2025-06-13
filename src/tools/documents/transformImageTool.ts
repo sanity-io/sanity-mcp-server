@@ -2,7 +2,7 @@ import {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {WorkspaceNameSchema, BaseToolSchema, createToolClient} from '../../utils/tools.js'
 import {stringToAgentPath} from '../../utils/path.js'
-import {resolveSchemaId} from '../../utils/resolvers.js'
+import {resolveAiActionInstruction, resolveSchemaId} from '../../utils/resolvers.js'
 
 export const TransformImageToolParams = BaseToolSchema.extend({
   documentId: z.string().describe('The ID of the document containing the image'),
@@ -25,7 +25,7 @@ async function tool(params: Params) {
 
   const actionOptions = {
     documentId: params.documentId,
-    instruction: params.instruction,
+    instruction: resolveAiActionInstruction(params.instruction),
     schemaId: resolveSchemaId(params.workspaceName),
     target: {path: [...stringToAgentPath(params.imagePath), 'asset']},
   }

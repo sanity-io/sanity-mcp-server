@@ -8,7 +8,14 @@ import {tokenLimit} from './tokens.js'
 /**
  * Creates a standardized success response
  */
-export function createSuccessResponse(message: string, data?: Record<string, unknown>) {
+export function createSuccessResponse(
+  message: string,
+  data?: Record<string, unknown>,
+  documentsChanged?: {
+    _id: string
+    _rev: string | 'DELETE'
+  }[],
+) {
   const text = data ? formatResponse(message, data) : message
   const withinTokenLimit = isWithinTokenLimit(text, tokenLimit)
 
@@ -19,6 +26,7 @@ export function createSuccessResponse(message: string, data?: Record<string, unk
   }
 
   return {
+    _documentsChanged: documentsChanged,
     content: [
       {
         type: 'text',

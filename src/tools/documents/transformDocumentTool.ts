@@ -3,7 +3,7 @@ import {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {WorkspaceNameSchema, BaseToolSchema, createToolClient} from '../../utils/tools.js'
 import {stringToAgentPath} from '../../utils/path.js'
-import {resolveSchemaId} from '../../utils/resolvers.js'
+import {resolveAiActionInstruction, resolveSchemaId} from '../../utils/resolvers.js'
 
 const EditTargetSchema = z.object({
   operation: z.literal('edit'),
@@ -72,7 +72,7 @@ async function tool(params: Params) {
 
   const transformOptions: TransformDocument = {
     documentId: params.documentId,
-    instruction: params.instruction,
+    instruction: resolveAiActionInstruction(params.instruction),
     schemaId: resolveSchemaId(params.workspaceName),
     target: params.paths
       ? params.paths.map((path) => ({path: stringToAgentPath(path)}))
