@@ -77,10 +77,6 @@ async function tool(params: Params) {
   const client = createToolClient(params)
 
   const documentId = resolveDocumentId(params.documentId, params.releaseId)
-  const document = await client.getDocument(documentId)
-  if (!document) {
-    throw new Error(`Document with ID '${documentId}' not found`)
-  }
 
   const target = (() => {
     switch (params.operation.op) {

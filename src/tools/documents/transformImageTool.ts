@@ -23,11 +23,6 @@ type Params = z.infer<typeof TransformImageToolParams>
 async function tool(params: Params) {
   const client = createToolClient(params)
 
-  const sourceDocument = await client.getDocument(params.documentId)
-  if (!sourceDocument) {
-    throw new Error(`Document with ID '${params.documentId}' not found`)
-  }
-
   const actionOptions = {
     documentId: params.documentId,
     instruction: params.instruction,
