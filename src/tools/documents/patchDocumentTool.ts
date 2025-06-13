@@ -108,6 +108,10 @@ async function tool(params: Params) {
 
   const result = await client.agent.action.patch({
     documentId,
+    conditionalPaths: {
+      defaultHidden: false,
+      defaultReadOnly: false,
+    },
     schemaId: resolveSchemaId(params.workspaceName),
     target,
   })
