@@ -54,7 +54,6 @@ export function withErrorHandling<T extends Record<string, unknown>>(
       const errorMessage = error instanceof Error ? error.message : String(error)
       return {
         isError: true,
-        clientError: error,
         content: [
           {
             type: 'text',
