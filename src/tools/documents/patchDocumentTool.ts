@@ -3,6 +3,7 @@ import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {BaseToolSchema, createToolClient, WorkspaceNameSchema} from '../../utils/tools.js'
 import {stringToAgentPath} from '../../utils/path.js'
 import {resolveDocumentId, resolveSchemaId} from '../../utils/resolvers.js'
+import {getMutationCheckpoint} from '../../utils/checkpoint.js'
 
 const SetOperation = z.object({
   op: z.literal('set'),
@@ -41,15 +42,6 @@ const AppendOperation = z.object({
     ),
 })
 
-// const MixedOperation = z.object({
-//   op: z.literal('mixed'),
-//   value: z
-//     .record(z.unknown())
-//     .describe(
-//       'Object with mixed operations (default behavior). Sets non-array fields and appends to array fields. Use this when you want to update multiple fields with different behaviors in one operation.',
-//     ),
-// })
-
 export const PatchDocumentToolParams = BaseToolSchema.extend({
   documentId: z.string().describe('The ID of the document to patch'),
   workspaceName: WorkspaceNameSchema,
@@ -75,8 +67,8 @@ type Params = z.infer<typeof PatchDocumentToolParams>
 
 async function tool(params: Params) {
   const client = createToolClient(params)
-
   const documentId = resolveDocumentId(params.documentId, params.releaseId)
+  const checkpoint = await getMutationCheckpoint(documentId, client)
 
   const target = (() => {
     switch (params.operation.op) {
@@ -97,12 +89,6 @@ async function tool(params: Params) {
           operation: 'append' as const,
           value: params.operation.value,
         }
-      // case 'mixed':
-      //   return {
-      //     path: [],
-      //     operation: 'mixed' as const,
-      //     value: params.operation.value,
-      //   }
     }
   })()
 
@@ -116,10 +102,14 @@ async function tool(params: Params) {
     target,
   })
 
-  return createSuccessResponse('Document patched successfully', {
-    success: true,
-    document: result.document,
-  })
+  return createSuccessResponse(
+    'Document patched successfully',
+    {
+      success: true,
+      document: result.document,
+    },
+    checkpoint,
+  )
 }
 
 export const patchDocumentTool = withErrorHandling(tool, 'Error patching document')

@@ -1,9 +1,14 @@
 import type {TranslateDocument} from '@sanity/client'
 import {z} from 'zod'
+import {randomUUID} from 'node:crypto'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {WorkspaceNameSchema, BaseToolSchema, createToolClient} from '../../utils/tools.js'
 import {stringToAgentPath} from '../../utils/path.js'
-import {resolveSchemaId} from '../../utils/resolvers.js'
+import {resolveDocumentId, resolveSchemaId} from '../../utils/resolvers.js'
+import {getDocument} from '../../utils/document.js'
+import type {DocumentId} from '@sanity/id-utils'
+import {getCreationCheckpoint, getMutationCheckpoint} from '../../utils/checkpoint.js'
+import type {Checkpoint} from '../../types/checkpoint.js'
 
 const LanguageSchema = z.object({
   id: z.string().describe('Language identifier (e.g., "en-US", "no", "fr")'),
@@ -12,7 +17,7 @@ const LanguageSchema = z.object({
 
 export const TranslateDocumentToolParams = BaseToolSchema.extend({
   documentIds: z
-    .array(z.string())
+    .array(z.string().brand<DocumentId>())
     .min(1)
     .max(10)
     .describe('Array of source document IDs to translate (min 1, max 10)'),
@@ -43,26 +48,27 @@ type Params = z.infer<typeof TranslateDocumentToolParams>
 
 async function tool(params: Params) {
   const client = createToolClient(params)
-
   const runAsync = params.documentIds?.length > 1
+  const checkpoints: Checkpoint[] = []
 
   const process = async (sourceDocumentId: string) => {
-    const sourceDocument = await client.getDocument(sourceDocumentId)
-    if (!sourceDocument) {
-      throw new Error(`Source document with ID '${sourceDocumentId}' not found`)
-    }
+    const sourceDocument = await getDocument(sourceDocumentId as DocumentId, client)
 
-    // Capture document info before translation
-    const documentBeforeChange = {
-      _id: sourceDocument._id,
-      _rev: sourceDocument._rev,
+    // Add checkpoint based on operation type
+    const targetDocumentId =
+      params.operation === 'create' ? resolveDocumentId(randomUUID()) : sourceDocumentId
+
+    if (params.operation === 'create') {
+      checkpoints.push(getCreationCheckpoint(targetDocumentId as DocumentId, client))
+    } else {
+      checkpoints.push(await getMutationCheckpoint(targetDocumentId as DocumentId, client))
     }
 
     const translateOptions: TranslateDocument = {
       documentId: sourceDocumentId,
       targetDocument:
         params.operation === 'create'
-          ? {operation: 'create'}
+          ? {operation: 'create', _id: targetDocumentId}
           : {operation: 'edit', _id: sourceDocumentId},
       languageFieldPath: sourceDocument.language ? ['language'] : undefined,
       fromLanguage: sourceDocument.language,
@@ -82,7 +88,6 @@ async function tool(params: Params) {
     return {
       sourceDocumentId,
       document,
-      documentBeforeChange,
       success: true,
       async: true,
     }
@@ -108,11 +113,6 @@ async function tool(params: Params) {
     ? `Initiated translation for ${params.documentIds.length} documents in background: ${successCount} successful, ${failureCount} failed`
     : `Translated ${params.documentIds.length} documents: ${successCount} successful, ${failureCount} failed`
 
-  // Collect document changes from successful translations
-  const documentChanges = results
-    .filter((r) => r.success && 'documentBeforeChange' in r)
-    .map((r) => (r as any).documentBeforeChange)
-
   return createSuccessResponse(
     message,
     {
@@ -123,7 +123,7 @@ async function tool(params: Params) {
         failed: failureCount,
       },
     },
-    documentChanges,
+    checkpoints,
   )
 }
 

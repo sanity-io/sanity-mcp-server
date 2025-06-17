@@ -1,9 +1,10 @@
 import type {ServerNotification, ServerRequest} from '@modelcontextprotocol/sdk/types.js'
 import {isWithinTokenLimit} from 'gpt-tokenizer'
 import type {THIS_IS_FINE} from '../types/any.js'
-import {formatResponse} from './formatters.js'
+import {ensureArray, formatResponse} from './formatters.js'
 import type {RequestHandlerExtra} from '@modelcontextprotocol/sdk/shared/protocol.js'
 import {tokenLimit} from './tokens.js'
+import type {Checkpoint} from '../types/checkpoint.js'
 
 /**
  * Creates a standardized success response
@@ -11,10 +12,7 @@ import {tokenLimit} from './tokens.js'
 export function createSuccessResponse(
   message: string,
   data?: Record<string, unknown>,
-  documentsChanged?: {
-    _id: string
-    _rev: string | 'DELETE'
-  }[],
+  checkpoints?: Checkpoint | Checkpoint[],
 ) {
   const text = data ? formatResponse(message, data) : message
   const withinTokenLimit = isWithinTokenLimit(text, tokenLimit)
@@ -26,7 +24,7 @@ export function createSuccessResponse(
   }
 
   return {
-    _documentsChanged: documentsChanged,
+    checkpoints: ensureArray(checkpoints),
     content: [
       {
         type: 'text',
@@ -56,6 +54,7 @@ export function withErrorHandling<T extends Record<string, unknown>>(
       const errorMessage = error instanceof Error ? error.message : String(error)
       return {
         isError: true,
+        clientError: error,
         content: [
           {
             type: 'text',

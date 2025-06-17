@@ -7,6 +7,8 @@ import {
   resolveDocumentId,
   resolveSchemaId,
 } from '../../utils/resolvers.js'
+import type {Checkpoint} from '../../types/checkpoint.js'
+import {getCreationCheckpoint} from '../../utils/checkpoint.js'
 
 export const CreateDocumentToolParams = BaseToolSchema.extend({
   type: z.string().describe('The document type'),
@@ -30,11 +32,13 @@ type Params = z.infer<typeof CreateDocumentToolParams>
 
 async function tool(params: Params) {
   const client = createToolClient(params)
-
   const runAsync = params.instruction?.length > 1
+  const checkpoints: Checkpoint[] = []
 
   const process = async (instruction: string) => {
     const documentId = resolveDocumentId(randomUUID(), params.releaseId)
+    checkpoints.push(getCreationCheckpoint(documentId, client))
+
     const generateOptions = {
       targetDocument: {
         operation: 'create',
@@ -79,14 +83,18 @@ async function tool(params: Params) {
     ? `Initiated creation for ${params.instruction.length} documents in background: ${successCount} successful, ${failureCount} failed`
     : `Created ${params.instruction.length} documents: ${successCount} successful, ${failureCount} failed`
 
-  return createSuccessResponse(message, {
-    results,
-    summary: {
-      total: params.instruction.length,
-      successful: successCount,
-      failed: failureCount,
+  return createSuccessResponse(
+    message,
+    {
+      results,
+      summary: {
+        total: params.instruction.length,
+        successful: successCount,
+        failed: failureCount,
+      },
     },
-  })
+    checkpoints,
+  )
 }
 
 export const createDocumentTool = withErrorHandling(tool, 'Error creating document')

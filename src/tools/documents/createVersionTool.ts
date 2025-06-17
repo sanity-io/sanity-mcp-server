@@ -6,6 +6,9 @@ import {
   resolveDocumentId,
   resolveSchemaId,
 } from '../../utils/resolvers.js'
+import type {Checkpoint} from '../../types/checkpoint.js'
+import {getDocument} from '../../utils/document.js'
+import {getCreationCheckpoint} from '../../utils/checkpoint.js'
 
 export const CreateVersionToolParams = BaseToolSchema.extend({
   documentIds: z
@@ -25,6 +28,7 @@ type Params = z.infer<typeof CreateVersionToolParams>
 
 async function tool(params: Params) {
   const client = createToolClient(params)
+  const checkpoints: Checkpoint[] = []
 
   const release = await client.releases.get({releaseId: params.releaseId})
   if (!release) {
@@ -33,15 +37,15 @@ async function tool(params: Params) {
 
   const process = async (documentId: string) => {
     const publishedId = resolveDocumentId(documentId, false)
-    const originalDocument = await client.getDocument(publishedId)
-    if (!originalDocument) {
-      throw new Error(`Document with ID '${documentId}' not found`)
-    }
+    const versionId = resolveDocumentId(documentId, params.releaseId)
+    const originalDocument = await getDocument(publishedId, client)
+
+    checkpoints.push(getCreationCheckpoint(versionId, client))
 
     let newDocument = await client.createVersion({
       document: {
         ...originalDocument,
-        _id: resolveDocumentId(documentId, params.releaseId),
+        _id: versionId,
       },
       releaseId: params.releaseId,
       publishedId,
@@ -51,7 +55,7 @@ async function tool(params: Params) {
       newDocument = await client.agent.action.transform({
         schemaId: resolveSchemaId(params.workspaceName),
         instruction: resolveAiActionInstruction(params.instruction),
-        documentId: resolveDocumentId(documentId, params.releaseId),
+        documentId: versionId,
       })
     }
 
@@ -89,6 +93,7 @@ async function tool(params: Params) {
         failed: failureCount,
       },
     },
+    checkpoints,
   )
 }
 

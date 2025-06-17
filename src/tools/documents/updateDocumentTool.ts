@@ -5,6 +5,8 @@ import {WorkspaceNameSchema, BaseToolSchema, createToolClient} from '../../utils
 import type {GenerateInstruction} from '@sanity/client'
 import {stringToAgentPath} from '../../utils/path.js'
 import {resolveDocumentId, resolveSchemaId} from '../../utils/resolvers.js'
+import {getMutationCheckpoint} from '../../utils/checkpoint.js'
+import type {Checkpoint} from '../../types/checkpoint.js'
 
 const UpdateOperationSchema = z.object({
   documentId: z.string().describe('The ID of the document to update'),
@@ -36,11 +38,12 @@ type Params = z.infer<typeof UpdateDocumentToolParams>
 
 async function tool(params: Params) {
   const client = createToolClient(params)
-
   const runAsync = params.operations?.length > 1
+  const checkpoints: Checkpoint[] = []
 
   const process = async (operation: {documentId: string; instruction: string}) => {
     const documentId = resolveDocumentId(operation.documentId, params.releaseId)
+    checkpoints.push(await getMutationCheckpoint(documentId, client))
 
     const instructOptions: GenerateInstruction = {
       documentId,
@@ -86,14 +89,18 @@ async function tool(params: Params) {
     ? `Initiated updates for ${params.operations.length} documents in background: ${successCount} successful, ${failureCount} failed`
     : `Updated ${params.operations.length} documents: ${successCount} successful, ${failureCount} failed`
 
-  return createSuccessResponse(message, {
-    results,
-    summary: {
-      total: params.operations.length,
-      successful: successCount,
-      failed: failureCount,
+  return createSuccessResponse(
+    message,
+    {
+      results,
+      summary: {
+        total: params.operations.length,
+        successful: successCount,
+        failed: failureCount,
+      },
     },
-  })
+    checkpoints,
+  )
 }
 
 export const updateDocumentTool = withErrorHandling(tool, 'Error updating document')
