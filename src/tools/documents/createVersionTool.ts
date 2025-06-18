@@ -6,7 +6,7 @@ import {
   resolveDocumentId,
   resolveSchemaId,
 } from '../../utils/resolvers.js'
-import type {Checkpoint} from '../../types/checkpoint.js'
+import type {Change} from '../../types/checkpoint.js'
 import {getDocument} from '../../utils/document.js'
 import {getCreationCheckpoint} from '../../utils/checkpoint.js'
 
@@ -28,7 +28,7 @@ type Params = z.infer<typeof CreateVersionToolParams>
 
 async function tool(params: Params) {
   const client = createToolClient(params)
-  const checkpoints: Checkpoint[] = []
+  const checkpoints: Change[] = []
 
   const release = await client.releases.get({releaseId: params.releaseId})
   if (!release) {

@@ -89,7 +89,7 @@ async function tool(params: Params) {
       sourceDocumentId,
       document,
       success: true,
-      async: true,
+      async: runAsync,
     }
   }
 

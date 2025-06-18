@@ -1,6 +1,5 @@
 import {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
-
 import {WorkspaceNameSchema, BaseToolSchema, createToolClient} from '../../utils/tools.js'
 import type {GenerateInstruction} from '@sanity/client'
 import {stringToAgentPath} from '../../utils/path.js'
