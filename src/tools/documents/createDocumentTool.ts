@@ -2,11 +2,24 @@ import {z} from 'zod'
 import {randomUUID} from 'node:crypto'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {BaseToolSchema, createToolClient, WorkspaceNameSchema} from '../../utils/tools.js'
-import {resolveDocumentId, resolveSchemaId} from '../../utils/resolvers.js'
+import {
+  resolveAiActionInstruction,
+  resolveDocumentId,
+  resolveSchemaId,
+} from '../../utils/resolvers.js'
+import type {Checkpoint} from '../../types/checkpoint.js'
+import {getCreationCheckpoint} from '../../utils/checkpoint.js'
+import {processBulkOperation, createBulkOperationMessage} from '../../utils/bulk.js'
 
 export const CreateDocumentToolParams = BaseToolSchema.extend({
-  _type: z.string().describe('The document type'),
-  instruction: z.string().describe('Optional instruction for AI to create the document content'),
+  type: z.string().describe('The document type'),
+  instruction: z
+    .array(z.string())
+    .min(1)
+    .max(10)
+    .describe(
+      'Array of instructions for AI to create document content (min 1, max 10). One document will be created per instruction',
+    ),
   workspaceName: WorkspaceNameSchema,
   releaseId: z
     .string()
@@ -14,49 +27,52 @@ export const CreateDocumentToolParams = BaseToolSchema.extend({
     .describe(
       'Optional release ID for creating versioned documents. If provided, the document will be created under the specified release version instead of as a draft',
     ),
-  async: z
-    .boolean()
-    .optional()
-    .default(false)
-    .describe(
-      'Set to true for background processing when creating multiple documents for better performance.',
-    ),
 })
 
 type Params = z.infer<typeof CreateDocumentToolParams>
 
 async function tool(params: Params) {
   const client = createToolClient(params)
+  const runAsync = params.instruction?.length > 1
+  const checkpoints: Checkpoint[] = []
 
-  const documentId = resolveDocumentId(randomUUID(), params.releaseId)
-  const generateOptions = {
-    targetDocument: {
-      operation: 'create',
-      _id: documentId,
-      _type: params._type,
-    },
-    instruction: params.instruction,
-    schemaId: resolveSchemaId(params.workspaceName),
-  } as const
+  const process = async (instruction: string) => {
+    const documentId = resolveDocumentId(randomUUID(), params.releaseId)
+    checkpoints.push(getCreationCheckpoint(documentId, client))
 
-  if (params.async === true) {
-    await client.agent.action.generate({
+    const generateOptions = {
+      targetDocument: {
+        operation: 'create',
+        _id: documentId,
+        _type: params.type,
+      },
+      instruction: resolveAiActionInstruction(instruction),
+      schemaId: resolveSchemaId(params.workspaceName),
+    } as const
+
+    const createdDocument = await client.agent.action.generate({
       ...generateOptions,
-      async: true,
+      async: runAsync,
     })
 
-    return createSuccessResponse('Document creation initiated in background', {
+    return {
+      instruction,
+      document: createdDocument,
       success: true,
-      document: {_id: documentId, _type: params._type},
-    })
+      async: runAsync,
+    }
   }
 
-  const createdDocument = await client.agent.action.generate(generateOptions)
+  const {results, summary} = await processBulkOperation(params.instruction, process)
 
-  return createSuccessResponse('Document created successfully', {
-    success: true,
-    document: createdDocument,
-  })
+  return createSuccessResponse(
+    createBulkOperationMessage('documents', summary, runAsync),
+    {
+      results,
+      summary,
+    },
+    checkpoints,
+  )
 }
 
 export const createDocumentTool = withErrorHandling(tool, 'Error creating document')

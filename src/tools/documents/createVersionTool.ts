@@ -1,10 +1,22 @@
 import {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {BaseToolSchema, createToolClient, WorkspaceNameSchema} from '../../utils/tools.js'
-import {resolveDocumentId, resolveSchemaId} from '../../utils/resolvers.js'
+import {
+  resolveAiActionInstruction,
+  resolveDocumentId,
+  resolveSchemaId,
+} from '../../utils/resolvers.js'
+import type {Checkpoint} from '../../types/checkpoint.js'
+import {getDocument} from '../../utils/document.js'
+import {getCreationCheckpoint} from '../../utils/checkpoint.js'
+import {processBulkOperation, createBulkOperationMessage} from '../../utils/bulk.js'
 
 export const CreateVersionToolParams = BaseToolSchema.extend({
-  documentId: z.string().describe('ID of the document to create a version for'),
+  documentIds: z
+    .array(z.string())
+    .min(1)
+    .max(10)
+    .describe('Array of document IDs to create versions for (min 1, max 10)'),
   releaseId: z.string().describe('ID of the release to associate this version with'),
   instruction: z
     .string()
@@ -17,41 +29,54 @@ type Params = z.infer<typeof CreateVersionToolParams>
 
 async function tool(params: Params) {
   const client = createToolClient(params)
+  const checkpoints: Checkpoint[] = []
 
   const release = await client.releases.get({releaseId: params.releaseId})
   if (!release) {
     throw new Error(`Release with ID '${params.releaseId}' not found`)
   }
 
-  const publishedId = resolveDocumentId(params.documentId, false)
-  const originalDocument = await client.getDocument(publishedId)
-  if (!originalDocument) {
-    throw new Error(`Document with ID '${params.documentId}' not found`)
-  }
+  const process = async (documentId: string) => {
+    const publishedId = resolveDocumentId(documentId, false)
+    const versionId = resolveDocumentId(documentId, params.releaseId)
+    const originalDocument = await getDocument(publishedId, client)
 
-  const versionedId = resolveDocumentId(params.documentId, params.releaseId)
+    checkpoints.push(getCreationCheckpoint(versionId, client))
 
-  let newDocument = await client.createVersion({
-    document: {
-      ...originalDocument,
-      _id: versionedId,
-    },
-    releaseId: params.releaseId,
-    publishedId,
-  })
-
-  if (params.instruction) {
-    newDocument = await client.agent.action.transform({
-      schemaId: resolveSchemaId(params.workspaceName),
-      instruction: params.instruction,
-      documentId: versionedId,
+    let newDocument = await client.createVersion({
+      document: {
+        ...originalDocument,
+        _id: versionId,
+      },
+      releaseId: params.releaseId,
+      publishedId,
     })
+
+    if (params.instruction) {
+      newDocument = await client.agent.action.transform({
+        schemaId: resolveSchemaId(params.workspaceName),
+        instruction: resolveAiActionInstruction(params.instruction),
+        documentId: versionId,
+      })
+    }
+
+    return {
+      documentId,
+      document: newDocument,
+      success: true,
+    }
   }
 
-  return createSuccessResponse('Versioned document created successfully', {
-    success: true,
-    document: newDocument,
-  })
+  const {results, summary} = await processBulkOperation(params.documentIds, process)
+
+  return createSuccessResponse(
+    createBulkOperationMessage('documents', summary, false),
+    {
+      results,
+      summary,
+    },
+    checkpoints,
+  )
 }
 
 export const createVersionTool = withErrorHandling(tool, 'Error creating document version')

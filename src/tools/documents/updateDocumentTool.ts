@@ -1,14 +1,24 @@
 import {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
-
 import {WorkspaceNameSchema, BaseToolSchema, createToolClient} from '../../utils/tools.js'
 import type {GenerateInstruction} from '@sanity/client'
 import {stringToAgentPath} from '../../utils/path.js'
 import {resolveDocumentId, resolveSchemaId} from '../../utils/resolvers.js'
+import {getMutationCheckpoint} from '../../utils/checkpoint.js'
+import type {Checkpoint} from '../../types/checkpoint.js'
+import {processBulkOperation, createBulkOperationMessage} from '../../utils/bulk.js'
 
-export const UpdateDocumentToolParams = BaseToolSchema.extend({
+const UpdateOperationSchema = z.object({
   documentId: z.string().describe('The ID of the document to update'),
   instruction: z.string().describe('Instruction for AI to update the document content'),
+})
+
+export const UpdateDocumentToolParams = BaseToolSchema.extend({
+  operations: z
+    .array(UpdateOperationSchema)
+    .min(1)
+    .max(10)
+    .describe('Array of update operations, each with documentId and instruction (min 1, max 10)'),
   workspaceName: WorkspaceNameSchema,
   paths: z
     .array(z.string())
@@ -20,14 +30,7 @@ export const UpdateDocumentToolParams = BaseToolSchema.extend({
     .string()
     .optional()
     .describe(
-      'Optional release ID for creating versioned documents. If provided, the document will be created under the specified release version instead of as a draft',
-    ),
-  async: z
-    .boolean()
-    .optional()
-    .default(false)
-    .describe(
-      'Set to true for background processing when updating multiple documents for better performance.',
+      'Optional release ID for updating versioned documents. If provided, the document will be updated under the specified release version instead of as a draft',
     ),
 })
 
@@ -35,35 +38,46 @@ type Params = z.infer<typeof UpdateDocumentToolParams>
 
 async function tool(params: Params) {
   const client = createToolClient(params)
-  const documentId = resolveDocumentId(params.documentId, params.releaseId)
+  const runAsync = params.operations?.length > 1
+  const checkpoints: Checkpoint[] = []
 
-  const instructOptions: GenerateInstruction = {
-    documentId,
-    instruction: params.instruction,
-    schemaId: resolveSchemaId(params.workspaceName),
-    target: params.paths
-      ? params.paths.map((path) => ({path: stringToAgentPath(path)}))
-      : undefined,
-  } as const
+  const process = async (operation: {documentId: string; instruction: string}) => {
+    const documentId = resolveDocumentId(operation.documentId, params.releaseId)
+    checkpoints.push(await getMutationCheckpoint(documentId, client))
 
-  if (params.async === true) {
-    await client.agent.action.generate({
+    const instructOptions: GenerateInstruction = {
+      documentId,
+      instruction: operation.instruction,
+      schemaId: resolveSchemaId(params.workspaceName),
+      target: params.paths
+        ? params.paths.map((path) => ({path: stringToAgentPath(path)}))
+        : undefined,
+    } as const
+
+    const updatedDocument = await client.agent.action.generate({
       ...instructOptions,
-      async: true,
+      async: runAsync,
     })
 
-    return createSuccessResponse('Document update initiated in background', {
+    return {
+      documentId: operation.documentId,
+      instruction: operation.instruction,
+      document: updatedDocument,
       success: true,
-      document: {_id: params.documentId},
-    })
+      async: runAsync,
+    }
   }
 
-  const updatedDocument = await client.agent.action.generate(instructOptions)
+  const {results, summary} = await processBulkOperation(params.operations, process)
 
-  return createSuccessResponse('Document updated successfully', {
-    success: true,
-    document: updatedDocument,
-  })
+  return createSuccessResponse(
+    createBulkOperationMessage('documents', summary, runAsync),
+    {
+      results,
+      summary,
+    },
+    checkpoints,
+  )
 }
 
 export const updateDocumentTool = withErrorHandling(tool, 'Error updating document')

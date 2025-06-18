@@ -2,7 +2,12 @@ import {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {WorkspaceNameSchema, BaseToolSchema, createToolClient} from '../../utils/tools.js'
 import {stringToAgentPath} from '../../utils/path.js'
-import {resolveSchemaId} from '../../utils/resolvers.js'
+import {
+  resolveAiActionInstruction,
+  resolveDocumentId,
+  resolveSchemaId,
+} from '../../utils/resolvers.js'
+import {getMutationCheckpoint} from '../../utils/checkpoint.js'
 
 export const TransformImageToolParams = BaseToolSchema.extend({
   documentId: z.string().describe('The ID of the document containing the image'),
@@ -22,10 +27,13 @@ type Params = z.infer<typeof TransformImageToolParams>
 
 async function tool(params: Params) {
   const client = createToolClient(params)
+  const documentId = resolveDocumentId(params.documentId)
+
+  const checkpoint = await getMutationCheckpoint(documentId, client)
 
   const actionOptions = {
-    documentId: params.documentId,
-    instruction: params.instruction,
+    documentId: documentId,
+    instruction: resolveAiActionInstruction(params.instruction),
     schemaId: resolveSchemaId(params.workspaceName),
     target: {path: [...stringToAgentPath(params.imagePath), 'asset']},
   }
@@ -36,9 +44,11 @@ async function tool(params: Params) {
     await client.agent.action.transform(actionOptions)
   }
 
-  return createSuccessResponse(`Image ${params.operation}ed successfully`, {
-    success: true,
-  })
+  return createSuccessResponse(
+    `Image ${params.operation}ed successfully`,
+    {success: true},
+    checkpoint,
+  )
 }
 
 export const transformImageTool = withErrorHandling(tool, 'Error transforming image')
