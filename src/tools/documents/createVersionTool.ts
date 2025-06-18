@@ -9,6 +9,7 @@ import {
 import type {Checkpoint} from '../../types/checkpoint.js'
 import {getDocument} from '../../utils/document.js'
 import {getCreationCheckpoint} from '../../utils/checkpoint.js'
+import {processBulkOperation, createBulkOperationMessage} from '../../utils/bulk.js'
 
 export const CreateVersionToolParams = BaseToolSchema.extend({
   documentIds: z
@@ -66,32 +67,13 @@ async function tool(params: Params) {
     }
   }
 
-  const results = await Promise.all(
-    params.documentIds.map(async (documentId) => {
-      try {
-        return await process(documentId)
-      } catch (error) {
-        return {
-          documentId,
-          success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        }
-      }
-    }),
-  )
-
-  const successCount = results.filter((r) => r.success).length
-  const failureCount = results.length - successCount
+  const {results, summary} = await processBulkOperation(params.documentIds, process)
 
   return createSuccessResponse(
-    `Processed ${params.documentIds.length} documents: ${successCount} successful, ${failureCount} failed`,
+    createBulkOperationMessage('documents', summary, false),
     {
       results,
-      summary: {
-        total: params.documentIds.length,
-        successful: successCount,
-        failed: failureCount,
-      },
+      summary,
     },
     checkpoints,
   )

@@ -6,6 +6,7 @@ import {stringToAgentPath} from '../../utils/path.js'
 import {resolveDocumentId, resolveSchemaId} from '../../utils/resolvers.js'
 import {getMutationCheckpoint} from '../../utils/checkpoint.js'
 import type {Checkpoint} from '../../types/checkpoint.js'
+import {processBulkOperation, createBulkOperationMessage} from '../../utils/bulk.js'
 
 const UpdateOperationSchema = z.object({
   documentId: z.string().describe('The ID of the document to update'),
@@ -67,36 +68,13 @@ async function tool(params: Params) {
     }
   }
 
-  const results = await Promise.all(
-    params.operations.map(async (operation) => {
-      try {
-        return await process(operation)
-      } catch (error) {
-        return {
-          documentId: operation.documentId,
-          instruction: operation.instruction,
-          success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        }
-      }
-    }),
-  )
-
-  const successCount = results.filter((r) => r.success).length
-  const failureCount = results.length - successCount
-  const message = runAsync
-    ? `Initiated updates for ${params.operations.length} documents in background: ${successCount} successful, ${failureCount} failed`
-    : `Updated ${params.operations.length} documents: ${successCount} successful, ${failureCount} failed`
+  const {results, summary} = await processBulkOperation(params.operations, process)
 
   return createSuccessResponse(
-    message,
+    createBulkOperationMessage('documents', summary, runAsync),
     {
       results,
-      summary: {
-        total: params.operations.length,
-        successful: successCount,
-        failed: failureCount,
-      },
+      summary,
     },
     checkpoints,
   )

@@ -1,4 +1,3 @@
-import type {TranslateDocument} from '@sanity/client'
 import {z} from 'zod'
 import {randomUUID} from 'node:crypto'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
@@ -9,6 +8,7 @@ import {getDocument} from '../../utils/document.js'
 import type {DocumentId} from '@sanity/id-utils'
 import {getCreationCheckpoint, getMutationCheckpoint} from '../../utils/checkpoint.js'
 import type {Checkpoint} from '../../types/checkpoint.js'
+import {processBulkOperation, createBulkOperationMessage} from '../../utils/bulk.js'
 
 const LanguageSchema = z.object({
   id: z.string().describe('Language identifier (e.g., "en-US", "no", "fr")'),
@@ -64,7 +64,7 @@ async function tool(params: Params) {
       checkpoints.push(await getMutationCheckpoint(targetDocumentId as DocumentId, client))
     }
 
-    const translateOptions: TranslateDocument = {
+    return client.agent.action.translate({
       documentId: sourceDocumentId,
       targetDocument:
         params.operation === 'create'
@@ -78,50 +78,17 @@ async function tool(params: Params) {
         ? params.paths.map((path) => ({path: stringToAgentPath(path)}))
         : undefined,
       protectedPhrases: params.protectedPhrases,
-    }
-
-    const document = await client.agent.action.translate({
-      ...translateOptions,
       async: runAsync,
     })
-
-    return {
-      sourceDocumentId,
-      document,
-      success: true,
-      async: runAsync,
-    }
   }
 
-  const results = await Promise.all(
-    params.documentIds.map(async (sourceDocumentId) => {
-      try {
-        return await process(sourceDocumentId)
-      } catch (error) {
-        return {
-          sourceDocumentId,
-          success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        }
-      }
-    }),
-  )
-
-  const successCount = results.filter((r) => r.success).length
-  const failureCount = results.length - successCount
-  const message = runAsync
-    ? `Initiated translation for ${params.documentIds.length} documents in background: ${successCount} successful, ${failureCount} failed`
-    : `Translated ${params.documentIds.length} documents: ${successCount} successful, ${failureCount} failed`
+  const {results, summary} = await processBulkOperation(params.documentIds, process)
 
   return createSuccessResponse(
-    message,
+    createBulkOperationMessage('documents', summary, runAsync),
     {
       results,
-      summary: {
-        total: params.documentIds.length,
-        successful: successCount,
-        failed: failureCount,
-      },
+      summary,
     },
     checkpoints,
   )

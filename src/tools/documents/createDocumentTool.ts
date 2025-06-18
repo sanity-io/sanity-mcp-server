@@ -9,6 +9,7 @@ import {
 } from '../../utils/resolvers.js'
 import type {Checkpoint} from '../../types/checkpoint.js'
 import {getCreationCheckpoint} from '../../utils/checkpoint.js'
+import {processBulkOperation, createBulkOperationMessage} from '../../utils/bulk.js'
 
 export const CreateDocumentToolParams = BaseToolSchema.extend({
   type: z.string().describe('The document type'),
@@ -62,36 +63,13 @@ async function tool(params: Params) {
     }
   }
 
-  const results = await Promise.all(
-    params.instruction.map(async (instruction) => {
-      try {
-        return await process(instruction)
-      } catch (error) {
-        return {
-          instruction,
-          success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        }
-      }
-    }),
-  )
-
-  const successCount = results.filter((r) => r.success).length
-  const failureCount = results.length - successCount
-
-  const message = runAsync
-    ? `Initiated creation for ${params.instruction.length} documents in background: ${successCount} successful, ${failureCount} failed`
-    : `Created ${params.instruction.length} documents: ${successCount} successful, ${failureCount} failed`
+  const {results, summary} = await processBulkOperation(params.instruction, process)
 
   return createSuccessResponse(
-    message,
+    createBulkOperationMessage('documents', summary, runAsync),
     {
       results,
-      summary: {
-        total: params.instruction.length,
-        successful: successCount,
-        failed: failureCount,
-      },
+      summary,
     },
     checkpoints,
   )
