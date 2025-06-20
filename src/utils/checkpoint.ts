@@ -1,6 +1,6 @@
-import type {DocumentId} from '@sanity/id-utils'
-import type {CreationCheckpoint, MutationCheckpoint} from '../types/checkpoint.js'
 import type {SanityClient} from '@sanity/client'
+import {type DocumentId, getDraftId, isVersionId} from '@sanity/id-utils'
+import type {CreationCheckpoint, MutationCheckpoint} from '../types/checkpoint.js'
 import {getDocument} from './document.js'
 
 function getCheckpointResource(client: SanityClient) {
@@ -24,7 +24,8 @@ export function getCreationCheckpoint(
     type: 'create',
     projectId,
     dataset,
-    _id: documentId,
+    // All documents are made in draft mode
+    _id: isVersionId(documentId) ? documentId : getDraftId(documentId),
   }
 }
 
