@@ -70,7 +70,6 @@ function agentTools(server: McpServer) {
   registerSchemaTools(server)
   registerReleasesTools(server)
   registerEmbeddingsTools(server)
-  registerProjectsTools(server)
 }
 
 export function registerAllTools(server: McpServer, userRole: McpRole = 'developer') {
