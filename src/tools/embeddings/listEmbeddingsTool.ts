@@ -8,7 +8,7 @@ export const ListEmbeddingsIndicesToolParams = BaseToolSchema.extend({})
 
 type Params = z.infer<typeof ListEmbeddingsIndicesToolParams>
 
-async function tool(params: Params) {
+export async function _tool(params: Params) {
   const client = createToolClient(params)
   const config = client.config()
 
@@ -35,6 +35,6 @@ async function tool(params: Params) {
 }
 
 export const listEmbeddingsIndicesTool = withErrorHandling(
-  tool,
+  _tool,
   'Error fetching embeddings indices',
 )

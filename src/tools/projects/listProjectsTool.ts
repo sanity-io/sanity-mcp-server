@@ -7,7 +7,7 @@ export const ListProjectsToolParams = BaseToolSchema.extend({})
 
 type Params = z.infer<typeof ListProjectsToolParams>
 
-async function tool(params: Params) {
+async function _tool(params: Params) {
   const client = createToolClient(params)
   const projects = await client.projects.list()
 
@@ -45,4 +45,4 @@ async function tool(params: Params) {
   )
 }
 
-export const listProjectsTool = withErrorHandling(tool, 'Error fetching Sanity projects')
+export const listProjectsTool = withErrorHandling(_tool, 'Error fetching Sanity projects')

@@ -46,7 +46,7 @@ export const TranslateDocumentToolParams = BaseToolSchema.extend({
 
 type Params = z.infer<typeof TranslateDocumentToolParams>
 
-async function tool(params: Params) {
+async function _tool(params: Params) {
   const client = createToolClient(params)
   const runAsync = params.documentIds?.length > 1
   const checkpoints: Checkpoint[] = []
@@ -94,4 +94,4 @@ async function tool(params: Params) {
   )
 }
 
-export const translateDocumentTool = withErrorHandling(tool, 'Error translating document')
+export const translateDocumentTool = withErrorHandling(_tool, 'Error translating document')

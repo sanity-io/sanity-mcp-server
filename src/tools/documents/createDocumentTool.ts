@@ -31,7 +31,7 @@ export const CreateDocumentToolParams = BaseToolSchema.extend({
 
 type Params = z.infer<typeof CreateDocumentToolParams>
 
-async function tool(params: Params) {
+async function _tool(params: Params) {
   const client = createToolClient(params)
   const runAsync = params.instruction?.length > 1
   const checkpoints: Checkpoint[] = []
@@ -75,4 +75,4 @@ async function tool(params: Params) {
   )
 }
 
-export const createDocumentTool = withErrorHandling(tool, 'Error creating document')
+export const createDocumentTool = withErrorHandling(_tool, 'Error creating document')

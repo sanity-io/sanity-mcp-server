@@ -25,7 +25,7 @@ export const TransformImageToolParams = BaseToolSchema.extend({
 
 type Params = z.infer<typeof TransformImageToolParams>
 
-async function tool(params: Params) {
+async function _tool(params: Params) {
   const client = createToolClient(params)
   const documentId = resolveDocumentId(params.documentId)
 
@@ -51,4 +51,4 @@ async function tool(params: Params) {
   )
 }
 
-export const transformImageTool = withErrorHandling(tool, 'Error transforming image')
+export const transformImageTool = withErrorHandling(_tool, 'Error transforming image')

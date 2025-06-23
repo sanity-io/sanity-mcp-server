@@ -11,7 +11,7 @@ export const UpdateDatasetToolParams = BaseToolSchema.extend({
 
 type Params = z.infer<typeof UpdateDatasetToolParams>
 
-async function tool(args: Params) {
+async function _tool(args: Params) {
   const client = createToolClient(args)
   const datasets = await client.datasets.list()
   const datasetExists = datasets.some((dataset) => dataset.name === args.name)
@@ -26,4 +26,4 @@ async function tool(args: Params) {
   return createSuccessResponse('Dataset updated successfully', {newDataset})
 }
 
-export const updateDatasetTool = withErrorHandling(tool, 'Error updating dataset')
+export const updateDatasetTool = withErrorHandling(_tool, 'Error updating dataset')

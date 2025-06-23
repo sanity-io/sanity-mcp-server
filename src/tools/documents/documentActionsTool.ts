@@ -60,7 +60,7 @@ export const DocumentActionsToolParams = BaseToolSchema.extend({
 
 type Params = z.infer<typeof DocumentActionsToolParams>
 
-async function tool(params: Params) {
+async function _tool(params: Params) {
   const client = createToolClient(params)
   const publishedId = resolveDocumentId(params.id, false)
   const draftId = getDraftId(publishedId)
@@ -136,4 +136,4 @@ async function tool(params: Params) {
   }
 }
 
-export const documentActionsTool = withErrorHandling(tool, 'Error performing document action')
+export const documentActionsTool = withErrorHandling(_tool, 'Error performing document action')

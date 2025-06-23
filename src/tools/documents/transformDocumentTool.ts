@@ -45,7 +45,7 @@ export const TransformDocumentToolParams = BaseToolSchema.extend({
 
 type Params = z.infer<typeof TransformDocumentToolParams>
 
-async function tool(params: Params) {
+async function _tool(params: Params) {
   const client = createToolClient(params)
   const sourceDocumentId = resolveDocumentId(params.documentId)
 
@@ -79,4 +79,4 @@ async function tool(params: Params) {
   return createSuccessResponse(message, {success: true, document}, checkpoint)
 }
 
-export const transformDocumentTool = withErrorHandling(tool, 'Error transforming document')
+export const transformDocumentTool = withErrorHandling(_tool, 'Error transforming document')

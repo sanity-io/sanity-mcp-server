@@ -36,7 +36,7 @@ export const UpdateDocumentToolParams = BaseToolSchema.extend({
 
 type Params = z.infer<typeof UpdateDocumentToolParams>
 
-async function tool(params: Params) {
+async function _tool(params: Params) {
   const client = createToolClient(params)
   const runAsync = params.operations?.length > 1
   const checkpoints: Checkpoint[] = []
@@ -80,4 +80,4 @@ async function tool(params: Params) {
   )
 }
 
-export const updateDocumentTool = withErrorHandling(tool, 'Error updating document')
+export const updateDocumentTool = withErrorHandling(_tool, 'Error updating document')

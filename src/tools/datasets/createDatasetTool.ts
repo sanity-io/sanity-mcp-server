@@ -11,7 +11,7 @@ export const CreateDatasetToolParams = BaseToolSchema.extend({
 
 type Params = z.infer<typeof CreateDatasetToolParams>
 
-async function tool(args: Params) {
+async function _tool(args: Params) {
   const client = createToolClient(args)
   // Only lowercase letters and numbers are allowed
   const datasetName = args.name.toLowerCase().replace(/[^a-z0-9]/g, '')
@@ -22,4 +22,4 @@ async function tool(args: Params) {
   return createSuccessResponse('Dataset created successfully', {newDataset})
 }
 
-export const createDatasetTool = withErrorHandling(tool, 'Error creating dataset')
+export const createDatasetTool = withErrorHandling(_tool, 'Error creating dataset')

@@ -14,7 +14,7 @@ export const ListWorkspaceSchemasTool = BaseToolSchema.extend({})
 
 type Params = z.infer<typeof ListWorkspaceSchemasTool>
 
-async function tool(params: Params) {
+export async function _tool(params: Params) {
   const client = createToolClient(params)
   const schemas = await client.fetch<{_id: string}[]>('*[_type == $schemaType]{ _id }', {
     schemaType: SCHEMA_TYPE,
@@ -33,6 +33,6 @@ async function tool(params: Params) {
 }
 
 export const listWorkspaceSchemasTool = withErrorHandling(
-  tool,
+  _tool,
   'Error fetching available schema IDs',
 )

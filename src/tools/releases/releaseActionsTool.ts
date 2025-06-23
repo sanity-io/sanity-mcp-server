@@ -19,7 +19,7 @@ export const ReleaseActionsToolParams = BaseToolSchema.extend({
 
 type Params = z.infer<typeof ReleaseActionsToolParams>
 
-async function tool(params: Params) {
+async function _tool(params: Params) {
   const {actionType, releaseId} = params
   const client = createToolClient(params)
 
@@ -39,4 +39,4 @@ async function tool(params: Params) {
   return createSuccessResponse(actionDescriptionMap[actionType])
 }
 
-export const releaseActionsTool = withErrorHandling(tool, 'Error performing release action')
+export const releaseActionsTool = withErrorHandling(_tool, 'Error performing release action')

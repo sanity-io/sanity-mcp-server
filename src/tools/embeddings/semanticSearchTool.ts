@@ -18,7 +18,7 @@ export const SemanticSearchToolParams = BaseToolSchema.extend({
 
 type Params = z.infer<typeof SemanticSearchToolParams>
 
-async function tool(params: Params) {
+async function _tool(params: Params) {
   const client = createToolClient(params)
   const config = client.config()
 
@@ -64,4 +64,4 @@ async function tool(params: Params) {
   )
 }
 
-export const semanticSearchTool = withErrorHandling(tool, 'Error performing semantic search')
+export const semanticSearchTool = withErrorHandling(_tool, 'Error performing semantic search')

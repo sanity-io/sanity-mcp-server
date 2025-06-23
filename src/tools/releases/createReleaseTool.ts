@@ -14,7 +14,7 @@ export const CreateReleaseToolParams = BaseToolSchema.extend({
 
 type Params = z.infer<typeof CreateReleaseToolParams>
 
-async function tool(params: Params) {
+async function _tool(params: Params) {
   const client = createToolClient(params)
   const releaseId = generateSanityId(8, 'r')
   const intendedPublishAt = parseDateString(params.intendedPublishAt)
@@ -26,7 +26,7 @@ async function tool(params: Params) {
       title: params.title,
       description: params.description,
       releaseType: params.releaseType,
-      ...(intendedPublishAt && { intendedPublishAt }),
+      ...(intendedPublishAt && {intendedPublishAt}),
     },
   })
 
@@ -41,4 +41,4 @@ async function tool(params: Params) {
   })
 }
 
-export const createReleaseTool = withErrorHandling(tool, 'Error creating release')
+export const createReleaseTool = withErrorHandling(_tool, 'Error creating release')

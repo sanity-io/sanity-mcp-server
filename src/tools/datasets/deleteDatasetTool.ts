@@ -8,7 +8,7 @@ export const DeleteDatasetToolParams = BaseToolSchema.extend({
 
 type Params = z.infer<typeof DeleteDatasetToolParams>
 
-async function tool(args: Params) {
+async function _tool(args: Params) {
   const client = createToolClient(args)
 
   const datasets = await client.datasets.list()
@@ -24,4 +24,4 @@ async function tool(args: Params) {
   })
 }
 
-export const deleteDatasetTool = withErrorHandling(tool, 'Error deleting dataset')
+export const deleteDatasetTool = withErrorHandling(_tool, 'Error deleting dataset')

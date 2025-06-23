@@ -32,7 +32,7 @@ export const QueryDocumentsToolParams = BaseToolSchema.extend({
 
 type Params = z.infer<typeof QueryDocumentsToolParams>
 
-async function tool(params: Params) {
+async function _tool(params: Params) {
   const validation = await validateGroqQuery(params.query)
   if (!validation.isValid) {
     throw new Error(`Invalid GROQ query: ${validation.error}`)
@@ -64,4 +64,4 @@ async function tool(params: Params) {
   )
 }
 
-export const queryDocumentsTool = withErrorHandling(tool, 'Error executing GROQ query')
+export const queryDocumentsTool = withErrorHandling(_tool, 'Error executing GROQ query')

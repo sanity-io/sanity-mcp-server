@@ -11,7 +11,7 @@ export const ScheduleReleaseToolParams = BaseToolSchema.extend({
 
 type Params = z.infer<typeof ScheduleReleaseToolParams>
 
-async function tool(params: Params) {
+async function _tool(params: Params) {
   const {releaseId, publishAt} = params
   const parsedPublishAt = parseDateString(publishAt)
   const client = createToolClient(params)
@@ -37,4 +37,4 @@ async function tool(params: Params) {
   )
 }
 
-export const scheduleReleaseTool = withErrorHandling(tool, 'Error scheduling release')
+export const scheduleReleaseTool = withErrorHandling(_tool, 'Error scheduling release')

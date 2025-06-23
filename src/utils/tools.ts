@@ -19,7 +19,10 @@ export const WorkspaceNameSchema = z
  */
 const DatasetBaseToolSchema = z
   .object({
-    target: z.literal('dataset').describe('Used when targeting studio resources'),
+    target: z
+      .literal('dataset')
+      .describe('Used when targeting studio resources')
+      .default('dataset'),
     projectId: z.string().describe('Unique identifier for the project'),
     dataset: z.string().describe('Name or identifier of the dataset'),
   })

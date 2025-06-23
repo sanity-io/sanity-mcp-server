@@ -27,7 +27,7 @@ export const CreateVersionToolParams = BaseToolSchema.extend({
 
 type Params = z.infer<typeof CreateVersionToolParams>
 
-async function tool(params: Params) {
+async function _tool(params: Params) {
   const client = createToolClient(params)
   const checkpoints: Checkpoint[] = []
 
@@ -79,4 +79,4 @@ async function tool(params: Params) {
   )
 }
 
-export const createVersionTool = withErrorHandling(tool, 'Error creating document version')
+export const createVersionTool = withErrorHandling(_tool, 'Error creating document version')

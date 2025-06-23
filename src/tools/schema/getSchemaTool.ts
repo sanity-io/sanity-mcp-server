@@ -18,7 +18,7 @@ export const GetSchemaToolParams = BaseToolSchema.extend({
 
 type Params = z.infer<typeof GetSchemaToolParams>
 
-async function tool(params: Params) {
+async function _tool(params: Params) {
   const client = createToolClient(params)
   const schemaId = resolveSchemaId(params.workspaceName)
   const schemaDoc = await client.fetch('*[_id == $schemaId][0]', {schemaId})
@@ -40,4 +40,4 @@ async function tool(params: Params) {
   return createSuccessResponse(formatSchema(schema, schemaId, {lite: hasType === false}))
 }
 
-export const getSchemaTool = withErrorHandling(tool, 'Error fetching schema overview')
+export const getSchemaTool = withErrorHandling(_tool, 'Error fetching schema overview')

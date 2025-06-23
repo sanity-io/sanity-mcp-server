@@ -1,30 +1,34 @@
-import {z} from 'zod'
 import {outdent} from 'outdent'
-import {listEmbeddingsIndicesTool} from '../embeddings/listEmbeddingsTool.js'
-import {listReleasesTool} from '../releases/listReleases.js'
-import {contextStore} from './store.js'
-import {withErrorHandling} from '../../utils/response.js'
-import {listWorkspaceSchemasTool} from '../schema/listWorkspaceSchemasTool.js'
-import {MCP_INSTRUCTIONS} from './instructions.js'
+import {z} from 'zod'
+import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {type BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {_tool as listEmbeddings} from '../embeddings/listEmbeddingsTool.js'
+import {_tool as listReleases} from '../releases/listReleases.js'
+import {SCHEMA_DEPLOYMENT_INSTRUCTIONS} from '../schema/common.js'
+import {_tool as listWorkspaceSchemas} from '../schema/listWorkspaceSchemasTool.js'
+import {MCP_INSTRUCTIONS} from './instructions.js'
+import {contextStore} from './store.js'
 
 export const GetInitialContextToolParams = z.object({})
 
 type Params = z.infer<typeof GetInitialContextToolParams>
 
+function getResultValue<T>(result: PromiseSettledResult<T>): T | null {
+  return result.status === 'fulfilled' ? result.value : null
+}
+
 export function hasInitialContext(): boolean {
   return contextStore.hasInitialContext()
 }
 
-async function tool(_params: Params) {
+async function _tool(_params: Params) {
   const client = createToolClient()
   const config = client.config()
   const configInfo = `Current Sanity Configuration:
-  - Project ID: ${config.projectId}
-  - Dataset: ${config.dataset}
-  - API Version: ${config.apiVersion}
-  - Using CDN: ${config.useCdn}
-  - Perspective: ${config.perspective || 'drafts'}`
+  - Resource type: "dataset"
+  - Project ID: "${config.projectId}"
+  - Dataset: "${config.dataset}"
+  - Default perspective: "${config.perspective || 'drafts'}"`
 
   if (!config.projectId || !config.dataset) {
     throw new Error('Project ID and Dataset must be set')
@@ -36,11 +40,19 @@ async function tool(_params: Params) {
     dataset: config.dataset,
   }
 
-  const [workspaceSchemas, releases, embeddings] = await Promise.all([
-    listWorkspaceSchemasTool({resource}),
-    listReleasesTool({state: 'active', resource}),
-    listEmbeddingsIndicesTool({resource}),
+  const results = await Promise.allSettled([
+    listWorkspaceSchemas({resource}),
+    listReleases({state: 'active', resource}),
+    listEmbeddings({resource}),
   ])
+
+  const workspaceSchemas = getResultValue(results[0])
+  const releases = getResultValue(results[1])
+  const embeddings = getResultValue(results[2])
+
+  if (!workspaceSchemas || workspaceSchemas.content.length === 0) {
+    throw new Error(SCHEMA_DEPLOYMENT_INSTRUCTIONS)
+  }
 
   const todaysDate = new Date().toLocaleDateString('en-US')
 
@@ -53,8 +65,8 @@ async function tool(_params: Params) {
       ${configInfo}
 
       ${workspaceSchemas.content[0].text}
-      ${embeddings.content[0].text}
-      ${releases.content[0].text}
+      ${embeddings?.content?.[0]?.text || 'No embeddings available'}
+      ${releases?.content?.[0]?.text || 'No active releases'}
     </content>
 
     <todaysDate>${todaysDate}</todaysDate>
@@ -62,14 +74,7 @@ async function tool(_params: Params) {
 
   contextStore.setInitialContextLoaded()
 
-  return {
-    content: [
-      {
-        type: 'text' as const,
-        text: message,
-      },
-    ],
-  }
+  return createSuccessResponse(message)
 }
 
-export const getInitialContextTool = withErrorHandling(tool, 'Error getting initial context')
+export const getInitialContextTool = withErrorHandling(_tool, 'Error getting initial context')

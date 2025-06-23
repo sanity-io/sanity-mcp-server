@@ -65,7 +65,7 @@ export const PatchDocumentToolParams = BaseToolSchema.extend({
 
 type Params = z.infer<typeof PatchDocumentToolParams>
 
-async function tool(params: Params) {
+async function _tool(params: Params) {
   const client = createToolClient(params)
   const documentId = resolveDocumentId(params.documentId, params.releaseId)
   const checkpoint = await getMutationCheckpoint(documentId, client)
@@ -112,4 +112,4 @@ async function tool(params: Params) {
   )
 }
 
-export const patchDocumentTool = withErrorHandling(tool, 'Error patching document')
+export const patchDocumentTool = withErrorHandling(_tool, 'Error patching document')

@@ -8,7 +8,7 @@ export const GetProjectStudiosToolParams = BaseToolSchema.extend({})
 
 type Params = z.infer<typeof GetProjectStudiosToolParams>
 
-async function tool(args: Params) {
+async function _tool(args: Params) {
   const client = createToolClient(args)
   const projectId = client.config().projectId
 
@@ -51,4 +51,4 @@ async function tool(args: Params) {
   )
 }
 
-export const getProjectStudiosTool = withErrorHandling(tool, 'Error fetching studios')
+export const getProjectStudiosTool = withErrorHandling(_tool, 'Error fetching studios')

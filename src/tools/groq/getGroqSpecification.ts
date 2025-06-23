@@ -178,11 +178,11 @@ export const GetGroqSpecificationToolParams = z.object({})
 
 type Params = z.infer<typeof GetGroqSpecificationToolParams>
 
-async function tool(_params?: Params) {
+async function _tool(_params?: Params) {
   return createSuccessResponse(SPECIFICATION)
 }
 
 export const getGroqSpecificationTool = withErrorHandling(
-  tool,
+  _tool,
   'Error retrieving GROQ specification',
 )

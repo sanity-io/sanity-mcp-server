@@ -6,7 +6,7 @@ export const ListDatasetsToolParams = BaseToolSchema.extend({})
 
 type Params = z.infer<typeof ListDatasetsToolParams>
 
-async function tool(params: Params) {
+async function _tool(params: Params) {
   const client = createToolClient(params)
   const datasets = await client.datasets.list()
 
@@ -28,4 +28,4 @@ async function tool(params: Params) {
   return createSuccessResponse('Here are the datasets', {datasets: flattenedDatasets})
 }
 
-export const listDatasetsTool = withErrorHandling(tool, 'Error fetching datasets')
+export const listDatasetsTool = withErrorHandling(_tool, 'Error fetching datasets')

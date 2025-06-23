@@ -15,7 +15,7 @@ export const EditReleaseToolParams = BaseToolSchema.extend({
 })
 type Params = z.infer<typeof EditReleaseToolParams>
 
-async function tool(params: Params) {
+async function _tool(params: Params) {
   const client = createToolClient(params)
   const metadataChanges = {} as Record<string, unknown>
   if (params.title) metadataChanges.title = params.title
@@ -48,4 +48,4 @@ async function tool(params: Params) {
   })
 }
 
-export const editReleaseTool = withErrorHandling(tool, 'Error editing release')
+export const editReleaseTool = withErrorHandling(_tool, 'Error editing release')

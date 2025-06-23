@@ -13,7 +13,7 @@ type Params = z.infer<typeof ListReleasesToolParams>
 const ALL_RELEASES_QUERY = 'releases::all()'
 const FILTERED_RELEASES_QUERY = `${ALL_RELEASES_QUERY}[state == $state]`
 
-async function tool(params: Params) {
+export async function _tool(params: Params) {
   const client = createToolClient(params)
   const query = params.state === 'all' ? ALL_RELEASES_QUERY : FILTERED_RELEASES_QUERY
   const releases = await client.fetch<Release[]>(query, {state: params.state})
@@ -45,4 +45,4 @@ async function tool(params: Params) {
   })
 }
 
-export const listReleasesTool = withErrorHandling(tool, 'Error listing releases')
+export const listReleasesTool = withErrorHandling(_tool, 'Error listing releases')
