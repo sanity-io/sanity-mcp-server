@@ -14,6 +14,13 @@ function getCheckpointResource(client: SanityClient) {
   return {projectId, dataset}
 }
 
+function getCheckpointId(documentId: DocumentId) {
+  if (isVersionId(documentId)) {
+    return documentId
+  }
+  return getDraftId(documentId)
+}
+
 export function getCreationCheckpoint(
   documentId: DocumentId,
   client: SanityClient,
@@ -25,7 +32,7 @@ export function getCreationCheckpoint(
     projectId,
     dataset,
     // All documents are made in draft mode
-    _id: isVersionId(documentId) ? documentId : getDraftId(documentId),
+    _id: getCheckpointId(documentId),
   }
 }
 
@@ -41,7 +48,7 @@ export async function getMutationCheckpoint(
     type: 'mutate',
     projectId,
     dataset,
-    _id: document._id,
+    _id: getCheckpointId(documentId),
     _rev: document._rev,
   }
 }
