@@ -318,8 +318,12 @@ pnpm start
 
 For debugging, you can use the MCP inspector:
 
-```bash
-npx @modelcontextprotocol/inspector -e SANITY_API_TOKEN=<token> -e SANITY_PROJECT_ID=<project_id> -e SANITY_DATASET=<ds> -e MCP_USER_ROLE=developer node path/to/build/index.js
-```
+npx @modelcontextprotocol/inspector \
+ -e SANITY_API_TOKEN=<token> \
+ -e SANITY_PROJECT_ID=<project_id> \
+ -e SANITY_API_HOST=https://api.sanity.io \
+ -e SANITY_DATASET=<ds> \
+ -e MCP_USER_ROLE=developer \
+ node build/index.js
 
 This will provide a web interface for inspecting and testing the available tools.
