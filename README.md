@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/sanity-io-sanity-mcp-server-badge.png)](https://mseep.ai/app/sanity-io-sanity-mcp-server)
+
 # Sanity MCP Server <!-- omit in toc -->
 
 > Transform your content operations with AI-powered tools for Sanity. Create, manage, and explore your content through natural language conversations in your favorite AI-enabled editor.
