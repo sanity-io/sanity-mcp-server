@@ -120,7 +120,12 @@ You don't get it to work? See the section on [Node.js configuration](#-nodejs-en
 - **transform_document** – Transform document content while preserving formatting and structure, ideal for text replacements and style corrections
 - **translate_document** – Translate document content to another language while preserving formatting and structure
 - **query_documents** – Execute GROQ queries to search for and retrieve content
-- **document_action** – Perform document actions like publishing, unpublishing, or deleting documents
+- **publish_document** – Publish a draft document to make it live
+- **unpublish_document** – Unpublish a published document (moves it back to drafts)
+- **version_replace_document** – Replace the contents of a document version with contents from another document
+- **version_discard_document** –Discard a document version from a release (removes it from the release)
+- **version_unpublish_document** – Mark a document to be unpublished when the release is run
+- **delete_document** – Permanently delete a document and all its drafts
 
 ### Release Management <!-- omit in toc -->
 
@@ -128,7 +133,11 @@ You don't get it to work? See the section on [Node.js configuration](#-nodejs-en
 - **create_release** – Create a new content release
 - **edit_release** – Update metadata for an existing release
 - **schedule_release** – Schedule a release to publish at a specific time
-- **release_action** – Perform actions on releases (publish, archive, unarchive, unschedule, delete)
+- **publish_release** – Publish a release immediately
+- **archive_release** – Archive a release that is no longer active
+- **unarchive_release** – Restore an archived release
+- **unschedule_release** – Remove a previously set schedule from a release
+- **delete_release** – Delete a release
 
 ### Version Management <!-- omit in toc -->
 
