@@ -6,8 +6,13 @@ import {patchDocumentTool, PatchDocumentToolParams} from './patchDocumentTool.js
 import {transformDocumentTool, TransformDocumentToolParams} from './transformDocumentTool.js'
 import {transformImageTool, TransformImageToolParams} from './transformImageTool.js'
 import {translateDocumentTool, TranslateDocumentToolParams} from './translateDocumentTool.js'
-import {documentActionsTool, DocumentActionsToolParams} from './documentActionsTool.js'
 import {createVersionTool, CreateVersionToolParams} from './createVersionTool.js'
+import { deleteDocumentTool, DeleteDocumentToolParams } from './deleteDocumentTool.js'
+import { publishDocumentTool, PublishDocumentToolParams } from './publishDocumentTool.js'
+import { unpublishDocumentTool, UnpublishDocumentToolParams } from './unpublishDocumentTool.js'
+import { versionReplaceDocumentTool, VersionReplaceDocumentToolParams } from './versionReplaceDocumentTool.js'
+import { versionDiscardDocumentTool, VersionDiscardDocumentToolParams } from './versionDiscardDocumentTool.js'
+import { versionUnpublishDocumentTool, VersionUnpublishDocumentToolParams } from './versionUnpublishDocumentTool.js'
 
 export function registerDocumentsTools(server: McpServer) {
   server.tool(
@@ -67,9 +72,44 @@ export function registerDocumentsTools(server: McpServer) {
   )
 
   server.tool(
-    'document_action',
-    'Perform document actions like publishing, unpublishing, deleting, or discarding documents',
-    DocumentActionsToolParams.shape,
-    documentActionsTool,
+    'document_action_publish',
+    'Publish a draft document to make it live',
+    PublishDocumentToolParams.shape,
+    publishDocumentTool,
+  )
+
+  server.tool(
+    'document_action_unpublish',
+    'Unpublish a published document (moves it back to drafts)',
+    UnpublishDocumentToolParams.shape,
+    unpublishDocumentTool,
+  )
+
+  server.tool(
+    'document_action_version_replace',
+    'Replace the contents of a document version with contents from another document',
+    VersionReplaceDocumentToolParams.shape,
+    versionReplaceDocumentTool,
+  )
+
+  server.tool(
+    'document_action_version_discard',
+    'Discard a document version from a release (removes it from the release)',
+    VersionDiscardDocumentToolParams.shape,
+    versionDiscardDocumentTool,
+  )
+
+  server.tool(
+    'document_action_version_unpublish',
+    'Mark a document to be unpublished when the release is run',
+    VersionUnpublishDocumentToolParams.shape,
+    versionUnpublishDocumentTool,
+  )
+
+  server.tool(
+    'document_action_delete',
+    'Permanently delete a document and all its drafts',
+    DeleteDocumentToolParams.shape,
+    deleteDocumentTool,
   )
 }

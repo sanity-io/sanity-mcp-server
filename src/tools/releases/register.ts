@@ -1,9 +1,13 @@
 import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js'
-import {releaseActionsTool, ReleaseActionsToolParams} from './releaseActionsTool.js'
 import {createReleaseTool, CreateReleaseToolParams} from './createReleaseTool.js'
 import {editReleaseTool, EditReleaseToolParams} from './editReleaseTool.js'
 import {scheduleReleaseTool, ScheduleReleaseToolParams} from './scheduleReleaseTool.js'
 import {listReleasesTool, ListReleasesToolParams} from './listReleases.js'
+import { publishReleaseTool, PublishReleaseToolParams } from './publishReleaseTool.js'
+import { archiveReleaseTool, ArchiveReleaseToolParams } from './archiveReleaseTool.js'
+import { UnachiveReleaseToolParams, unarchiveReleaseTool } from './unarchiveReleaseTool.js'
+import { unscheduleReleaseTool, UnscheduleReleaseToolParams } from './unscheduleReleaseTool.js'
+import { deleteReleaseTool, DeleteReleaseToolParams } from './deleteReleaseTool.js'
 
 export function registerReleasesTools(server: McpServer) {
   server.tool(
@@ -35,9 +39,37 @@ export function registerReleasesTools(server: McpServer) {
   )
 
   server.tool(
-    'release_action',
-    'Perform basic actions on existing content releases (publish, archive, unschedule, delete)',
-    ReleaseActionsToolParams.shape,
-    releaseActionsTool,
+    'publish_release_action',
+    'Publish a release',
+    PublishReleaseToolParams.shape,
+    publishReleaseTool,
+  )
+
+  server.tool(
+    'archive_release_action',
+    'Archive a release',
+    ArchiveReleaseToolParams.shape,
+    archiveReleaseTool,
+  )
+
+  server.tool(
+    'unarchive_release_action',
+    'Unarchive a release',
+    UnachiveReleaseToolParams.shape,
+    unarchiveReleaseTool,
+  )
+
+  server.tool(
+    'unschedule_release_action',
+    'Unschedule a release',
+    UnscheduleReleaseToolParams.shape,
+    unscheduleReleaseTool,
+  )
+
+  server.tool(
+    'delete_release_action',
+    'Delete a release',
+    DeleteReleaseToolParams.shape,
+    deleteReleaseTool,
   )
 }
