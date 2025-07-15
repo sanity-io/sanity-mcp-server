@@ -39,35 +39,35 @@ export function registerReleasesTools(server: McpServer) {
   )
 
   server.tool(
-    'publish_release_action',
-    'Publish a release',
+    'publish_release',
+    'Publish a release immediately',
     PublishReleaseToolParams.shape,
     publishReleaseTool,
   )
 
   server.tool(
-    'archive_release_action',
-    'Archive a release',
+    'archive_release',
+    'Archive a release that is no longer active',
     ArchiveReleaseToolParams.shape,
     archiveReleaseTool,
   )
 
   server.tool(
-    'unarchive_release_action',
-    'Unarchive a release',
+    'unarchive_release',
+    'Restore an archived release',
     UnachiveReleaseToolParams.shape,
     unarchiveReleaseTool,
   )
 
   server.tool(
-    'unschedule_release_action',
-    'Unschedule a release',
+    'unschedule_release',
+    'Remove a previously set schedule from a release',
     UnscheduleReleaseToolParams.shape,
     unscheduleReleaseTool,
   )
 
   server.tool(
-    'delete_release_action',
+    'delete_release',
     'Delete a release',
     DeleteReleaseToolParams.shape,
     deleteReleaseTool,

@@ -72,42 +72,42 @@ export function registerDocumentsTools(server: McpServer) {
   )
 
   server.tool(
-    'document_action_publish',
+    'publish_document',
     'Publish a draft document to make it live',
     PublishDocumentToolParams.shape,
     publishDocumentTool,
   )
 
   server.tool(
-    'document_action_unpublish',
+    'unpublish_document',
     'Unpublish a published document (moves it back to drafts)',
     UnpublishDocumentToolParams.shape,
     unpublishDocumentTool,
   )
 
   server.tool(
-    'document_action_version_replace',
+    'version_replace_document',
     'Replace the contents of a document version with contents from another document',
     VersionReplaceDocumentToolParams.shape,
     versionReplaceDocumentTool,
   )
 
   server.tool(
-    'document_action_version_discard',
+    'version_discard_document',
     'Discard a document version from a release (removes it from the release)',
     VersionDiscardDocumentToolParams.shape,
     versionDiscardDocumentTool,
   )
 
   server.tool(
-    'document_action_version_unpublish',
+    'version_unpublish_document',
     'Mark a document to be unpublished when the release is run',
     VersionUnpublishDocumentToolParams.shape,
     versionUnpublishDocumentTool,
   )
 
   server.tool(
-    'document_action_delete',
+    'delete_document',
     'Permanently delete a document and all its drafts',
     DeleteDocumentToolParams.shape,
     deleteDocumentTool,
