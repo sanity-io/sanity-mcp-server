@@ -15,22 +15,46 @@ Sanity MCP Server implements the [Model Context Protocol](https://modelcontextpr
 ## Table of Contents <!-- omit in toc -->
 
 - [🔌 Quickstart](#-quickstart)
-  - [Prerequisites](#prerequisites)
+  - [Remote server (preferred)](#remote-server-preferred)
+  - [Local server prerequisites](#local-server-prerequisites)
   - [Add configuration for the Sanity MCP server](#add-configuration-for-the-sanity-mcp-server)
 - [🛠️ Available Tools](#️-available-tools)
 - [⚙️ Configuration](#️-configuration)
   - [🔑 API Tokens and Permissions](#-api-tokens-and-permissions)
+    - [Generate API Tokens](#generate-api-tokens)
+    - [Required Permissions](#required-permissions)
+    - [Dataset Access](#dataset-access)
+    - [Security Best Practices](#security-best-practices)
   - [👥 User Roles](#-user-roles)
 - [📦 Node.js Environment Setup](#-nodejs-environment-setup)
   - [🛠 Quick Setup for Node Version Manager Users](#-quick-setup-for-node-version-manager-users)
-  - [🤔 Why Is This Needed?](#-why-is-this-needed)
+  - [🤔 Why is this needed?](#-why-is-this-needed)
   - [🔍 Troubleshooting](#-troubleshooting)
 - [💻 Development](#-development)
   - [Debugging](#debugging)
 
 ## 🔌 Quickstart
 
-### Prerequisites
+### Remote server (preferred)
+
+[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](cursor://anysphere.cursor-deeplink/mcp/install?name=Sanity%20Developer&config=eyJ1cmwiOiJodHRwczovL21jcC5zYW5pdHkuaW8vZGV2ZWxvcGVyIiwidHlwZSI6Imh0dHAifQ%3D%3D)
+
+This README details how to run the MCP server locally. For a more production-ready setup, we recommend using the hosted remote server.
+
+```json
+{
+  "mcpServers": {
+    "Sanity Developer": {
+      "url": "https://mcp.sanity.io/developer",
+      "type": "http"
+    }
+  }
+}
+```
+
+See [Sanity MCP Server](https://www.sanity.io/docs/compute-and-ai/mcp-server) in the documentation for install instructions in Claude Code, Cursor and more.
+
+### Local server prerequisites
 
 Before you can use the MCP server, you need to:
 
@@ -39,12 +63,6 @@ Before you can use the MCP server, you need to:
    The MCP server needs access to your content structure to work effectively. Deploy your schema manifest using one of these approaches:
 
    ```bash
-   # Option A: If you have the CLI installed globally
-   npm install -g sanity
-   cd /path/to/studio
-   sanity schema deploy
-
-   # Option B: Update your Studio
    cd /path/to/studio
    npm update sanity
    npx sanity schema deploy
@@ -56,8 +74,8 @@ Before you can use the MCP server, you need to:
    SANITY_AUTH_TOKEN=<token> sanity schema deploy
    ```
 
-   > [!NOTE]
-   > Schema deployment requires Sanity CLI version 3.88.1 or newer.
+> [!NOTE]
+> Schema deployment requires Sanity CLI version 3.88.1 or newer.
 
 2. **Get your API credentials**
    - Project ID
@@ -183,38 +201,50 @@ The server takes the following environment variables:
 | `SANITY_API_HOST`       | API host (defaults to https://api.sanity.io)                                                                                                                                     | ❌       |
 | `MAX_TOOL_TOKEN_OUTPUT` | Maximum token output for tool responses (defaults to 50000). Adjust based on your model's context limits. Higher limits may pollute the conversation context with excessive data | ❌       |
 
-> [!WARNING] > **Using AI with Production Datasets**
+> [!WARNING] 
+> **Using AI with Production Datasets**  
 > When configuring the MCP server with a token that has write access to a production dataset, please be aware that the AI can perform destructive actions like creating, updating, or deleting content. This is not a concern if you're using a read-only token. While we are actively developing guardrails, you should exercise caution and consider using a development/staging dataset for testing AI operations that require write access.
 
 ### 🔑 API Tokens and Permissions
 
 The MCP server requires appropriate API tokens and permissions to function correctly. Here's what you need to know:
 
-1. **Generate a Robot Token**:
+#### Generate API Tokens
 
-   - Go to your project's management console: Settings > API > Tokens
-   - Click "Add new token"
-   - Create a dedicated token for your MCP server usage
-   - Store the token securely - it's only shown once!
+From the terminal:
 
-2. **Required Permissions**:
+```bash
+npx sanity tokens add "MCP Server" --role <role>
+```
 
-   - The token needs appropriate permissions based on your usage
-   - For basic read operations: `viewer` role is sufficient
-   - For content management: `editor` or `developer` role recommended
-   - For advanced operations (like managing datasets): `administrator` role may be needed
+Or from Manage:
 
-3. **Dataset Access**:
+- Run `npx sanity manage` from your Studio root
+- In your project's management console: Settings > API > Tokens
+- Click "Add new token"
+- Create a dedicated token for your MCP server usage (e.g. `mcp-server`)
+- Store the token securely - it's only shown once!
 
-   - Public datasets: Content is readable by unauthenticated users
-   - Private datasets: Require proper token authentication
-   - Draft and versioned content: Only accessible to authenticated users with appropriate permissions
+#### Required Permissions
 
-4. **Security Best Practices**:
-   - Use separate tokens for different environments (development, staging, production)
-   - Never commit tokens to version control
-   - Consider using environment variables for token management
-   - Regularly rotate tokens for security
+The token needs appropriate permissions based on your usage
+
+- **For read operations:** `viewer` role is sufficient
+- **For mutations:** `editor` or `developer` role recommended
+- **For project changes** (like managing datasets): `administrator` role may be needed
+
+#### Dataset Access
+
+- **Public datasets:** Content is readable by unauthenticated users
+- **Private datasets:** Require proper token authentication
+- **Draft and versioned content:** Only accessible to authenticated users with appropriate permissions
+
+#### Security Best Practices
+
+- Use separate tokens for different environments (development, staging, production)
+- Never commit tokens to version control
+- Consider using environment variables for token management
+- Regularly rotate tokens for security
 
 ### 👥 User Roles
 
@@ -225,7 +255,9 @@ The server supports two user roles:
 
 ## 📦 Node.js Environment Setup
 
-> **Important for Node Version Manager Users**: If you use `nvm`, `mise`, `fnm`, `nvm-windows` or similar tools, you'll need to follow the setup steps below to ensure MCP servers can access Node.js. This is a one-time setup that will save you troubleshooting time later. This is [an ongoing issue](https://github.com/modelcontextprotocol/servers/issues/64) with MCP servers.
+> [!IMPORTANT]
+> **For Node Version Manager Users**  
+> If you use `nvm`, `mise`, `fnm`, `nvm-windows` or similar tools, you'll need to follow the setup steps below to ensure MCP servers can access Node.js. This is a one-time setup that will save you troubleshooting time later. This is [an ongoing issue](https://github.com/modelcontextprotocol/servers/issues/64) with MCP servers.
 
 ### 🛠 Quick Setup for Node Version Manager Users
 
@@ -233,7 +265,7 @@ The server supports two user roles:
 
    ```bash
    # Using nvm
-   nvm use 20   # or your preferred version
+   nvm use 20 # or your preferred version
 
    # Using mise
    mise use node@20
@@ -272,7 +304,7 @@ The server supports two user roles:
    "C:\Program Files\nodejs\node.exe" --version  # Windows
    ```
 
-### 🤔 Why Is This Needed?
+### 🤔 Why is this needed?
 
 MCP servers are launched by calling `node` and `npx` binaries directly. When using Node version managers, these binaries are managed in isolated environments that aren't automatically accessible to system applications. The symlinks above create a bridge between your version manager and the system paths that MCP servers use.
 
@@ -327,12 +359,14 @@ pnpm start
 
 For debugging, you can use the MCP inspector:
 
+```bash
 npx @modelcontextprotocol/inspector \
  -e SANITY_API_TOKEN=<token> \
  -e SANITY_PROJECT_ID=<project_id> \
  -e SANITY_API_HOST=https://api.sanity.io \
  -e SANITY_DATASET=<ds> \
  -e MCP_USER_ROLE=developer \
- node build/index.js
+node build/index.js
+```
 
 This will provide a web interface for inspecting and testing the available tools.
