@@ -17,6 +17,7 @@ Sanity MCP Server implements the [Model Context Protocol](https://modelcontextpr
 - [🔌 Quickstart](#-quickstart)
   - [Prerequisites](#prerequisites)
   - [Add configuration for the Sanity MCP server](#add-configuration-for-the-sanity-mcp-server)
+- [🌐 Hosted Version (Recommended)](#-hosted-version-recommended)
 - [🛠️ Available Tools](#️-available-tools)
 - [⚙️ Configuration](#️-configuration)
   - [🔑 API Tokens and Permissions](#-api-tokens-and-permissions)
@@ -104,6 +105,46 @@ The exact location of this configuration will depend on your application:
 | Custom Apps    | Refer to your app's MCP integration docs          |
 
 You don't get it to work? See the section on [Node.js configuration](#-nodejs-environment-setup).
+
+## 🌐 Hosted Version (Recommended)
+
+For the easiest setup experience, we recommend using the hosted version of the Sanity MCP Server. This eliminates the need for local Node.js configuration and provides a more reliable connection to your Sanity content.
+
+### One-click install in Cursor
+
+Click the link below to automatically install the hosted Sanity MCP Server in Cursor:
+
+[**Install Sanity Developer MCP Server**](<cursor://anysphere.cursor-deeplink/mcp/install?name=Sanity%20Developer&config=eyJ1cmwiOiJodHRwczovL21jcC5zYW5pdHkuaW8vZGV2ZWxvcGVyIiwidHlwZSI6Imh0dHAifQ%3D%3D>)
+
+This will automatically configure the hosted MCP server in your Cursor environment. You'll still need to provide your Sanity project credentials (Project ID, Dataset, and API Token) as environment variables.
+
+### Benefits of the Hosted Version
+
+- ✅ **No Node.js setup required** - Eliminates version management issues
+- ✅ **Always up-to-date** - Automatically uses the latest server version
+- ✅ **Better reliability** - Managed infrastructure with high availability
+- ✅ **Simplified configuration** - Fewer moving parts to troubleshoot
+
+### Manual Configuration for Other Tools
+
+If you're not using Cursor or prefer manual configuration, you can set up the hosted version by adding this to your MCP configuration:
+
+```json
+{
+  "mcpServers": {
+    "sanity": {
+      "url": "https://mcp.sanity.io/developer",
+      "type": "http",
+      "env": {
+        "SANITY_PROJECT_ID": "your-project-id",
+        "SANITY_DATASET": "production",
+        "SANITY_API_TOKEN": "your-sanity-api-token",
+        "MCP_USER_ROLE": "developer"
+      }
+    }
+  }
+}
+```
 
 ## 🛠️ Available Tools
 
