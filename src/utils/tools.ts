@@ -14,22 +14,15 @@ export const WorkspaceNameSchema = z
     'Workspace name derived from the manifest, not document type. Derived from context or listSchemaWorkspacesTool',
   )
 
-/**
- * Resources-related schemas
- */
-const DatasetBaseToolSchema = z
+const ResourceSchema = z
   .object({
-    target: z
-      .literal('dataset')
-      .describe('Used when targeting studio resources')
-      .default('dataset'),
-    projectId: z.string().describe('Unique identifier for the project'),
-    dataset: z.string().describe('Name or identifier of the dataset'),
+    projectId: z.string().describe('The Sanity project id'),
+    dataset: z.string().describe('The name of the dataset in the project'),
   })
-  .describe('Object that represents a studio resource with its associated project and dataset')
+  .describe('Resource information indicating which project id and dataset to target')
 
 export const BaseToolSchema = z.object({
-  resource: DatasetBaseToolSchema,
+  resource: ResourceSchema,
 })
 
 /**
@@ -42,28 +35,20 @@ export function createToolClient<T extends z.infer<typeof BaseToolSchema>>(
   {resource}: T = {} as T,
 ): SanityClient {
   const clientConfig = getDefaultClientConfig()
-  // TODO: Consider removing this clause when MCP oauth is in place
-  if (env.data?.MCP_USER_ROLE !== 'internal_agent_role') {
-    return createClient(clientConfig)
-  }
 
-  if (resource?.target === 'dataset') {
-    clientConfig.projectId = resource.projectId
-    clientConfig.dataset = resource.dataset
+  clientConfig.projectId = resource.projectId
+  clientConfig.dataset = resource.dataset
 
-    // Modify the Host header to be prefixed with the project ID for internal requests
-    if (env.data.INTERNAL_REQUESTER_HEADERS) {
-      const requester = baseRequester.clone()
-      const headerValues = {...env.data.INTERNAL_REQUESTER_HEADERS}
-      // If headers.Host exists and is not already prefixed with the project ID
-      if (headerValues.Host && !headerValues.Host.startsWith(`${resource.projectId}.`)) {
-        headerValues.Host = `${resource.projectId}.${headerValues.Host}`
-      }
-      requester.use(headersMiddleware(headerValues))
-      clientConfig.requester = requester
+  // Modify the Host header to be prefixed with the project ID for internal requests
+  if (env.data?.INTERNAL_REQUESTER_HEADERS) {
+    const requester = baseRequester.clone()
+    const headerValues = { ...env.data.INTERNAL_REQUESTER_HEADERS }
+    // If headers.Host exists and is not already prefixed with the project ID
+    if (headerValues.Host && !headerValues.Host.startsWith(`${resource.projectId}.`)) {
+      headerValues.Host = `${resource.projectId}.${headerValues.Host}`
     }
-
-    return createClient(clientConfig)
+    requester.use(headersMiddleware(headerValues))
+    clientConfig.requester = requester
   }
 
   return createClient(clientConfig)

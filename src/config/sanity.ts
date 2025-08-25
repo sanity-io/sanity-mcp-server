@@ -18,14 +18,6 @@ export function getDefaultClientConfig(): ClientConfig {
     useCdn: false,
   }
 
-  if ('SANITY_PROJECT_ID' in env.data) {
-    clientConfig.projectId = env.data?.SANITY_PROJECT_ID
-  }
-
-  if ('SANITY_DATASET' in env.data) {
-    clientConfig.dataset = env.data?.SANITY_DATASET
-  }
-
   if (env.data.INTERNAL_REQUEST_TAG_PREFIX) {
     clientConfig.requestTagPrefix = env.data.INTERNAL_REQUEST_TAG_PREFIX
   }
