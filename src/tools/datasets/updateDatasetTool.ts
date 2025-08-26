@@ -12,7 +12,7 @@ async function _tool(args: Params & MaybeResourceParam, extra?: ToolCallExtra) {
   const client = createToolClient(args, extra?.authInfo?.token)
 
   // we rely on getting the dataset name through either passed param, or as a fallback in createToolClient (via ENV vars, for example), so we have to read it back out like this
-  const datasetName = client.config().dataset 
+  const datasetName = client.config().dataset
 
   if (!datasetName) {
     throw new Error('Dataset name to update is required')

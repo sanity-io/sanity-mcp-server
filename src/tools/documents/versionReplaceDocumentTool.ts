@@ -35,4 +35,7 @@ async function _tool(params: Params & MaybeResourceParam, extra?: ToolCallExtra)
   )
 }
 
-export const versionReplaceDocumentTool = withErrorHandling(_tool, 'Error performing version replace document action')
+export const versionReplaceDocumentTool = withErrorHandling(
+  _tool,
+  'Error performing version replace document action',
+)

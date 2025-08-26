@@ -1,6 +1,6 @@
-import { z } from 'zod'
-import { createSuccessResponse, withErrorHandling } from '../../utils/response.js'
-import { createToolClient, ToolCallExtra } from '../../utils/tools.js'
+import {z} from 'zod'
+import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
+import {createToolClient, ToolCallExtra} from '../../utils/tools.js'
 
 export const CreateDatasetToolParams = z.object({
   resource: z.object({
@@ -15,12 +15,15 @@ export const CreateDatasetToolParams = z.object({
 type Params = z.infer<typeof CreateDatasetToolParams>
 
 async function _tool(args: Params, extra?: ToolCallExtra) {
-  const client = createToolClient({
-    resource: {
-      projectId: args.resource.projectId,
-      dataset: 'dummy' // not needed for this API call, but required by client
-    }
-  }, extra?.authInfo?.token)
+  const client = createToolClient(
+    {
+      resource: {
+        projectId: args.resource.projectId,
+        dataset: 'dummy', // not needed for this API call, but required by client
+      },
+    },
+    extra?.authInfo?.token,
+  )
 
   // Only lowercase letters and numbers are allowed
   const datasetName = args.datasetName.toLowerCase().replace(/[^a-z0-9]/g, '')
@@ -28,7 +31,7 @@ async function _tool(args: Params, extra?: ToolCallExtra) {
     aclMode: args.aclMode,
   })
 
-  return createSuccessResponse('Dataset created successfully', { newDataset })
+  return createSuccessResponse('Dataset created successfully', {newDataset})
 }
 
 export const createDatasetTool = withErrorHandling(_tool, 'Error creating dataset')

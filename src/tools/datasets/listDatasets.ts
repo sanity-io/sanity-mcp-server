@@ -4,19 +4,22 @@ import {createToolClient, ToolCallExtra} from '../../utils/tools.js'
 
 export const ListDatasetsToolParams = z.object({
   resource: z.object({
-    projectId: z.string().describe('The ID of the project to list datasets for')
+    projectId: z.string().describe('The ID of the project to list datasets for'),
   }),
 })
 
 type Params = z.infer<typeof ListDatasetsToolParams>
 
 async function _tool(params: Params, extra?: ToolCallExtra) {
-  const client = createToolClient({
-    resource: {
-      projectId: params.resource.projectId,
-      dataset: 'dummy' // not needed for this API call, but required by client
-    }
-  }, extra?.authInfo?.token)
+  const client = createToolClient(
+    {
+      resource: {
+        projectId: params.resource.projectId,
+        dataset: 'dummy', // not needed for this API call, but required by client
+      },
+    },
+    extra?.authInfo?.token,
+  )
   const datasets = await client.datasets.list()
 
   // Filter out datasets with the 'comments' profile

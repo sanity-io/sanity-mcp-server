@@ -6,14 +6,14 @@ import {registerAllResources} from './resources/register.js'
 import {registerAllTools} from './tools/register.js'
 import {VERSION} from './config/version.js'
 import {MCP_INSTRUCTIONS} from './instructions.js'
-import { env } from './config/env.js'
+import {env} from './config/env.js'
 
 const MCP_SERVER_NAME = '@sanity/mcp-server'
 
 export type ServerOptions = {
-  token?: string,
-  projectId?: string,
-  dataset?: string,
+  token?: string
+  projectId?: string
+  dataset?: string
 }
 
 async function initializeServer(serverOptions?: ServerOptions) {
@@ -24,7 +24,7 @@ async function initializeServer(serverOptions?: ServerOptions) {
     },
     {
       instructions: MCP_INSTRUCTIONS,
-    }
+    },
   )
 
   registerAllTools(server, serverOptions || {})

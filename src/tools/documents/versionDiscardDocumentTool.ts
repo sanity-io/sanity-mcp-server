@@ -22,4 +22,7 @@ async function _tool(params: Params & MaybeResourceParam, extra?: ToolCallExtra)
   return createSuccessResponse(`Discarded document '${versionId}'`)
 }
 
-export const versionDiscardDocumentTool = withErrorHandling(_tool, 'Error performing version discard document action')
+export const versionDiscardDocumentTool = withErrorHandling(
+  _tool,
+  'Error performing version discard document action',
+)

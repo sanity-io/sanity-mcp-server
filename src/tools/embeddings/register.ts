@@ -1,7 +1,7 @@
 import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js'
 import {listEmbeddingsIndicesTool, ListEmbeddingsIndicesToolParams} from './listEmbeddingsTool.js'
 import {semanticSearchTool, SemanticSearchToolParams} from './semanticSearchTool.js'
-import { _BaseToolSchemaType } from '../../utils/tools.js'
+import {_BaseToolSchemaType} from '../../utils/tools.js'
 
 export function registerEmbeddingsTools(server: McpServer, baseSchema: _BaseToolSchemaType) {
   server.tool(

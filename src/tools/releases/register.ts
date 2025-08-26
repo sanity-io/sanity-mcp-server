@@ -3,12 +3,12 @@ import {createReleaseTool, CreateReleaseToolParams} from './createReleaseTool.js
 import {editReleaseTool, EditReleaseToolParams} from './editReleaseTool.js'
 import {scheduleReleaseTool, ScheduleReleaseToolParams} from './scheduleReleaseTool.js'
 import {listReleasesTool, ListReleasesToolParams} from './listReleases.js'
-import { publishReleaseTool, PublishReleaseToolParams } from './publishReleaseTool.js'
-import { archiveReleaseTool, ArchiveReleaseToolParams } from './archiveReleaseTool.js'
-import { unarchiveReleaseTool, UnarchiveReleaseToolParams } from './unarchiveReleaseTool.js'
-import { unscheduleReleaseTool, UnscheduleReleaseToolParams } from './unscheduleReleaseTool.js'
-import { deleteReleaseTool, DeleteReleaseToolParams } from './deleteReleaseTool.js'
-import { _BaseToolSchemaType } from '../../utils/tools.js'
+import {publishReleaseTool, PublishReleaseToolParams} from './publishReleaseTool.js'
+import {archiveReleaseTool, ArchiveReleaseToolParams} from './archiveReleaseTool.js'
+import {unarchiveReleaseTool, UnarchiveReleaseToolParams} from './unarchiveReleaseTool.js'
+import {unscheduleReleaseTool, UnscheduleReleaseToolParams} from './unscheduleReleaseTool.js'
+import {deleteReleaseTool, DeleteReleaseToolParams} from './deleteReleaseTool.js'
+import {_BaseToolSchemaType} from '../../utils/tools.js'
 
 export function registerReleasesTools(server: McpServer, baseSchema: _BaseToolSchemaType) {
   server.tool(

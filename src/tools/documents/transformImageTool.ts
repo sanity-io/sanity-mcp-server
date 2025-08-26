@@ -1,6 +1,11 @@
 import {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
-import {WorkspaceNameSchema, createToolClient, MaybeResourceParam, ToolCallExtra} from '../../utils/tools.js'
+import {
+  WorkspaceNameSchema,
+  createToolClient,
+  MaybeResourceParam,
+  ToolCallExtra,
+} from '../../utils/tools.js'
 import {stringToAgentPath} from '../../utils/path.js'
 import {
   resolveAiActionInstruction,

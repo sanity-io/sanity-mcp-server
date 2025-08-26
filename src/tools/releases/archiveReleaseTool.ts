@@ -21,4 +21,7 @@ async function _tool(params: Params & MaybeResourceParam, extra?: ToolCallExtra)
   return createSuccessResponse(`Archived release '${releaseId}'`)
 }
 
-export const archiveReleaseTool = withErrorHandling(_tool, 'Error performing archive release action')
+export const archiveReleaseTool = withErrorHandling(
+  _tool,
+  'Error performing archive release action',
+)

@@ -25,4 +25,7 @@ async function _tool(params: Params & MaybeResourceParam, extra?: ToolCallExtra)
   )
 }
 
-export const versionUnpublishDocumentTool = withErrorHandling(_tool, 'Error performing version unpublish document action')
+export const versionUnpublishDocumentTool = withErrorHandling(
+  _tool,
+  'Error performing version unpublish document action',
+)

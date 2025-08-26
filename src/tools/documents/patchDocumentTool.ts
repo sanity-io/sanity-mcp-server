@@ -1,6 +1,11 @@
 import {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
-import {createToolClient, MaybeResourceParam, ToolCallExtra, WorkspaceNameSchema} from '../../utils/tools.js'
+import {
+  createToolClient,
+  MaybeResourceParam,
+  ToolCallExtra,
+  WorkspaceNameSchema,
+} from '../../utils/tools.js'
 import {stringToAgentPath} from '../../utils/path.js'
 import {resolveDocumentId, resolveSchemaId} from '../../utils/resolvers.js'
 import {getMutationCheckpoint} from '../../utils/checkpoint.js'

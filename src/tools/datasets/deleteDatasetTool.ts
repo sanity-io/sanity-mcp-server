@@ -12,12 +12,15 @@ export const DeleteDatasetToolParams = z.object({
 type Params = z.infer<typeof DeleteDatasetToolParams>
 
 async function _tool(args: Params, extra?: ToolCallExtra) {
-  const client = createToolClient({
-    resource: {
-      projectId: args.resource.projectId,
-      dataset: args.datasetName,
-    }
-  }, extra?.authInfo?.token)
+  const client = createToolClient(
+    {
+      resource: {
+        projectId: args.resource.projectId,
+        dataset: args.datasetName,
+      },
+    },
+    extra?.authInfo?.token,
+  )
 
   const datasets = await client.datasets.list()
   const datasetExists = datasets.some((dataset) => dataset.name === args.datasetName)
