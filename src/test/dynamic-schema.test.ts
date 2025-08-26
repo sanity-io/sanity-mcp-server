@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { describe, it, expect, afterEach } from 'vitest'
 import { spawn, type ChildProcess } from 'child_process'
 

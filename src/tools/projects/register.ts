@@ -1,7 +1,6 @@
 import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js'
 import {listProjectsTool} from './listProjectsTool.js'
 import {getProjectStudiosTool, GetProjectStudiosToolParams} from './getProjectStudiosTool.js'
-import { _BaseToolSchemaType } from '../../utils/tools.js'
 
 export function registerProjectsTools(server: McpServer) {
   server.tool(

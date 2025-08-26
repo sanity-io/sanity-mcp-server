@@ -1,6 +1,6 @@
 import {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
-import {createToolClient, MaybeResourceParam, ToolCallExtra} from '../../utils/tools.js'
+import {createToolClient, ToolCallExtra} from '../../utils/tools.js'
 
 export const ListDatasetsToolParams = z.object({
   resource: z.object({

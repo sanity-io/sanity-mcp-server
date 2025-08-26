@@ -6,18 +6,15 @@ import {registerAllResources} from './resources/register.js'
 import {registerAllTools} from './tools/register.js'
 import {VERSION} from './config/version.js'
 import {MCP_INSTRUCTIONS} from './instructions.js'
-import {z} from 'zod'
 import { env } from './config/env.js'
 
 const MCP_SERVER_NAME = '@sanity/mcp-server'
 
-const ServerOptionsSchema = z.object({
-  token: z.string().optional(),
-  projectId: z.string().optional(),
-  dataset: z.string().optional(),
-})
-
-export type ServerOptions = z.infer<typeof ServerOptionsSchema>
+export type ServerOptions = {
+  token?: string,
+  projectId?: string,
+  dataset?: string,
+}
 
 async function initializeServer(serverOptions?: ServerOptions) {
   const server = new McpServer(

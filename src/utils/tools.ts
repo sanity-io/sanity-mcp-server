@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { createClient, type SanityClient } from '@sanity/client'
+import { createClient } from '@sanity/client'
 import { getDefaultClientConfig } from '../config/sanity.js'
 import { RequestHandlerExtra } from '@modelcontextprotocol/sdk/shared/protocol.js'
 import { ServerNotification, ServerRequest } from '@modelcontextprotocol/sdk/types.js'
@@ -16,15 +16,12 @@ export const WorkspaceNameSchema = z
     'Workspace name derived from the manifest, not document type. Derived from context or listSchemaWorkspacesTool',
   )
 
-const ResourceSchema = z
-  .object({
-    projectId: z.string().optional(),
-    dataset: z.string().optional(),
-  })
-
-const BaseToolSchema = z.object({
-  resource: ResourceSchema.optional(),
-})
+export type MaybeResourceParam = {
+  resource?: {
+    projectId?: string
+    dataset?: string
+  }
+}
 
 export type _BaseToolSchemaType =
   | z.ZodObject<{}>
@@ -32,7 +29,6 @@ export type _BaseToolSchemaType =
   | z.ZodObject<{ resource: z.ZodObject<{ projectId: z.ZodString }> }>
   | z.ZodObject<{ resource: z.ZodObject<{ projectId: z.ZodString, dataset: z.ZodString }> }>
 
-export type MaybeResourceParam = z.infer<typeof BaseToolSchema>
 export type ToolCallExtra = RequestHandlerExtra<ServerRequest, ServerNotification>
 
 // Creates the actual base tool schema that gets published in the MCP
