@@ -23,7 +23,4 @@ async function _tool(params: Params & MaybeResourceParam, extra?: ToolCallExtra)
   return createSuccessResponse(`Deleted document '${params.id}' and all its drafts`)
 }
 
-export const deleteDocumentTool = withErrorHandling(
-  _tool,
-  'Error performing delete document action',
-)
+export const deleteDocumentTool = withErrorHandling(_tool, 'Error performing delete document action')

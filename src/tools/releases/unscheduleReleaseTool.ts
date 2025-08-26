@@ -21,7 +21,4 @@ async function _tool(params: Params & MaybeResourceParam, extra?: ToolCallExtra)
   return createSuccessResponse(`Unscheduled release '${releaseId}'`)
 }
 
-export const unscheduleReleaseTool = withErrorHandling(
-  _tool,
-  'Error performing unschedule release action',
-)
+export const unscheduleReleaseTool = withErrorHandling(_tool, 'Error performing unschedule release action')

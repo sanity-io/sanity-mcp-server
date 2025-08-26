@@ -188,26 +188,26 @@ Tools are ready to use immediately - no initialization required.
 
 The server takes the following environment variables:
 
-| Variable                | Description                                                                                                                                                        | Required |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- |
-| `SANITY_API_TOKEN`      | Your Sanity API token                                                                                                                                              | ✅       |
-| `SANITY_PROJECT_ID`     | Optionally bind server to specific project. When set, tools don't require projectId in resource parameter                                                          | ❌       |
-| `SANITY_DATASET`        | Optionally bind server to specific dataset. When set, tools don't require dataset in resource parameter                                                            | ❌       |
-| `SANITY_API_HOST`       | API host (defaults to https://api.sanity.io)                                                                                                                       | ❌       |
-| `MAX_TOOL_TOKEN_OUTPUT` | Maximum tool token output (defaults to 50000). Adjust based on your model's context limits. Higher limits may pollute the conversation context with excessive data | ❌       |
+| Variable                | Description                                                                                                                                                                      | Required |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| `SANITY_API_TOKEN`      | Your Sanity API token                                                                                                                                                            | ✅       |
+| `SANITY_PROJECT_ID`     | Optionally bind server to specific project. When set, tools don't require projectId in resource parameter                                                                        | ❌       |
+| `SANITY_DATASET`        | Optionally bind server to specific dataset. When set, tools don't require dataset in resource parameter                                                                          | ❌       |
+| `SANITY_API_HOST`       | API host (defaults to https://api.sanity.io)                                                                                                                                     | ❌       |
+| `MAX_TOOL_TOKEN_OUTPUT` | Maximum tool token output (defaults to 50000). Adjust based on your model's context limits. Higher limits may pollute the conversation context with excessive data              | ❌       |
 
 ## Dynamic Tool Schemas
 
 Parameter requirements for project/dataset-specific tools change based on server configuration:
 
-- **No ENV project/dataset**: Relevant tools require full `resource: { projectId, dataset }`
+- **No ENV project/dataset**: Relevant tools require full `resource: { projectId, dataset }`  
 - **ENV project only**: Relevant tools require `resource: { dataset }` (projectId from server)
-- **ENV dataset only**: Relevant tools require `resource: { projectId }` (dataset from server)
+- **ENV dataset only**: Relevant tools require `resource: { projectId }` (dataset from server)  
 - **Both ENV set**: Relevant tools require no `resource` parameter (both from server)
 
 Account-level tools (like `list_projects`) don't require resource parameters regardless of configuration.
 
-> [!WARNING]
+> [!WARNING] 
 > **Using AI with Production Datasets**  
 > When configuring the MCP server with a token that has write access to a production dataset, please be aware that the AI can perform destructive actions like creating, updating, or deleting content. This is not a concern if you're using a read-only token. While we are actively developing guardrails, you should exercise caution and consider using a development/staging dataset for testing AI operations that require write access.
 
@@ -252,9 +252,11 @@ The token needs appropriate permissions based on your usage
 - Consider using environment variables for token management
 - Regularly rotate tokens for security
 
+
 ## 📦 Node.js Environment Setup
 
-> [!IMPORTANT] > **For Node Version Manager Users**  
+> [!IMPORTANT]
+> **For Node Version Manager Users**  
 > If you use `nvm`, `mise`, `fnm`, `nvm-windows` or similar tools, you'll need to follow the setup steps below to ensure MCP servers can access Node.js. This is a one-time setup that will save you troubleshooting time later. This is [an ongoing issue](https://github.com/modelcontextprotocol/servers/issues/64) with MCP servers.
 
 ### 🛠 Quick Setup for Node Version Manager Users

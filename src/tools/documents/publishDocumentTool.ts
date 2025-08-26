@@ -23,7 +23,4 @@ async function _tool(params: Params & MaybeResourceParam, extra?: ToolCallExtra)
   return createSuccessResponse(`Published document '${draftId}' to '${publishedId}'`)
 }
 
-export const publishDocumentTool = withErrorHandling(
-  _tool,
-  'Error performing publish document action',
-)
+export const publishDocumentTool = withErrorHandling(_tool, 'Error performing publish document action')

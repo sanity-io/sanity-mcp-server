@@ -3,12 +3,7 @@ import type {ManifestSchemaType} from '../../types/manifest.js'
 import {formatSchema} from '../../utils/schema.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {SCHEMA_DEPLOYMENT_INSTRUCTIONS} from './common.js'
-import {
-  MaybeResourceParam,
-  ToolCallExtra,
-  WorkspaceNameSchema,
-  createToolClient,
-} from '../../utils/tools.js'
+import {MaybeResourceParam, ToolCallExtra, WorkspaceNameSchema, createToolClient} from '../../utils/tools.js'
 import {resolveSchemaId} from '../../utils/resolvers.js'
 
 export const GetSchemaToolParams = z.object({

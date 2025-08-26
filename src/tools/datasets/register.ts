@@ -2,7 +2,7 @@ import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js'
 import {listDatasetsTool, ListDatasetsToolParams} from './listDatasets.js'
 import {createDatasetTool, CreateDatasetToolParams} from './createDatasetTool.js'
 import {updateDatasetTool, UpdateDatasetToolParams} from './updateDatasetTool.js'
-import {_BaseToolSchemaType} from '../../utils/tools.js'
+import { _BaseToolSchemaType } from '../../utils/tools.js'
 // import {deleteDatasetTool, DeleteDatasetToolParams} from './deleteDatasetTool.js'
 
 export function registerDatasetsTools(server: McpServer, baseSchema: _BaseToolSchemaType) {

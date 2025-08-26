@@ -23,7 +23,4 @@ async function _tool(params: Params & MaybeResourceParam, extra?: ToolCallExtra)
   return createSuccessResponse(`Unpublished document '${params.id}' (moved to drafts)`)
 }
 
-export const unpublishDocumentTool = withErrorHandling(
-  _tool,
-  'Error performing unpublish document action',
-)
+export const unpublishDocumentTool = withErrorHandling(_tool, 'Error performing unpublish document action')

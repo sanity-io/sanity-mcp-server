@@ -1,12 +1,7 @@
 import {z} from 'zod'
 import {randomUUID} from 'node:crypto'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
-import {
-  MaybeResourceParam,
-  ToolCallExtra,
-  WorkspaceNameSchema,
-  createToolClient,
-} from '../../utils/tools.js'
+import {MaybeResourceParam, ToolCallExtra, WorkspaceNameSchema, createToolClient} from '../../utils/tools.js'
 import {stringToAgentPath} from '../../utils/path.js'
 import {resolveDocumentId, resolveSchemaId} from '../../utils/resolvers.js'
 import {getDocument} from '../../utils/document.js'

@@ -7,22 +7,13 @@ import {transformDocumentTool, TransformDocumentToolParams} from './transformDoc
 import {transformImageTool, TransformImageToolParams} from './transformImageTool.js'
 import {translateDocumentTool, TranslateDocumentToolParams} from './translateDocumentTool.js'
 import {createVersionTool, CreateVersionToolParams} from './createVersionTool.js'
-import {deleteDocumentTool, DeleteDocumentToolParams} from './deleteDocumentTool.js'
-import {publishDocumentTool, PublishDocumentToolParams} from './publishDocumentTool.js'
-import {unpublishDocumentTool, UnpublishDocumentToolParams} from './unpublishDocumentTool.js'
-import {
-  versionReplaceDocumentTool,
-  VersionReplaceDocumentToolParams,
-} from './versionReplaceDocumentTool.js'
-import {
-  versionDiscardDocumentTool,
-  VersionDiscardDocumentToolParams,
-} from './versionDiscardDocumentTool.js'
-import {
-  versionUnpublishDocumentTool,
-  VersionUnpublishDocumentToolParams,
-} from './versionUnpublishDocumentTool.js'
-import {_BaseToolSchemaType} from '../../utils/tools.js'
+import { deleteDocumentTool, DeleteDocumentToolParams } from './deleteDocumentTool.js'
+import { publishDocumentTool, PublishDocumentToolParams } from './publishDocumentTool.js'
+import { unpublishDocumentTool, UnpublishDocumentToolParams } from './unpublishDocumentTool.js'
+import { versionReplaceDocumentTool, VersionReplaceDocumentToolParams } from './versionReplaceDocumentTool.js'
+import { versionDiscardDocumentTool, VersionDiscardDocumentToolParams } from './versionDiscardDocumentTool.js'
+import { versionUnpublishDocumentTool, VersionUnpublishDocumentToolParams } from './versionUnpublishDocumentTool.js'
+import { _BaseToolSchemaType } from '../../utils/tools.js'
 
 export function registerDocumentsTools(server: McpServer, baseSchema: _BaseToolSchemaType) {
   server.tool(

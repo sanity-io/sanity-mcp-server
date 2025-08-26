@@ -21,7 +21,4 @@ async function _tool(params: Params & MaybeResourceParam, extra?: ToolCallExtra)
   return createSuccessResponse(`Published all documents in release '${releaseId}'`)
 }
 
-export const publishReleaseTool = withErrorHandling(
-  _tool,
-  'Error performing publish release action',
-)
+export const publishReleaseTool = withErrorHandling(_tool, 'Error performing publish release action')

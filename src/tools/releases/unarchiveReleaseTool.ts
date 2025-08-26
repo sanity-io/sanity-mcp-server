@@ -21,7 +21,4 @@ async function _tool(params: Params & MaybeResourceParam, extra?: ToolCallExtra)
   return createSuccessResponse(`Unarchived release '${releaseId}'`)
 }
 
-export const unarchiveReleaseTool = withErrorHandling(
-  _tool,
-  'Error performing unarchive release action',
-)
+export const unarchiveReleaseTool = withErrorHandling(_tool, 'Error performing unarchive release action')

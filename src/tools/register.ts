@@ -6,12 +6,12 @@ import {registerGroqTools} from './groq/register.js'
 import {registerProjectsTools} from './projects/register.js'
 import {registerReleasesTools} from './releases/register.js'
 import {registerSchemaTools} from './schema/register.js'
-import {ServerOptions} from '../index.js'
-import {makeBaseToolParamsSchema} from '../utils/tools.js'
+import { ServerOptions } from '../index.js'
+import { makeBaseToolParamsSchema } from '../utils/tools.js'
 
 export function registerAllTools(server: McpServer, serverOptions?: ServerOptions) {
   const baseSchema = makeBaseToolParamsSchema(serverOptions)
-
+  
   registerGroqTools(server)
   registerDocumentsTools(server, baseSchema)
   registerProjectsTools(server)

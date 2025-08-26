@@ -1,9 +1,9 @@
-import {z} from 'zod'
-import {createClient} from '@sanity/client'
-import {getDefaultClientConfig} from '../config/sanity.js'
-import {RequestHandlerExtra} from '@modelcontextprotocol/sdk/shared/protocol.js'
-import {ServerNotification, ServerRequest} from '@modelcontextprotocol/sdk/types.js'
-import {env} from '../config/env.js'
+import { z } from 'zod'
+import { createClient } from '@sanity/client'
+import { getDefaultClientConfig } from '../config/sanity.js'
+import { RequestHandlerExtra } from '@modelcontextprotocol/sdk/shared/protocol.js'
+import { ServerNotification, ServerRequest } from '@modelcontextprotocol/sdk/types.js'
+import { env } from '../config/env.js'
 import {headers as headersMiddleware} from 'get-it/middleware'
 import {requester as baseRequester} from '@sanity/client'
 
@@ -25,9 +25,9 @@ export type MaybeResourceParam = {
 
 export type _BaseToolSchemaType =
   | z.ZodObject<{}>
-  | z.ZodObject<{resource: z.ZodObject<{dataset: z.ZodString}>}>
-  | z.ZodObject<{resource: z.ZodObject<{projectId: z.ZodString}>}>
-  | z.ZodObject<{resource: z.ZodObject<{projectId: z.ZodString; dataset: z.ZodString}>}>
+  | z.ZodObject<{ resource: z.ZodObject<{ dataset: z.ZodString }> }>
+  | z.ZodObject<{ resource: z.ZodObject<{ projectId: z.ZodString }> }>
+  | z.ZodObject<{ resource: z.ZodObject<{ projectId: z.ZodString, dataset: z.ZodString }> }>
 
 export type ToolCallExtra = RequestHandlerExtra<ServerRequest, ServerNotification>
 
@@ -52,9 +52,7 @@ export function makeBaseToolParamsSchema(serverOptions?: any): _BaseToolSchemaTy
   }
 
   return z.object({
-    resource: ResourceSchema.describe(
-      'Resource information indicating which project id and dataset to target',
-    ),
+    resource: ResourceSchema.describe('Resource information indicating which project id and dataset to target'),
   })
 }
 
@@ -80,7 +78,7 @@ export function createToolClient(params: MaybeResourceParam, token?: string) {
   // Modify the Host header to be prefixed with the project ID for internal requests
   if (env.data?.INTERNAL_REQUESTER_HEADERS) {
     const requester = baseRequester.clone()
-    const headerValues = {...env.data.INTERNAL_REQUESTER_HEADERS}
+       const headerValues = { ...env.data.INTERNAL_REQUESTER_HEADERS }
     // If headers.Host exists and is not already prefixed with the project ID
     if (projectId && headerValues.Host && !headerValues.Host.startsWith(`${projectId}.`)) {
       headerValues.Host = `${projectId}.${headerValues.Host}`
@@ -88,6 +86,7 @@ export function createToolClient(params: MaybeResourceParam, token?: string) {
     requester.use(headersMiddleware(headerValues))
     clientConfig.requester = requester
   }
+
 
   clientConfig.projectId = projectId
   clientConfig.dataset = dataset
