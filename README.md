@@ -191,8 +191,8 @@ The server takes the following environment variables:
 | Variable                | Description                                                                                                                                                                      | Required |
 | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
 | `SANITY_API_TOKEN`      | Your Sanity API token                                                                                                                                                            | ✅       |
-| `SANITY_PROJECT_ID`     | Optionally bind server to specific project. When set, tools don't require projectId in resource parameter                                                                        | ❌       |
-| `SANITY_DATASET`        | Optionally bind server to specific dataset. When set, tools don't require dataset in resource parameter                                                                          | ❌       |
+| `SANITY_PROJECT_ID`     | Optionally bind server to specific project. When set, tools don't accept projectId in resource parameter                                                                        | ❌       |
+| `SANITY_DATASET`        | Optionally bind server to specific dataset. When set, tools don't accept dataset in resource parameter                                                                          | ❌       |
 | `SANITY_API_HOST`       | API host (defaults to https://api.sanity.io)                                                                                                                                     | ❌       |
 | `MAX_TOOL_TOKEN_OUTPUT` | Maximum tool token output (defaults to 50000). Adjust based on your model's context limits. Higher limits may pollute the conversation context with excessive data              | ❌       |
 
@@ -203,7 +203,7 @@ Parameter requirements for project/dataset-specific tools change based on server
 - **No ENV project/dataset**: Relevant tools require full `resource: { projectId, dataset }`  
 - **ENV project only**: Relevant tools require `resource: { dataset }` (projectId from server)
 - **ENV dataset only**: Relevant tools require `resource: { projectId }` (dataset from server)  
-- **Both ENV set**: Relevant tools require no `resource` parameter (both from server)
+- **Both ENV set**: Relevant tools accept no `resource` parameter (both from server)
 
 Account-level tools (like `list_projects`) don't require resource parameters regardless of configuration.
 
@@ -361,6 +361,7 @@ For debugging, you can use the MCP inspector:
 
 ```bash
 npx @modelcontextprotocol/inspector \
+ -e SANITY_PROJECT_ID=<projectId> \
  -e SANITY_API_TOKEN=<token> \
  -e SANITY_API_HOST=https://api.sanity.io \
 node build/index.js
