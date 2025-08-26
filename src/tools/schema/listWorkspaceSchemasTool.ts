@@ -1,7 +1,7 @@
-import type {z} from 'zod'
+import {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {SCHEMA_DEPLOYMENT_INSTRUCTIONS} from './common.js'
-import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {createToolClient, MaybeResourceParam, ToolCallExtra} from '../../utils/tools.js'
 import type {SchemaId} from '../../types/sanity.js'
 import {pluralize} from '../../utils/formatters.js'
 
@@ -10,12 +10,12 @@ export const SCHEMA_TYPE = 'system.schema'
 export const SCHEMA_ID_PREFIX: SchemaId = '_.schemas.'
 export const DEFAULT_SCHEMA_ID: SchemaId = `${SCHEMA_ID_PREFIX}.default`
 
-export const ListWorkspaceSchemasTool = BaseToolSchema.extend({})
+export const ListWorkspaceSchemasTool = z.object({})
 
 type Params = z.infer<typeof ListWorkspaceSchemasTool>
 
-export async function _tool(params: Params) {
-  const client = createToolClient(params)
+export async function _tool(params: Params & MaybeResourceParam, extra?: ToolCallExtra) {
+  const client = createToolClient(params, extra?.authInfo?.token)
   const schemas = await client.fetch<{_id: string}[]>('*[_type == $schemaType]{ _id }', {
     schemaType: SCHEMA_TYPE,
   })

@@ -1,7 +1,7 @@
 import {z} from 'zod'
 import {randomUUID} from 'node:crypto'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
-import {WorkspaceNameSchema, BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {MaybeResourceParam, ToolCallExtra, WorkspaceNameSchema, createToolClient} from '../../utils/tools.js'
 import {stringToAgentPath} from '../../utils/path.js'
 import {resolveDocumentId, resolveSchemaId} from '../../utils/resolvers.js'
 import {getDocument} from '../../utils/document.js'
@@ -15,7 +15,7 @@ const LanguageSchema = z.object({
   title: z.string().optional().describe('Human-readable language name'),
 })
 
-export const TranslateDocumentToolParams = BaseToolSchema.extend({
+export const TranslateDocumentToolParams = z.object({
   documentIds: z
     .array(z.string().brand<DocumentId>())
     .min(1)
@@ -46,8 +46,8 @@ export const TranslateDocumentToolParams = BaseToolSchema.extend({
 
 type Params = z.infer<typeof TranslateDocumentToolParams>
 
-async function _tool(params: Params) {
-  const client = createToolClient(params)
+async function _tool(params: Params & MaybeResourceParam, extra?: ToolCallExtra) {
+  const client = createToolClient(params, extra?.authInfo?.token)
   const runAsync = params.documentIds?.length > 1
   const checkpoints: Checkpoint[] = []
 

@@ -6,10 +6,20 @@ import {registerAllResources} from './resources/register.js'
 import {registerAllTools} from './tools/register.js'
 import {VERSION} from './config/version.js'
 import {MCP_INSTRUCTIONS} from './instructions.js'
+import {z} from 'zod'
+import { env } from './config/env.js'
 
 const MCP_SERVER_NAME = '@sanity/mcp-server'
 
-async function initializeServer() {
+const ServerOptionsSchema = z.object({
+  token: z.string().optional(),
+  projectId: z.string().optional(),
+  dataset: z.string().optional(),
+})
+
+export type ServerOptions = z.infer<typeof ServerOptionsSchema>
+
+async function initializeServer(serverOptions?: ServerOptions) {
   const server = new McpServer(
     {
       name: MCP_SERVER_NAME,
@@ -20,7 +30,7 @@ async function initializeServer() {
     }
   )
 
-  registerAllTools(server)
+  registerAllTools(server, serverOptions || {})
   registerAllPrompts(server)
   registerAllResources(server)
 
@@ -29,7 +39,11 @@ async function initializeServer() {
 
 async function main() {
   try {
-    const server = await initializeServer()
+    const server = await initializeServer({
+      projectId: env.data?.SANITY_PROJECT_ID,
+      dataset: env.data?.SANITY_DATASET,
+      token: env.data?.SANITY_API_TOKEN,
+    })
     const transport = new StdioServerTransport()
     await server.connect(transport)
   } catch (error) {

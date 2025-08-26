@@ -1,17 +1,17 @@
 import {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {ReleaseSchemas} from './common.js'
-import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {createToolClient, MaybeResourceParam, ToolCallExtra} from '../../utils/tools.js'
 
-export const DeleteReleaseToolParams = BaseToolSchema.extend({
+export const DeleteReleaseToolParams = z.object({
   releaseId: ReleaseSchemas.releaseId,
 })
 
 type Params = z.infer<typeof DeleteReleaseToolParams>
 
-async function _tool(params: Params) {
+async function _tool(params: Params & MaybeResourceParam, extra?: ToolCallExtra) {
   const {releaseId} = params
-  const client = createToolClient(params)
+  const client = createToolClient(params, extra?.authInfo?.token)
 
   await client.action({
     actionType: `sanity.action.release.delete`,

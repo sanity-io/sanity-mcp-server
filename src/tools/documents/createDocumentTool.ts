@@ -1,7 +1,7 @@
 import {z} from 'zod'
 import {randomUUID} from 'node:crypto'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
-import {BaseToolSchema, createToolClient, WorkspaceNameSchema} from '../../utils/tools.js'
+import {createToolClient, MaybeResourceParam, ToolCallExtra, WorkspaceNameSchema} from '../../utils/tools.js'
 import {
   resolveAiActionInstruction,
   resolveDocumentId,
@@ -11,7 +11,7 @@ import type {Checkpoint} from '../../types/checkpoint.js'
 import {getCreationCheckpoint} from '../../utils/checkpoint.js'
 import {processBulkOperation, createBulkOperationMessage} from '../../utils/bulk.js'
 
-export const CreateDocumentToolParams = BaseToolSchema.extend({
+export const CreateDocumentToolParams = z.object({
   type: z.string().describe('The document type'),
   instruction: z
     .array(z.string())
@@ -31,8 +31,8 @@ export const CreateDocumentToolParams = BaseToolSchema.extend({
 
 type Params = z.infer<typeof CreateDocumentToolParams>
 
-async function _tool(params: Params) {
-  const client = createToolClient(params)
+async function _tool(params: Params & MaybeResourceParam, extra?: ToolCallExtra) {
+  const client = createToolClient(params, extra?.authInfo?.token)
   const runAsync = params.instruction?.length > 1
   const checkpoints: Checkpoint[] = []
 

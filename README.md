@@ -191,10 +191,21 @@ The server takes the following environment variables:
 | Variable                | Description                                                                                                                                                                      | Required |
 | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
 | `SANITY_API_TOKEN`      | Your Sanity API token                                                                                                                                                            | ✅       |
+| `SANITY_PROJECT_ID`     | Optionally bind server to specific project. When set, tools don't require projectId in resource parameter                                                                        | ❌       |
+| `SANITY_DATASET`        | Optionally bind server to specific dataset. When set, tools don't require dataset in resource parameter                                                                          | ❌       |
 | `SANITY_API_HOST`       | API host (defaults to https://api.sanity.io)                                                                                                                                     | ❌       |
-| `MAX_TOOL_TOKEN_OUTPUT` | Maximum token output for tool responses (defaults to 50000). Adjust based on your model's context limits. Higher limits may pollute the conversation context with excessive data | ❌       |
+| `MAX_TOOL_TOKEN_OUTPUT` | Maximum tool token output (defaults to 50000). Adjust based on your model's context limits. Higher limits may pollute the conversation context with excessive data              | ❌       |
 
-All tools require project ID and dataset to be specified in their `resource` parameter when called.
+## Dynamic Tool Schemas
+
+Parameter requirements for project/dataset-specific tools change based on server configuration:
+
+- **No ENV project/dataset**: Relevant tools require full `resource: { projectId, dataset }`  
+- **ENV project only**: Relevant tools require `resource: { dataset }` (projectId from server)
+- **ENV dataset only**: Relevant tools require `resource: { projectId }` (dataset from server)  
+- **Both ENV set**: Relevant tools require no `resource` parameter (both from server)
+
+Account-level tools (like `list_projects`) don't require resource parameters regardless of configuration.
 
 > [!WARNING] 
 > **Using AI with Production Datasets**  

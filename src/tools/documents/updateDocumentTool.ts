@@ -1,6 +1,6 @@
 import {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
-import {WorkspaceNameSchema, BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {MaybeResourceParam, ToolCallExtra, WorkspaceNameSchema, createToolClient} from '../../utils/tools.js'
 import type {GenerateInstruction} from '@sanity/client'
 import {stringToAgentPath} from '../../utils/path.js'
 import {resolveDocumentId, resolveSchemaId} from '../../utils/resolvers.js'
@@ -13,7 +13,7 @@ const UpdateOperationSchema = z.object({
   instruction: z.string().describe('Instruction for AI to update the document content'),
 })
 
-export const UpdateDocumentToolParams = BaseToolSchema.extend({
+export const UpdateDocumentToolParams = z.object({
   operations: z
     .array(UpdateOperationSchema)
     .min(1)
@@ -36,8 +36,8 @@ export const UpdateDocumentToolParams = BaseToolSchema.extend({
 
 type Params = z.infer<typeof UpdateDocumentToolParams>
 
-async function _tool(params: Params) {
-  const client = createToolClient(params)
+async function _tool(params: Params & MaybeResourceParam, extra?: ToolCallExtra) {
+  const client = createToolClient(params, extra?.authInfo?.token)
   const runAsync = params.operations?.length > 1
   const checkpoints: Checkpoint[] = []
 

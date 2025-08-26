@@ -1,6 +1,6 @@
 import {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
-import {BaseToolSchema, createToolClient, WorkspaceNameSchema} from '../../utils/tools.js'
+import {createToolClient, MaybeResourceParam, ToolCallExtra, WorkspaceNameSchema} from '../../utils/tools.js'
 import {stringToAgentPath} from '../../utils/path.js'
 import {resolveDocumentId, resolveSchemaId} from '../../utils/resolvers.js'
 import {getMutationCheckpoint} from '../../utils/checkpoint.js'
@@ -42,7 +42,7 @@ const AppendOperation = z.object({
     ),
 })
 
-export const PatchDocumentToolParams = BaseToolSchema.extend({
+export const PatchDocumentToolParams = z.object({
   documentId: z.string().describe('The ID of the document to patch'),
   workspaceName: WorkspaceNameSchema,
   operation: z
@@ -65,8 +65,8 @@ export const PatchDocumentToolParams = BaseToolSchema.extend({
 
 type Params = z.infer<typeof PatchDocumentToolParams>
 
-async function _tool(params: Params) {
-  const client = createToolClient(params)
+async function _tool(params: Params & MaybeResourceParam, extra?: ToolCallExtra) {
+  const client = createToolClient(params, extra?.authInfo?.token)
   const documentId = resolveDocumentId(params.documentId, params.releaseId)
   const checkpoint = await getMutationCheckpoint(documentId, client)
 

@@ -1,10 +1,10 @@
-import type {z} from 'zod'
+import {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import type {Release} from '../../types/sanity.js'
 import {ReleaseSchemas} from './common.js'
-import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {createToolClient, MaybeResourceParam, ToolCallExtra} from '../../utils/tools.js'
 
-export const ListReleasesToolParams = BaseToolSchema.extend({
+export const ListReleasesToolParams = z.object({
   state: ReleaseSchemas.state.optional().default('active'),
 })
 
@@ -13,8 +13,8 @@ type Params = z.infer<typeof ListReleasesToolParams>
 const ALL_RELEASES_QUERY = 'releases::all()'
 const FILTERED_RELEASES_QUERY = `${ALL_RELEASES_QUERY}[state == $state]`
 
-export async function _tool(params: Params) {
-  const client = createToolClient(params)
+export async function _tool(params: Params & MaybeResourceParam, extra?: ToolCallExtra) {
+  const client = createToolClient(params, extra?.authInfo?.token)
   const query = params.state === 'all' ? ALL_RELEASES_QUERY : FILTERED_RELEASES_QUERY
   const releases = await client.fetch<Release[]>(query, {state: params.state})
 

@@ -12,7 +12,6 @@ export function getDefaultClientConfig(): ClientConfig {
 
   const clientConfig: ClientConfig = {
     apiHost: env.data.SANITY_API_HOST,
-    token: env.data.SANITY_API_TOKEN,
     apiVersion: 'vX', // vX until generate API ships in GA
     perspective: 'raw',
     useCdn: false,

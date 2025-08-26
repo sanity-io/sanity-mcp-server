@@ -1,13 +1,22 @@
-import type {z} from 'zod'
+import {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
-import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {createToolClient, MaybeResourceParam, ToolCallExtra} from '../../utils/tools.js'
 
-export const ListDatasetsToolParams = BaseToolSchema.extend({})
+export const ListDatasetsToolParams = z.object({
+  resource: z.object({
+    projectId: z.string().describe('The ID of the project to list datasets for')
+  }),
+})
 
 type Params = z.infer<typeof ListDatasetsToolParams>
 
-async function _tool(params: Params) {
-  const client = createToolClient(params)
+async function _tool(params: Params, extra?: ToolCallExtra) {
+  const client = createToolClient({
+    resource: {
+      projectId: params.resource.projectId,
+      dataset: 'dummy' // not needed for this API call, but required by client
+    }
+  }, extra?.authInfo?.token)
   const datasets = await client.datasets.list()
 
   // Filter out datasets with the 'comments' profile

@@ -2,10 +2,10 @@ import {z} from 'zod'
 import {ensureArray, pluralize} from '../../utils/formatters.js'
 import {validateGroqQuery} from '../../utils/groq.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
-import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {createToolClient, MaybeResourceParam, ToolCallExtra} from '../../utils/tools.js'
 import {tokenLimit, limitByTokens} from '../../utils/tokens.js'
 
-export const QueryDocumentsToolParams = BaseToolSchema.extend({
+export const QueryDocumentsToolParams = z.object({
   single: z
     .boolean()
     .optional()
@@ -32,13 +32,14 @@ export const QueryDocumentsToolParams = BaseToolSchema.extend({
 
 type Params = z.infer<typeof QueryDocumentsToolParams>
 
-async function _tool(params: Params) {
+async function _tool(params: Params & MaybeResourceParam, extra?: ToolCallExtra) {
   const validation = await validateGroqQuery(params.query)
   if (!validation.isValid) {
     throw new Error(`Invalid GROQ query: ${validation.error}`)
   }
 
-  const client = createToolClient(params)
+  const client = createToolClient(params, extra?.authInfo?.token)
+
   const perspectiveClient = client.withConfig({
     perspective: params.perspective ? [params.perspective] : ['raw'],
   })

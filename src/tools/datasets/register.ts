@@ -2,9 +2,10 @@ import type {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js'
 import {listDatasetsTool, ListDatasetsToolParams} from './listDatasets.js'
 import {createDatasetTool, CreateDatasetToolParams} from './createDatasetTool.js'
 import {updateDatasetTool, UpdateDatasetToolParams} from './updateDatasetTool.js'
+import { _BaseToolSchemaType } from '../../utils/tools.js'
 // import {deleteDatasetTool, DeleteDatasetToolParams} from './deleteDatasetTool.js'
 
-export function registerDatasetsTools(server: McpServer) {
+export function registerDatasetsTools(server: McpServer, baseSchema: _BaseToolSchemaType) {
   server.tool(
     'list_datasets',
     'Lists all datasets in your Sanity project',
@@ -20,7 +21,7 @@ export function registerDatasetsTools(server: McpServer) {
   server.tool(
     'update_dataset',
     "Modifies a dataset's name or access control settings",
-    UpdateDatasetToolParams.shape,
+    baseSchema.extend(UpdateDatasetToolParams.shape).shape,
     updateDatasetTool,
   )
   // server.tool(

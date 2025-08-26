@@ -4,6 +4,8 @@ dotenv.config()
 
 const EnvSchema = z.object({
   SANITY_API_TOKEN: z.string().describe('Sanity API token'),
+  SANITY_PROJECT_ID: z.string().optional().describe('Optionally bind server to specific project'),
+  SANITY_DATASET: z.string().optional().describe('Optionally bind server to specific dataset'),
   SANITY_API_HOST: z
     .string()
     .optional()

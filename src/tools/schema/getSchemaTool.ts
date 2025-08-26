@@ -3,10 +3,10 @@ import type {ManifestSchemaType} from '../../types/manifest.js'
 import {formatSchema} from '../../utils/schema.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {SCHEMA_DEPLOYMENT_INSTRUCTIONS} from './common.js'
-import {WorkspaceNameSchema, BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {MaybeResourceParam, ToolCallExtra, WorkspaceNameSchema, createToolClient} from '../../utils/tools.js'
 import {resolveSchemaId} from '../../utils/resolvers.js'
 
-export const GetSchemaToolParams = BaseToolSchema.extend({
+export const GetSchemaToolParams = z.object({
   workspaceName: WorkspaceNameSchema,
   type: z
     .string()
@@ -18,8 +18,8 @@ export const GetSchemaToolParams = BaseToolSchema.extend({
 
 type Params = z.infer<typeof GetSchemaToolParams>
 
-async function _tool(params: Params) {
-  const client = createToolClient(params)
+async function _tool(params: Params & MaybeResourceParam, extra?: ToolCallExtra) {
+  const client = createToolClient(params, extra?.authInfo?.token)
   const schemaId = resolveSchemaId(params.workspaceName)
   const schemaDoc = await client.fetch('*[_id == $schemaId][0]', {schemaId})
 

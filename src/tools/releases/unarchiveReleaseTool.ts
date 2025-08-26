@@ -1,17 +1,17 @@
 import {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {ReleaseSchemas} from './common.js'
-import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {createToolClient, MaybeResourceParam, ToolCallExtra} from '../../utils/tools.js'
 
-export const UnachiveReleaseToolParams = BaseToolSchema.extend({
+export const UnarchiveReleaseToolParams = z.object({
   releaseId: ReleaseSchemas.releaseId,
 })
 
-type Params = z.infer<typeof UnachiveReleaseToolParams>
+type Params = z.infer<typeof UnarchiveReleaseToolParams>
 
-async function _tool(params: Params) {
+async function _tool(params: Params & MaybeResourceParam, extra?: ToolCallExtra) {
   const {releaseId} = params
-  const client = createToolClient(params)
+  const client = createToolClient(params, extra?.authInfo?.token)
 
   await client.action({
     actionType: `sanity.action.release.unarchive`,

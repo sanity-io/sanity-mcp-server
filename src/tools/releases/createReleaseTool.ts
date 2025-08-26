@@ -1,11 +1,11 @@
-import type {z} from 'zod'
+import {z} from 'zod'
 import {parseDateString} from '../../utils/dates.js'
 import {generateSanityId} from '../../utils/id.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {ReleaseSchemas} from './common.js'
-import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {createToolClient, MaybeResourceParam, ToolCallExtra} from '../../utils/tools.js'
 
-export const CreateReleaseToolParams = BaseToolSchema.extend({
+export const CreateReleaseToolParams = z.object({
   title: ReleaseSchemas.title,
   description: ReleaseSchemas.description.optional(),
   releaseType: ReleaseSchemas.releaseType.optional(),
@@ -14,8 +14,8 @@ export const CreateReleaseToolParams = BaseToolSchema.extend({
 
 type Params = z.infer<typeof CreateReleaseToolParams>
 
-async function _tool(params: Params) {
-  const client = createToolClient(params)
+async function _tool(params: Params & MaybeResourceParam, extra?: ToolCallExtra) {
+  const client = createToolClient(params, extra?.authInfo?.token)
   const releaseId = generateSanityId(8, 'r')
   const intendedPublishAt = parseDateString(params.intendedPublishAt)
 
