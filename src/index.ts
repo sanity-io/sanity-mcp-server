@@ -4,7 +4,6 @@ import {StdioServerTransport} from '@modelcontextprotocol/sdk/server/stdio.js'
 import {registerAllPrompts} from './prompts/register.js'
 import {registerAllResources} from './resources/register.js'
 import {registerAllTools} from './tools/register.js'
-import {env} from './config/env.js'
 import {VERSION} from './config/version.js'
 import {MCP_INSTRUCTIONS} from './instructions.js'
 
