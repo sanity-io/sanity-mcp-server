@@ -37,7 +37,7 @@ Sanity MCP Server implements the [Model Context Protocol](https://modelcontextpr
 
 ### Remote server (preferred)
 
-[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](cursor://anysphere.cursor-deeplink/mcp/install?name=Sanity%20Developer&config=eyJ1cmwiOiJodHRwczovL21jcC5zYW5pdHkuaW8vZGV2ZWxvcGVyIiwidHlwZSI6Imh0dHAifQ%3D%3D)
+[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en/install-mcp?name=Sanity%20Developer&config=eyJ1cmwiOiJodHRwczovL21jcC5zYW5pdHkuaW8vZGV2ZWxvcGVyIiwidHlwZSI6Imh0dHAifQ%3D%3D)
 
 This README details how to run the MCP server locally. For a more production-ready setup, we recommend using the hosted remote server.
 
