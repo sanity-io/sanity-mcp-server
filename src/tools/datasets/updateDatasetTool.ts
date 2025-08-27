@@ -1,25 +1,30 @@
 import {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
-import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {createToolClient, MaybeResourceParam, ToolCallExtra} from '../../utils/tools.js'
 
-export const UpdateDatasetToolParams = BaseToolSchema.extend({
-  name: z
-    .string()
-    .describe('The name of the dataset (will be automatically formatted to match requirements)'),
+export const UpdateDatasetToolParams = z.object({
   aclMode: z.enum(['private', 'public']).optional().describe('The ACL mode for the dataset'),
 })
 
 type Params = z.infer<typeof UpdateDatasetToolParams>
 
-async function _tool(args: Params) {
-  const client = createToolClient(args)
-  const datasets = await client.datasets.list()
-  const datasetExists = datasets.some((dataset) => dataset.name === args.name)
-  if (!datasetExists) {
-    throw new Error(`Dataset '${args.name}' not found. The name has to be exact.`)
+async function _tool(args: Params & MaybeResourceParam, extra?: ToolCallExtra) {
+  const client = createToolClient(args, extra?.authInfo?.token)
+
+  // we rely on getting the dataset name through either passed param, or as a fallback in createToolClient (via ENV vars, for example), so we have to read it back out like this
+  const datasetName = client.config().dataset 
+
+  if (!datasetName) {
+    throw new Error('Dataset name to update is required')
   }
 
-  const newDataset = await client.datasets.edit(args.name, {
+  const datasets = await client.datasets.list()
+  const datasetExists = datasets.some((dataset) => dataset.name === datasetName)
+  if (!datasetExists) {
+    throw new Error(`Dataset '${datasetName}' not found. The name has to be exact.`)
+  }
+
+  const newDataset = await client.datasets.edit(datasetName, {
     aclMode: args.aclMode,
   })
 

@@ -100,10 +100,7 @@ To use the Sanity MCP server, add the following configuration to your applicatio
       "command": "npx",
       "args": ["-y", "@sanity/mcp-server@latest"],
       "env": {
-        "SANITY_PROJECT_ID": "your-project-id",
-        "SANITY_DATASET": "production",
-        "SANITY_API_TOKEN": "your-sanity-api-token",
-        "MCP_USER_ROLE": "developer"
+        "SANITY_API_TOKEN": "your-sanity-api-token"
       }
     }
   }
@@ -125,10 +122,9 @@ You don't get it to work? See the section on [Node.js configuration](#-nodejs-en
 
 ## 🛠️ Available Tools
 
-### Context & Setup <!-- omit in toc -->
+### Setup <!-- omit in toc -->
 
-- **get_initial_context** – IMPORTANT: Must be called before using any other tools to initialize context and get usage instructions.
-- **get_sanity_config** – Retrieves current Sanity configuration (projectId, dataset, apiVersion, etc.)
+Tools are ready to use immediately - no initialization required.
 
 ### Document Operations <!-- omit in toc -->
 
@@ -195,11 +191,21 @@ The server takes the following environment variables:
 | Variable                | Description                                                                                                                                                                      | Required |
 | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
 | `SANITY_API_TOKEN`      | Your Sanity API token                                                                                                                                                            | ✅       |
-| `SANITY_PROJECT_ID`     | Your Sanity project ID                                                                                                                                                           | ✅       |
-| `SANITY_DATASET`        | The dataset to use                                                                                                                                                               | ✅       |
-| `MCP_USER_ROLE`         | Determines tool access level (developer or editor)                                                                                                                               | ✅       |
+| `SANITY_PROJECT_ID`     | Optionally bind server to specific project. When set, tools don't accept projectId in resource parameter                                                                        | ❌       |
+| `SANITY_DATASET`        | Optionally bind server to specific dataset. When set, tools don't accept dataset in resource parameter                                                                          | ❌       |
 | `SANITY_API_HOST`       | API host (defaults to https://api.sanity.io)                                                                                                                                     | ❌       |
-| `MAX_TOOL_TOKEN_OUTPUT` | Maximum token output for tool responses (defaults to 50000). Adjust based on your model's context limits. Higher limits may pollute the conversation context with excessive data | ❌       |
+| `MAX_TOOL_TOKEN_OUTPUT` | Maximum tool token output (defaults to 50000). Adjust based on your model's context limits. Higher limits may pollute the conversation context with excessive data              | ❌       |
+
+## Dynamic Tool Schemas
+
+Parameter requirements for project/dataset-specific tools change based on server configuration:
+
+- **No ENV project/dataset**: Relevant tools require full `resource: { projectId, dataset }`  
+- **ENV project only**: Relevant tools require `resource: { dataset }` (projectId from server)
+- **ENV dataset only**: Relevant tools require `resource: { projectId }` (dataset from server)  
+- **Both ENV set**: Relevant tools accept no `resource` parameter (both from server)
+
+Account-level tools (like `list_projects`) don't require resource parameters regardless of configuration.
 
 > [!WARNING] 
 > **Using AI with Production Datasets**  
@@ -246,12 +252,6 @@ The token needs appropriate permissions based on your usage
 - Consider using environment variables for token management
 - Regularly rotate tokens for security
 
-### 👥 User Roles
-
-The server supports two user roles:
-
-- **developer**: Access to all tools
-- **editor**: Content-focused tools without project administration
 
 ## 📦 Node.js Environment Setup
 
@@ -361,11 +361,9 @@ For debugging, you can use the MCP inspector:
 
 ```bash
 npx @modelcontextprotocol/inspector \
+ -e SANITY_PROJECT_ID=<projectId> \
  -e SANITY_API_TOKEN=<token> \
- -e SANITY_PROJECT_ID=<project_id> \
  -e SANITY_API_HOST=https://api.sanity.io \
- -e SANITY_DATASET=<ds> \
- -e MCP_USER_ROLE=developer \
 node build/index.js
 ```
 

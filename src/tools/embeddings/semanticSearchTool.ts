@@ -1,11 +1,11 @@
 import {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import type {EmbeddingsQueryResultItem} from '../../types/sanity.js'
-import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {createToolClient, MaybeResourceParam, ToolCallExtra} from '../../utils/tools.js'
 import {pluralize} from '../../utils/formatters.js'
 import {limitByTokens, tokenLimit} from '../../utils/tokens.js'
 
-export const SemanticSearchToolParams = BaseToolSchema.extend({
+export const SemanticSearchToolParams = z.object({
   indexName: z.string().describe('The name of the embeddings index to search'),
   query: z.string().describe('The search query to find semantically similar content'),
   limit: z
@@ -18,8 +18,8 @@ export const SemanticSearchToolParams = BaseToolSchema.extend({
 
 type Params = z.infer<typeof SemanticSearchToolParams>
 
-async function _tool(params: Params) {
-  const client = createToolClient(params)
+async function _tool(params: Params & MaybeResourceParam, extra?: ToolCallExtra) {
+  const client = createToolClient(params, extra?.authInfo?.token)
   const config = client.config()
 
   const results = await client.request<EmbeddingsQueryResultItem[]>({

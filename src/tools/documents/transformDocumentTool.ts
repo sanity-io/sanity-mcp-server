@@ -1,7 +1,7 @@
 import {z} from 'zod'
 import {randomUUID} from 'node:crypto'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
-import {WorkspaceNameSchema, BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {MaybeResourceParam, ToolCallExtra, WorkspaceNameSchema, createToolClient} from '../../utils/tools.js'
 import {stringToAgentPath} from '../../utils/path.js'
 import {
   resolveAiActionInstruction,
@@ -11,7 +11,7 @@ import {
 import {getCreationCheckpoint, getMutationCheckpoint} from '../../utils/checkpoint.js'
 import type {DocumentId} from '@sanity/id-utils'
 
-export const TransformDocumentToolParams = BaseToolSchema.extend({
+export const TransformDocumentToolParams = z.object({
   documentId: z.string().describe('The ID of the source document to transform'),
   instruction: z.string().describe('Instructions for transforming the document content'),
   workspaceName: WorkspaceNameSchema,
@@ -45,8 +45,8 @@ export const TransformDocumentToolParams = BaseToolSchema.extend({
 
 type Params = z.infer<typeof TransformDocumentToolParams>
 
-async function _tool(params: Params) {
-  const client = createToolClient(params)
+async function _tool(params: Params & MaybeResourceParam, extra?: ToolCallExtra) {
+  const client = createToolClient(params, extra?.authInfo?.token)
   const sourceDocumentId = resolveDocumentId(params.documentId)
 
   const targetDocumentId =

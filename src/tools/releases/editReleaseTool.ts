@@ -1,10 +1,10 @@
-import type {z} from 'zod'
+import {z} from 'zod'
 import {parseDateString} from '../../utils/dates.js'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import {ReleaseSchemas} from './common.js'
-import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {createToolClient, MaybeResourceParam, ToolCallExtra} from '../../utils/tools.js'
 
-export const EditReleaseToolParams = BaseToolSchema.extend({
+export const EditReleaseToolParams = z.object({
   releaseId: ReleaseSchemas.releaseId,
   title: ReleaseSchemas.title.optional(),
   description: ReleaseSchemas.description.optional(),
@@ -15,8 +15,8 @@ export const EditReleaseToolParams = BaseToolSchema.extend({
 })
 type Params = z.infer<typeof EditReleaseToolParams>
 
-async function _tool(params: Params) {
-  const client = createToolClient(params)
+async function _tool(params: Params & MaybeResourceParam, extra?: ToolCallExtra) {
+  const client = createToolClient(params, extra?.authInfo?.token)
   const metadataChanges = {} as Record<string, unknown>
   if (params.title) metadataChanges.title = params.title
   if (params.description) metadataChanges.description = params.description

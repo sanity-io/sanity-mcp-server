@@ -1,15 +1,15 @@
-import type {z} from 'zod'
+import {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import type {EmbeddingsIndex} from '../../types/sanity.js'
-import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {createToolClient, MaybeResourceParam, ToolCallExtra} from '../../utils/tools.js'
 import {pluralize} from '../../utils/formatters.js'
 
-export const ListEmbeddingsIndicesToolParams = BaseToolSchema.extend({})
+export const ListEmbeddingsIndicesToolParams = z.object({})
 
 type Params = z.infer<typeof ListEmbeddingsIndicesToolParams>
 
-export async function _tool(params: Params) {
-  const client = createToolClient(params)
+export async function _tool(params: Params & MaybeResourceParam, extra?: ToolCallExtra) {
+  const client = createToolClient(params, extra?.authInfo?.token)
   const config = client.config()
 
   const indices = await client.request<EmbeddingsIndex[]>({

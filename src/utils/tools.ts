@@ -1,9 +1,11 @@
-import {z} from 'zod'
-import {createClient, type SanityClient} from '@sanity/client'
-import {requester as baseRequester} from '@sanity/client'
+import { z } from 'zod'
+import { createClient } from '@sanity/client'
+import { getDefaultClientConfig } from '../config/sanity.js'
+import { RequestHandlerExtra } from '@modelcontextprotocol/sdk/shared/protocol.js'
+import { ServerNotification, ServerRequest } from '@modelcontextprotocol/sdk/types.js'
+import { env } from '../config/env.js'
 import {headers as headersMiddleware} from 'get-it/middleware'
-import {env} from '../config/env.js'
-import {getDefaultClientConfig} from '../config/sanity.js'
+import {requester as baseRequester} from '@sanity/client'
 
 /**
  * Schema-related constants and schemas
@@ -14,23 +16,45 @@ export const WorkspaceNameSchema = z
     'Workspace name derived from the manifest, not document type. Derived from context or listSchemaWorkspacesTool',
   )
 
-/**
- * Resources-related schemas
- */
-const DatasetBaseToolSchema = z
-  .object({
-    target: z
-      .literal('dataset')
-      .describe('Used when targeting studio resources')
-      .default('dataset'),
-    projectId: z.string().describe('Unique identifier for the project'),
-    dataset: z.string().describe('Name or identifier of the dataset'),
-  })
-  .describe('Object that represents a studio resource with its associated project and dataset')
+export type MaybeResourceParam = {
+  resource?: {
+    projectId?: string
+    dataset?: string
+  }
+}
 
-export const BaseToolSchema = z.object({
-  resource: DatasetBaseToolSchema,
-})
+export type _BaseToolSchemaType =
+  | z.ZodObject<{}>
+  | z.ZodObject<{ resource: z.ZodObject<{ dataset: z.ZodString }> }>
+  | z.ZodObject<{ resource: z.ZodObject<{ projectId: z.ZodString }> }>
+  | z.ZodObject<{ resource: z.ZodObject<{ projectId: z.ZodString, dataset: z.ZodString }> }>
+
+export type ToolCallExtra = RequestHandlerExtra<ServerRequest, ServerNotification>
+
+// Creates the actual base tool schema that gets published in the MCP
+export function makeBaseToolParamsSchema(serverOptions?: any): _BaseToolSchemaType {
+  if (serverOptions?.projectId && serverOptions?.dataset) {
+    return z.object({})
+  }
+
+  let ResourceSchema = z.object({})
+
+  if (!serverOptions?.projectId) {
+    ResourceSchema = ResourceSchema.extend({
+      projectId: z.string().describe('The Sanity project id'),
+    })
+  }
+
+  if (!serverOptions?.dataset) {
+    ResourceSchema = ResourceSchema.extend({
+      dataset: z.string().describe('The name of the dataset in the project'),
+    })
+  }
+
+  return z.object({
+    resource: ResourceSchema.describe('Resource information indicating which project id and dataset to target'),
+  })
+}
 
 /**
  * Creates a Sanity client with the correct configuration based on resource parameters
@@ -38,33 +62,35 @@ export const BaseToolSchema = z.object({
  * @param params - Tool parameters that may include a resource
  * @returns Configured Sanity client
  */
-export function createToolClient<T extends z.infer<typeof BaseToolSchema>>(
-  {resource}: T = {} as T,
-): SanityClient {
+export function createToolClient(params: MaybeResourceParam, token?: string) {
   const clientConfig = getDefaultClientConfig()
-  // TODO: Consider removing this clause when MCP oauth is in place
-  if (env.data?.MCP_USER_ROLE !== 'internal_agent_role') {
-    return createClient(clientConfig)
+
+  const projectId = params.resource?.projectId || env.data?.SANITY_PROJECT_ID
+  if (!projectId) {
+    throw new Error('Project ID is required')
   }
 
-  if (resource?.target === 'dataset') {
-    clientConfig.projectId = resource.projectId
-    clientConfig.dataset = resource.dataset
+  const dataset = params.resource?.dataset || env.data?.SANITY_DATASET
+  if (!dataset) {
+    throw new Error('Dataset is required')
+  }
 
-    // Modify the Host header to be prefixed with the project ID for internal requests
-    if (env.data.INTERNAL_REQUESTER_HEADERS) {
-      const requester = baseRequester.clone()
-      const headerValues = {...env.data.INTERNAL_REQUESTER_HEADERS}
-      // If headers.Host exists and is not already prefixed with the project ID
-      if (headerValues.Host && !headerValues.Host.startsWith(`${resource.projectId}.`)) {
-        headerValues.Host = `${resource.projectId}.${headerValues.Host}`
-      }
-      requester.use(headersMiddleware(headerValues))
-      clientConfig.requester = requester
+  // Modify the Host header to be prefixed with the project ID for internal requests
+  if (env.data?.INTERNAL_REQUESTER_HEADERS) {
+    const requester = baseRequester.clone()
+       const headerValues = { ...env.data.INTERNAL_REQUESTER_HEADERS }
+    // If headers.Host exists and is not already prefixed with the project ID
+    if (projectId && headerValues.Host && !headerValues.Host.startsWith(`${projectId}.`)) {
+      headerValues.Host = `${projectId}.${headerValues.Host}`
     }
-
-    return createClient(clientConfig)
+    requester.use(headersMiddleware(headerValues))
+    clientConfig.requester = requester
   }
+
+
+  clientConfig.projectId = projectId
+  clientConfig.dataset = dataset
+  clientConfig.token = token || env.data?.SANITY_API_TOKEN
 
   return createClient(clientConfig)
 }

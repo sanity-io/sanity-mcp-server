@@ -1,26 +1,34 @@
 import {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
-import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {createToolClient, ToolCallExtra} from '../../utils/tools.js'
 
-export const DeleteDatasetToolParams = BaseToolSchema.extend({
-  name: z.string().describe('The name of the dataset to delete'),
+export const DeleteDatasetToolParams = z.object({
+  resource: z.object({
+    projectId: z.string().describe('The Sanity project id the dataset belongs to'),
+  }),
+  datasetName: z.string().describe('The name of the dataset to delete'),
 })
 
 type Params = z.infer<typeof DeleteDatasetToolParams>
 
-async function _tool(args: Params) {
-  const client = createToolClient(args)
+async function _tool(args: Params, extra?: ToolCallExtra) {
+  const client = createToolClient({
+    resource: {
+      projectId: args.resource.projectId,
+      dataset: args.datasetName,
+    }
+  }, extra?.authInfo?.token)
 
   const datasets = await client.datasets.list()
-  const datasetExists = datasets.some((dataset) => dataset.name === args.name)
+  const datasetExists = datasets.some((dataset) => dataset.name === args.datasetName)
   if (!datasetExists) {
-    throw new Error(`Dataset '${args.name}' not found. The name has to be exact.`)
+    throw new Error(`Dataset '${args.datasetName}' not found. The name has to be exact.`)
   }
 
-  await client.datasets.delete(args.name)
+  await client.datasets.delete(args.datasetName)
 
   return createSuccessResponse('Dataset deleted successfully', {
-    deletedDataset: args.name,
+    deletedDataset: args.datasetName,
   })
 }
 

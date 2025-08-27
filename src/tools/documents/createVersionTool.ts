@@ -1,6 +1,6 @@
 import {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
-import {BaseToolSchema, createToolClient, WorkspaceNameSchema} from '../../utils/tools.js'
+import {createToolClient, MaybeResourceParam, ToolCallExtra, WorkspaceNameSchema} from '../../utils/tools.js'
 import {
   resolveAiActionInstruction,
   resolveDocumentId,
@@ -11,7 +11,7 @@ import {getDocument} from '../../utils/document.js'
 import {getCreationCheckpoint} from '../../utils/checkpoint.js'
 import {processBulkOperation, createBulkOperationMessage} from '../../utils/bulk.js'
 
-export const CreateVersionToolParams = BaseToolSchema.extend({
+export const CreateVersionToolParams = z.object({
   documentIds: z
     .array(z.string())
     .min(1)
@@ -27,8 +27,8 @@ export const CreateVersionToolParams = BaseToolSchema.extend({
 
 type Params = z.infer<typeof CreateVersionToolParams>
 
-async function _tool(params: Params) {
-  const client = createToolClient(params)
+async function _tool(params: Params & MaybeResourceParam, extra?: ToolCallExtra) {
+  const client = createToolClient(params, extra?.authInfo?.token)
   const checkpoints: Checkpoint[] = []
 
   const release = await client.releases.get({releaseId: params.releaseId})

@@ -1,10 +1,14 @@
-import type {z} from 'zod'
+import {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
 import type {SanityApplication} from '../../types/sanity.js'
-import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {createToolClient} from '../../utils/tools.js'
 import {pluralize} from '../../utils/formatters.js'
 
-export const GetProjectStudiosToolParams = BaseToolSchema.extend({})
+export const GetProjectStudiosToolParams = z.object({
+  resource: z.object({
+    projectId: z.string().describe('ID of the Sanity project'),
+  }),
+})
 
 type Params = z.infer<typeof GetProjectStudiosToolParams>
 
@@ -13,7 +17,7 @@ async function _tool(args: Params) {
   const projectId = client.config().projectId
 
   if (!projectId) {
-    throw new Error('A dataset resource is required')
+    throw new Error('A project id is required')
   }
 
   const applications = await client.request<SanityApplication[]>({

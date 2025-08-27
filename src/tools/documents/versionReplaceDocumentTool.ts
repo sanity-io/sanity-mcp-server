@@ -1,9 +1,9 @@
 import {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
-import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {createToolClient, MaybeResourceParam, ToolCallExtra} from '../../utils/tools.js'
 import {resolveDocumentId} from '../../utils/resolvers.js'
 
-export const VersionReplaceDocumentToolParams = BaseToolSchema.extend({
+export const VersionReplaceDocumentToolParams = z.object({
   id: z.string().describe('ID of the published document'),
   type: z.literal('version.replace'),
   releaseId: z.string().describe('ID of the release that contains this document version'),
@@ -12,8 +12,8 @@ export const VersionReplaceDocumentToolParams = BaseToolSchema.extend({
 
 type Params = z.infer<typeof VersionReplaceDocumentToolParams>
 
-async function _tool(params: Params) {
-  const client = createToolClient(params)
+async function _tool(params: Params & MaybeResourceParam, extra?: ToolCallExtra) {
+  const client = createToolClient(params, extra?.authInfo?.token)
   const publishedId = resolveDocumentId(params.id, false)
 
   const versionId = resolveDocumentId(publishedId, params.releaseId)

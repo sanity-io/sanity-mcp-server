@@ -1,14 +1,9 @@
-import type {z} from 'zod'
 import {createSuccessResponse, withErrorHandling} from '../../utils/response.js'
-import {BaseToolSchema, createToolClient} from '../../utils/tools.js'
+import {createToolClient} from '../../utils/tools.js'
 import {pluralize} from '../../utils/formatters.js'
 
-export const ListProjectsToolParams = BaseToolSchema.extend({})
-
-type Params = z.infer<typeof ListProjectsToolParams>
-
-async function _tool(params: Params) {
-  const client = createToolClient(params)
+async function _tool() {
+  const client = createToolClient({})
   const projects = await client.projects.list()
 
   if (projects.length === 0) {
