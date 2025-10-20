@@ -1,5 +1,9 @@
 # Sanity MCP Server <!-- omit in toc -->
 
+> [!NOTE]
+> **This repository is archived and no longer actively maintained.**
+> We now recommend using our hosted server at **[mcp.sanity.io](https://mcp.sanity.io)** which offers streamable HTTP transport, OAuth authentication, continually updated tools, and production-ready reliability without any local setup required.
+
 > Transform your content operations with AI-powered tools for Sanity. Create, manage, and explore your content through natural language conversations in your favorite AI-enabled editor.
 
 Sanity MCP Server implements the [Model Context Protocol](https://modelcontextprotocol.ai) to connect your Sanity projects with AI tools like Claude, Cursor, and VS Code. It enables AI models to understand your content structure and perform operations through natural language instructions.
@@ -37,22 +41,30 @@ Sanity MCP Server implements the [Model Context Protocol](https://modelcontextpr
 
 ### Remote server (preferred)
 
-[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/en/install-mcp?name=Sanity%20Developer&config=eyJ1cmwiOiJodHRwczovL21jcC5zYW5pdHkuaW8vZGV2ZWxvcGVyIiwidHlwZSI6Imh0dHAifQ%3D%3D)
-
-This README details how to run the MCP server locally. For a more production-ready setup, we recommend using the hosted remote server.
+The hosted server at **[mcp.sanity.io](https://mcp.sanity.io)** supports modern streamable HTTP transport and OAuth authentication. Add this configuration to your MCP client:
 
 ```json
 {
   "mcpServers": {
-    "Sanity Developer": {
-      "url": "https://mcp.sanity.io/developer",
+    "Sanity": {
+      "url": "https://mcp.sanity.io",
       "type": "http"
     }
   }
 }
 ```
 
-See [Sanity MCP Server](https://www.sanity.io/docs/compute-and-ai/mcp-server) in the documentation for install instructions in Claude Code, Cursor and more.
+**Benefits of the remote server:**
+- Streamable HTTP for better performance
+- OAuth for secure authentication (no tokens to manage)
+- Latest tools and features automatically
+- No Node.js setup required
+
+See [mcp.sanity.io](https://mcp.sanity.io) for complete installation instructions for Claude Code, Cursor, and other MCP clients.
+
+---
+
+**Note:** The local server instructions below are for self-hosting only. This repository is archived and no longer maintained.
 
 ### Local server prerequisites
 
